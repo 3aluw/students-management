@@ -4,7 +4,7 @@ import {ProductService} from "~/service/ProductService.js";
 import {useLayout} from "~/layouts/composables/layout.js";
 
 const { getPrimary, getSurface, isDarkTheme } = useLayout();
-
+const { data } = useFetch("/api/student")
 const products = ref(null);
 const chartData = ref(null);
 const chartOptions = ref(null);

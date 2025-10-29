@@ -9,5 +9,11 @@
 import { ar } from '~/assets/prime-vue-ar.json'
 const primeConfig = usePrimeVue()
  primeConfig.config.locale = ar
-
+useHead({
+  htmlAttrs: {
+    dir: 'rtl',
+    lang: 'ar'
+  }
+})
 </script>
+
