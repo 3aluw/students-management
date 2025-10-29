@@ -5,6 +5,19 @@ import AppMenuItem from './AppMenuItem.vue';
 
 const model = ref([
     {
+        label: 'الجداول',
+        items: [
+            { label: 'الطلبة', icon: 'pi pi-fw pi-graduation-cap', to: '/students' },
+            { label: 'الإبطاءات', icon: 'pi pi-fw pi-clock', to: '/lateness' },
+            { label: 'الغيابات', icon: 'pi pi-fw pi-ban', to: '/absences' },
+
+        ]
+    },
+    {
+        label: 'إحصائيات',
+        items: [{ label: 'إحصائيات', icon: 'pi pi-fw pi-chart-bar', to: '/stats' }]
+    },
+    {
         label: 'Home',
         items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', to: '/' }]
     },
