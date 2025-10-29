@@ -49,6 +49,7 @@ db.prepare(
     reason TEXT,
     reason_accepted BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (student_id) REFERENCES student(id)
+    UNIQUE(student_id, date, enter_time)
   )
 `
 ).run(); 
@@ -63,6 +64,7 @@ db.prepare(
     reason TEXT,
     reason_accepted BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (student_id) REFERENCES student(id)
+    UNIQUE(student_id, date)
   )
 `
 ).run();
