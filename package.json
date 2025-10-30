@@ -11,11 +11,13 @@
   },
   "dependencies": {
     "@nuxtjs/tailwindcss": "^6.12.2",
+    "@pinia/nuxt": "^0.11.2",
     "@primeuix/themes": "^1.0.0",
     "@primevue/forms": "^4.3.2",
     "better-sqlite3": "^12.4.1",
     "chart.js": "4.4.6",
     "nuxt": "^3.14.159",
+    "pinia": "^3.0.3",
     "primeicons": "^7.0.0",
     "primevue": "^4.2.2",
     "tailwindcss-primeui": "^0.3.4",
