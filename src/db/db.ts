@@ -23,10 +23,12 @@ db.prepare(
   `
   CREATE TABLE IF NOT EXISTS student (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    class_id INTEGER,
+    class_id INTEGER NOT NULL,
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
     father_name TEXT NOT NULL,
+    grandfather_name TEXT NOT NULL,
+    sex TEXT NOT NULL CHECK (sex IN ('M', 'F')) DEFAULT 'M',
     phone_number TEXT NOT NULL,
     birth_date INT NOT NULL,
     address TEXT NOT NULL,
