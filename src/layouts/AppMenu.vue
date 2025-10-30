@@ -14,8 +14,12 @@ const model = ref([
         ]
     },
     {
-        label: 'إحصائيات',
-        items: [{ label: 'إحصائيات', icon: 'pi pi-fw pi-chart-bar', to: '/stats' }]
+        label: 'إعدادات',
+        items: [
+            { label: 'إحصائيات', icon: 'pi pi-fw pi-chart-bar', to: '/stats' },
+            { label: 'الأقسام', icon: 'pi pi-fw pi-building-columns', to: '/classes' },
+
+        ]
     },
     {
         label: 'Home',
