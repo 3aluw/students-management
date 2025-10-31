@@ -22,7 +22,8 @@
     "primevue": "^4.2.2",
     "tailwindcss-primeui": "^0.3.4",
     "vue": "latest",
-    "vue-router": "latest"
+    "vue-router": "latest",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@primevue/nuxt-module": "^4.2.2",
