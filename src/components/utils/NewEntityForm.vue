@@ -1,8 +1,7 @@
 <template>
     <div class="card flex flex-col items-center gap-5">
         <Toast />
-        <Form v-slot="$form" :initialValues="initialValues" :validateOnValueUpdate="false" :validateOnBlur="true"
-            :resolver="resolver" @submit="onFormSubmit" class="flex flex-col gap-4 w-full sm:w-80">
+        <Form v-if="props.entityType == 'student'" v-slot="$form" :resolver="resolver" @submit="onFormSubmit" class="flex flex-col gap-4 w-full sm:w-80">
             <!-- First Name -->
             <div class="flex flex-col gap-1">
                 <InputText name="first_name" type="text" placeholder="الاسم" fluid />
@@ -10,7 +9,6 @@
                     $form.first_name.error.message }}</Message>
 
             </div>
-
             <!-- Last Name -->
             <div class="flex flex-col gap-1">
                 <InputText name="last_name" placeholder="اللقب" fluid />
@@ -55,6 +53,7 @@
             <!-- Phone Number -->
             <div class="flex flex-col gap-1">
                 <InputText name="phone_number" placeholder="رقم الهاتف" fluid />
+                
                 <Message v-if="$form.phone_number?.invalid" severity="error" size="small" variant="simple">
                     {{ $form.phone_number.error?.message }}
                 </Message>
@@ -62,7 +61,7 @@
 
             <!-- Birth Date -->
             <div class="flex flex-col gap-1">
-                <DatePicker name="birth_date" format="@" placeholder="تاريخ الميلاد" fluid showIcon />
+                <DatePicker name="birth_date"  placeholder="تاريخ الميلاد" fluid showIcon />
                 <Message v-if="$form.birth_date?.invalid" severity="error" size="small" variant="simple">
                     {{ $form.birth_date.error?.message }}
                 </Message>
@@ -91,6 +90,7 @@ import { z } from 'zod';
 import { useToast } from 'primevue/usetoast';
 import type { NewStudent } from '~/data/types';
 import type { FormSubmitEvent } from "@primevue/forms"
+const { getRequiredFieldMessage } = useFormUtils()
 const studentStore = useStudentStore();
 
 const classOptions = computed(() => {
@@ -101,7 +101,7 @@ const classOptions = computed(() => {
 })
 const toast = useToast();
 
-defineProps<{
+const props = defineProps<{
     entityType: "student" | "class";
 }>()
 const initialValues = ref({
@@ -119,15 +119,15 @@ const initialValues = ref({
 
 const resolver = ref(zodResolver(
     z.object({
-        first_name: z.string().min(3, { message: 'يجب إدخال اسم للطالب' }),
-        last_name: z.string().min(3, { message: 'يجب إدخال اسم العائلة ' }),
-        father_name: z.string().min(3, { message: 'يجب إدخال اسم الأب ' }),
-        grandfather_name: z.string().min(3, { message: 'يجب إدخال اسم الجد ' }),
-        class_id: z.coerce.number({ error: 'يجب اختيار الصف ' }),
-        sex: z.literal(['F', 'M']),
-        phone_number: z.string().length(10, { message: 'يجب إدخال رقم هاتف صحيح ' }),
-        birth_date: z.coerce.date().transform(d => d.getTime()),
-        address: z.string().min(10, { message: 'يجب إدخال العنوان بدقة ' }),
+        first_name: z.string({ error: getRequiredFieldMessage("first_name") }).min(3, { message: 'يجب إدخال اسم الطالب كاملا' }),
+        last_name: z.string({ error: getRequiredFieldMessage("last_name") }).min(3, { message: 'يجب إدخال اللقب كاملا ' }),
+        father_name: z.string({ error: getRequiredFieldMessage("father_name") }).min(3, { message: 'يجب استكمال اسم الأب ' }),
+        grandfather_name: z.string({ error: getRequiredFieldMessage("grandfather_name") }).min(3, { message: 'يجب استكمال اسم الجد ' }),
+        class_id: z.number({ error: getRequiredFieldMessage("class_id") }),
+        sex: z.literal(['F', 'M'], { error: getRequiredFieldMessage("sex") }),
+        phone_number: z.string({ error: getRequiredFieldMessage("phone_number") }).length(10, { message: 'يجب إدخال رقم هاتف صحيح ' }),
+        birth_date: z.date({ error: getRequiredFieldMessage("birth_date") }).transform(d => d.getTime()),
+        address: z.string({ error: getRequiredFieldMessage("address") }).min(10, { message: 'يجب إدخال العنوان بدقة ' }),
     }) satisfies z.ZodType<NewStudent>
 )
 );
@@ -135,9 +135,9 @@ const resolver = ref(zodResolver(
 
 
 
+
 const onFormSubmit = (event: FormSubmitEvent) => {
     if (event.valid) {
-        console.log(event.values);
         toast.add({ severity: 'success', summary: 'Form is submitted.', life: 3000 });
     }
 }
