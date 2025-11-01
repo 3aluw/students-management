@@ -1,3 +1,4 @@
+export type NewEntity<T extends { id: any }> = Omit<T, 'id'>;
 /**
  * Represents a row in the `class` table.
  */
@@ -17,7 +18,7 @@ export interface Student {
   last_name: string;         // TEXT NOT NULL
   father_name: string;       // TEXT NOT NULL
   grandfather_name: string;  // TEXT NOT NULL
-  sex: 'M' | 'F';            // CHECK (sex IN ('M', 'F')) DEFAULT 'M'
+  sex: Gender;            // CHECK (sex IN ('M', 'F')) DEFAULT 'M'
   phone_number: string;      // TEXT NOT NULL
   birth_date: number;        // INT (timestamp)
   address: string;           // TEXT NOT NULL
@@ -46,3 +47,11 @@ export interface Absence {
   reason: string | null;    // TEXT (nullable)
   reason_accepted: boolean; // BOOLEAN DEFAULT FALSE
 }
+
+
+export type NewStudent = NewEntity<Student>;
+export type NewClass = NewEntity<Class>;
+export type NewLateness = NewEntity<Lateness>;
+export type NewAbsence = NewEntity<Absence>;
+
+export type Gender = 'M' | 'F';
