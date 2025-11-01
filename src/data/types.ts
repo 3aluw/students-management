@@ -5,7 +5,7 @@ export type NewEntity<T extends { id: any }> = Omit<T, 'id'>;
 export interface Class {
   id: number;            // PRIMARY KEY AUTOINCREMENT
   level: number;         // INT NOT NULL
-  abbreviation: string;  // TEXT NOT NULL
+  section: string;  // TEXT NOT NULL
 }
 
 /**
