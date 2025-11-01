@@ -1,4 +1,4 @@
-import type { Gender, Student } from "./types";
+import type { Class, Gender, Student } from "./types";
 
 export const genderOptions = [
   { label: "ذكر", value: "M" },
@@ -8,7 +8,7 @@ export const genderOptions = [
   value: Gender;
 }[];
 
-export const ArabicStudentProperties : Record<keyof Student,string> ={
+export const ArabicStudentProperties: Record<keyof Student, string> = {
   id: "المعرف",
   first_name: "الاسم",
   last_name: "اللقب",
@@ -19,4 +19,9 @@ export const ArabicStudentProperties : Record<keyof Student,string> ={
   phone_number: "رقم الهاتف",
   birth_date: "تاريخ الميلاد",
   address: "العنوان",
-}
+};
+export const ArabicClassProperties: Record<keyof Class, string> = {
+  id: "المعرف",
+  level: "المستوى",
+  section: "الحرف",
+};
