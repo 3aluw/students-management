@@ -1,10 +1,25 @@
-import type { Class } from '~/data/types';
-import db from '~/db/db';
+import type { Class } from "~/data/types";
+import db from "~/db/db";
+import useDBUtils from "../../../composables/useDBUtils";
 
 export default defineEventHandler(async (event) => {
-  const {id,level,abbreviation} = await readBody<Class>(event) ;
-  const stmt = db.prepare('INSERT INTO student (id,level,abbreviation) VALUES (?, ?, ?)');
-  const info = stmt.run(id,level,abbreviation);
+  const { generateDBSetClause } = useDBUtils();
 
-  return { success: true, id: info.lastInsertRowid, info };
+  const reqBody = await readBody<Class>(event);
+  const { level, section, id } = reqBody;
+  // if no id : Create a new item
+  if (!id) {
+    const stmt = db.prepare("INSERT INTO class (level,section) VALUES (?, ?)");
+    const info = stmt.run(level, section);
+    return { success: true, id: info.lastInsertRowid, info };
+  } // if id : item exists So update it
+  else {
+    const keys = Object.keys(reqBody);
+    const values = Object.values(reqBody);
+    
+    const setClause = generateDBSetClause(reqBody);
+    const stmt = db.prepare(`UPDATE class SET ${setClause} WHERE id = ?`);
+    const info = stmt.run(...values, reqBody.id);
+    return { success: true, id: info.lastInsertRowid, info };
+  }
 });
