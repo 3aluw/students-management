@@ -1,8 +1,8 @@
 <template>
     <div class="card flex flex-col items-center gap-5">
         <Toast />
-        <Form v-if="props.entityType == 'student'" v-slot="$form" :resolver="resolver" @submit="onFormSubmit"
-            class="flex flex-col gap-4 w-full sm:w-80">
+        <Form v-if="props.entityType == 'student'" :initialValues="props.entityObject" v-slot="$form" :resolver="resolver" @submit="onFormSubmit"
+            class="flex flex-col gap-4 w-full sm:w-80"> 
             <!-- First Name -->
             <div class="flex flex-col gap-1">
                 <InputText name="first_name" type="text" placeholder="الاسم" fluid />
@@ -80,8 +80,10 @@
             <Button type="submit" label="إرسال" severity="secondary" />
         </Form>
 
-        <Form v-else-if="props.entityType == 'class'" v-slot="$form" :resolver="resolver" @submit="onFormSubmit"
-            class="flex flex-col gap-4 w-full sm:w-80">
+
+
+        <Form v-else-if="props.entityType == 'class'" :initialValues="props.entityObject" v-slot="$form" :resolver="resolver" @submit="onFormSubmit"
+            class="flex flex-col gap-4 w-full sm:w-80"> 
             <!-- Level -->
             <div class="flex flex-col gap-1">
                 <InputNumber  name="level" placeholder="المستوى" :min="0" :max="10" fluid />
@@ -102,13 +104,13 @@
 
 </template>
 
-<script setup lang="ts">
+<script setup lang="ts"  generic="T extends 'student' | 'class'">
 import { useStudentStore } from '~/store/studentStore';
 import { genderOptions } from '~/data/static';
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from 'primevue/usetoast';
-import type { NewClass, NewStudent } from '~/data/types';
+import type { NewClass, NewStudent, Student, Class  } from '~/data/types';
 import type { FormSubmitEvent } from "@primevue/forms"
 const { getRequiredFieldMessage } = useFormUtils()
 const studentStore = useStudentStore();
@@ -121,21 +123,18 @@ const classOptions = computed(() => {
 })
 const toast = useToast();
 
-const props = defineProps<{
-    entityType: "student" | "class";
-}>()
-const initialValues = ref({
-    first_name: '',
-    last_name: '',
-    father_name: '',
-    grandfather_name: '',
-    class_id: undefined,
-    sex: "M",
-    phone_number: '',
-    birth_date: undefined,
-    address: '',
-});
+type Entity<T extends 'student' | 'class'> = T extends 'student' ? Student : Class
 
+type newEntity<T extends 'student' | 'class'> = T extends 'student' ? NewStudent : NewClass
+
+const props = defineProps<{
+    entityType: T;
+    entityObject?: Entity<T>
+}>()
+
+const emit= defineEmits<{
+    (e: 'submit', obj:  newEntity<T>): void;
+}>()
 
 const resolver = computed(() => props.entityType == 'student' ? zodResolver(studentZodSchema) :
     zodResolver(classZodSchema)
@@ -159,11 +158,12 @@ const classZodSchema = z.object({
 
 
 
-const onFormSubmit = (event: FormSubmitEvent) => {
-    if (event.valid) {
-        toast.add({ severity: 'success', summary: 'Form is submitted.', life: 3000 });
-    }
-}
 
+const onFormSubmit = (event: FormSubmitEvent) => {
+  if (!event.valid) return
+
+  toast.add({ severity: 'info', summary: 'يتم معالجة طلبك', life: 3000 })
+  emit('submit', event.values as newEntity<T>)
+}
 
 </script>
