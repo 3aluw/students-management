@@ -4,7 +4,6 @@ import {ProductService} from "~/service/ProductService.js";
 import {useLayout} from "~/layouts/composables/layout.js";
 
 const { getPrimary, getSurface, isDarkTheme } = useLayout();
-const { data } = useFetch("/api/student")
 const products = ref(null);
 const chartData = ref(null);
 const chartOptions = ref(null);
@@ -101,6 +100,7 @@ watch([getPrimary, getSurface, isDarkTheme], () => {
 </script>
 
 <template>
+  <UtilsNewEntityForm entityType="class" />
   <div class="grid grid-cols-12 gap-8">
     <div class="col-span-12 lg:col-span-6 xl:col-span-3">
       <div class="card mb-0">
