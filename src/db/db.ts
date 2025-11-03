@@ -12,8 +12,10 @@ const db = new Database(dbPath);
 db.prepare(`
   CREATE TABLE IF NOT EXISTS class (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    level INT NOT NULL,
-    abbreviation TEXT NOT NULL
+    grade INT NOT NULL,
+    school_level TEXT NOT NULL,
+    section TEXT NOT NULL,
+    UNIQUE (school_level, grade, section)
   )
 `).run(); 
 
@@ -34,7 +36,8 @@ db.prepare(
     address TEXT NOT NULL,
     FOREIGN KEY (class_id) REFERENCES class(id)
     ON UPDATE CASCADE
-    ON DELETE CASCADE
+    ON DELETE CASCADE,
+    UNIQUE (first_name, last_name, father_name, grandfather_name, birth_date)
   )
 `
 ).run();
@@ -42,7 +45,7 @@ db.prepare(
 
  db.prepare(
   `
-  CREATE TABLE IF NOT EXISTS Lateness (
+  CREATE TABLE IF NOT EXISTS lateness (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     student_id INTEGER NOT NULL,
     date INTEGER NOT NULL,
@@ -50,7 +53,7 @@ db.prepare(
     lateBy INT NOT NULL,
     reason TEXT,
     reason_accepted BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (student_id) REFERENCES student(id)
+    FOREIGN KEY (student_id) REFERENCES student(id),
     UNIQUE(student_id, date, enter_time)
   )
 `
@@ -65,10 +68,17 @@ db.prepare(
     date INTEGER NOT NULL,
     reason TEXT,
     reason_accepted BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (student_id) REFERENCES student(id)
+    FOREIGN KEY (student_id) REFERENCES student(id),
     UNIQUE(student_id, date)
   )
 `
 ).run();
+
+/* 
+// DROP TABLES
+ db.prepare('DROP TABLE class').run()
+db.prepare('DROP TABLE student').run()
+db.prepare('DROP TABLE Lateness').run()
+db.prepare('DROP TABLE absence').run() */
 
 export default db;
