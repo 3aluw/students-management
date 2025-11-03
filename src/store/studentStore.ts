@@ -10,8 +10,24 @@ export const useStudentStore = defineStore("studentStore", () => {
   const populateClasses = async () => {
     classes.value = await backend.getClasses();
   };
-
-  return { classes, students, searchedStudents, populateClasses };
+  const populateStudents = async (classId: number) => {
+    students.value = await backend.getStudentsByClass(classId);
+  };
+  
+  const classOptions = computed(() => {
+    return classes.value.map((cls) => ({
+      label: cls.grade + ' ' +   cls.school_level + ' ' + cls.section,
+      value: cls.id,
+    }));
+  });
+  return {
+    classes,
+    students,
+    searchedStudents,
+    populateClasses,
+    populateStudents,
+    classOptions,
+  };
 });
 
 if (import.meta.hot) {
