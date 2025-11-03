@@ -1,3 +1,5 @@
 1. add settings Table/ server object to store some important data : 
- - schoolType : متوسط - ابتدائي - ثانوي (used in class tables and students cards...)
+ - schoolType : متوسط - ابتدائي - ثانوي (used in class tables and students cards...), school times ....
  - Default enterTime : 8:00  (used to calculate lateness based on it)
+ - lateness and absences page to delete / edit them
+ - add lateness / absence in workspace or dashboard page

@@ -30,7 +30,7 @@ export default function () {
   };
 
   const getStudentsByClass = (classId: number) => {
-    return $fetch<Student[]>(`/api/students/?id=${classId}`);
+    return $fetch<Student[]>(`/api/students/?classId=${classId}`);
   };
   const createStudent = (body: NewStudent) => {
     return $fetch("/api/students", {
