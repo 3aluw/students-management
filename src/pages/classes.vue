@@ -7,7 +7,7 @@
       <Column field="grade" header="المستوى" style="min-width: 200px" class="font-bold">
       </Column>
       <Column header="الطور" style="min-width: 200px">
-        <template #body="{ data }: { data: Class }">
+        <template #body="{ data }: DataTableSlot<Class>">
           <p>{{ ArabicSchoolLevels[data.school_level] }}</p>
         </template>
       </Column>
@@ -37,7 +37,7 @@
 </template>
 <script setup lang="ts">
 
-import type { Class, NewClass } from '~/data/types'
+import type { Class, NewClass,DataTableSlot } from '~/data/types'
 import { useStudentStore } from '~/store/studentStore';
 import { ArabicSchoolLevels } from '~/data/static';
 

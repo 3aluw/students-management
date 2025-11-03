@@ -3,6 +3,7 @@
  */
 export type NewEntity<T extends { id: any }> = Omit<T, "id">;
 type PartialExceptId<T extends {id :number}> = Partial<Omit<T, "id">> & Pick<T, "id">;
+export type DataTableSlot<T> = { data: T };
 
 //     Entities Types
 /**
