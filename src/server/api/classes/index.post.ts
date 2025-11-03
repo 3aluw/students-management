@@ -14,7 +14,6 @@ export default defineEventHandler(async (event) => {
     return { success: true, id: info.lastInsertRowid, info };
   } // if id : item exists So update it
   else {
-    const keys = Object.keys(reqBody);
     const values = Object.values(reqBody);
     
     const setClause = generateDBSetClause(reqBody);

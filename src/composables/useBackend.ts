@@ -1,4 +1,11 @@
-import type { Class, NewClass, EditClass, Student } from "~/data/types";
+import type {
+  Class,
+  NewClass,
+  EditClass,
+  Student,
+  NewStudent,
+  EditStudent,
+} from "~/data/types";
 
 export default function () {
   const createClass = (body: NewClass) => {
@@ -23,10 +30,28 @@ export default function () {
   };
 
   const getStudentsByClass = (classId: number) => {
-       return $fetch<Student[]>(`/api/students/?id=${classId}`)
+    return $fetch<Student[]>(`/api/students/?id=${classId}`);
+  };
+  const createStudent = (body: NewStudent) => {
+    return $fetch("/api/students", {
+      method: "POST",
+      body,
+    });
+  };
+  const updateStudent = (body: EditStudent) => {
+    return $fetch("/api/students", {
+      method: "POST",
+      body,
+    });
   };
 
-  return { createClass, updateClass, getClasses, deleteClass,
-    getStudentsByClass
-   };
+  return {
+    createClass,
+    updateClass,
+    getClasses,
+    deleteClass,
+    getStudentsByClass,
+    createStudent,
+    updateStudent,
+  };
 }
