@@ -1,4 +1,4 @@
-import type { Class, Gender, Student } from "./types";
+import type { Class, Gender, Student, SchoolLevel } from "./types";
 
 export const genderOptions = [
   { label: "ذكر", value: "M" },
@@ -6,6 +6,15 @@ export const genderOptions = [
 ] satisfies {
   label: string;
   value: Gender;
+}[];
+
+export const schoolLevelOptions = [
+  { label: "ابتدائي", value: "primary" },
+  { label: "متوسط", value: "middle" },
+  { label: "ثانوي", value: "high" },
+] satisfies {
+  label: string;
+  value: SchoolLevel;
 }[];
 
 export const ArabicStudentProperties: Record<keyof Student, string> = {
@@ -22,6 +31,12 @@ export const ArabicStudentProperties: Record<keyof Student, string> = {
 };
 export const ArabicClassProperties: Record<keyof Class, string> = {
   id: "المعرف",
-  level: "المستوى",
+  grade: "المستوى",
+  school_level : "الطور التعليمي",
   section: "الحرف",
+};
+export const ArabicSchoolLevels: Record<SchoolLevel, string> = {
+ primary: "ابتدائي",
+ middle : "متوسط",
+ high : "ثانوي"
 };

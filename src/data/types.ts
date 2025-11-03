@@ -9,9 +9,10 @@ type PartialExceptId<T extends {id :number}> = Partial<Omit<T, "id">> & Pick<T, 
  * Represents a row in the `class` table.
  */
 export interface Class {
-  id: number; // PRIMARY KEY AUTOINCREMENT
-  level: number; // INT NOT NULL
-  section: string; // TEXT NOT NULL
+  id: number;
+  grade: number;
+  school_level: SchoolLevel;
+  section: string;
 }
 
 /**
@@ -66,3 +67,4 @@ export type EditLateness = PartialExceptId<Lateness>;
 export type EditAbsence = PartialExceptId<Absence>;
 
 export type Gender = "M" | "F";
+export type SchoolLevel = 'primary' | 'middle' | 'high';
