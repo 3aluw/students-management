@@ -6,11 +6,11 @@ export default defineEventHandler(async (event) => {
   const { generateDBSetClause } = useDBUtils();
 
   const reqBody = await readBody<Class>(event);
-  const { level, section, id } = reqBody;
+  const { grade, school_level, section, id } = reqBody;
   // if no id : Create a new item
   if (!id) {
-    const stmt = db.prepare("INSERT INTO class (level,section) VALUES (?, ?)");
-    const info = stmt.run(level, section);
+    const stmt = db.prepare("INSERT INTO class (grade, school_level,section) VALUES (?, ?, ?)");
+    const info = stmt.run(grade, school_level, section);
     return { success: true, id: info.lastInsertRowid, info };
   } // if id : item exists So update it
   else {
