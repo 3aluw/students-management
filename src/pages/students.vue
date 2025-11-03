@@ -10,9 +10,11 @@
                 </template>
 
                 <template #end>
-                    <Button label="تحميل" icon="pi pi-download" severity="secondary" @click="exportCSV($event)" />
+                    <Button label="تحميل" icon="pi pi-download" severity="secondary" @click="exportCSV()" />
                 </template>
             </Toolbar>
+
+
             <DataTable :ref="dt" v-model:selection="selectedStudents" :value="studentsToShow" dataKey="id"
                 :paginator="true" :rows="10" :filters="filters" stripedRows
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
@@ -23,7 +25,7 @@
                         <div class="flex gap-4">
                             <h4 class="m-0">قائمة الطلبة</h4>
                             <Select name="class_id" :options="studentStore.classOptions" optionLabel="label"
-                                optionValue="value" placeholder="اختر الصف" />
+                                optionValue="value" placeholder="اختر الصف" @update:modelValue="changeClass" v-model="studentStore.selectedClassId"/>
                         </div>
                         <IconField>
                             <InputIcon>
@@ -49,6 +51,9 @@
                 <Column field="phone_number" header="رقم الهاتف" style="min-width: 5rem"></Column>
                 <Column field="address" header="العنوان" style="min-width: 16rem"></Column>
                 <Column field="class_id" header="القسم"></Column>
+                <template #empty>
+                    <p class="text-center bold"> لا يوجد أي طلبة</p>
+                </template>
             </DataTable>
         </div>
 
@@ -61,7 +66,7 @@
 <script setup lang="ts">
 import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
-import type { Student, DataTableSlot, NewStudent } from '~/data/types'
+import type { Student, Class, DataTableSlot, NewStudent } from '~/data/types'
 import { ProductService } from "~/service/ProductService.js";
 import { useStudentStore } from '~/store/studentStore';
 const studentStore = useStudentStore();
@@ -74,35 +79,42 @@ const studentsToShow = computed(() => studentStore.searchedStudents.length ? stu
 const showStudentDialog = ref(false);
 const studentToEdit = ref<Student | undefined>(undefined)
 
-const handleStudentSubmit = (newStudent : NewStudent) => {
-  studentToEdit.value ? EditStudent({ ...newStudent, id: studentToEdit.value.id }) : createNewStudent(newStudent)
+const changeClass = (classId:number) => {
+    studentStore.populateStudents(classId)
+}
+
+const handleStudentSubmit = (newStudent: NewStudent) => {
+    studentToEdit.value ? EditStudent({ ...newStudent, id: studentToEdit.value.id }) : createNewStudent(newStudent)
 }
 const EditStudent = async (studentObj: Student) => {
-  try {
-    await backend.updateStudent(studentObj)
-    await studentStore.populateStudents(studentToEdit.value?.class_id!)
-    showStudentDialog.value = false
-    toast.add({ severity: 'success', summary: 'تم تعديل القسم بنجاح', life: 3000 })
+    try {
+        await backend.updateStudent(studentObj)
+        await studentStore.populateStudents(studentToEdit.value?.class_id!)
+        showStudentDialog.value = false
+        toast.add({ severity: 'success', summary: 'تم تعديل القسم بنجاح', life: 3000 })
 
-  } catch (error) {
-    toast.add({ severity: 'error', summary: 'حدث خطأ أثناء تعديل معلومات القسم', life: 3000 })
+    } catch (error) {
+        toast.add({ severity: 'error', summary: 'حدث خطأ أثناء تعديل معلومات القسم', life: 3000 })
 
-  }
+    }
 }
 const createNewStudent = async (newStudent: NewStudent) => {
-  try {
-    await backend.createStudent(newStudent)
-    await studentStore.populateStudents(newStudent.class_id)
-    showStudentDialog.value = false
-    toast.add({ severity: 'success', summary: 'تم إنشاء القسم بنجاح', life: 3000 })
+    try {
+        await backend.createStudent(newStudent)
+        await studentStore.populateStudents(newStudent.class_id)
+        showStudentDialog.value = false
+        toast.add({ severity: 'success', summary: 'تم إنشاء القسم بنجاح', life: 3000 })
 
-  } catch (error) {
-    toast.add({ severity: 'error', summary: 'حدث خطأ أثناء إنشاء القسم', life: 3000 })
+    } catch (error) {
+        toast.add({ severity: 'error', summary: 'حدث خطأ أثناء إنشاء القسم', life: 3000 })
 
-  }
+    }
 }
+
+
 onMounted(() => {
     ProductService.getProducts().then((data) => (products.value = data));
+
 });
 
 const products = ref();
