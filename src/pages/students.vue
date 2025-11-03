@@ -19,25 +19,30 @@
                 :paginator="true" :rows="10" :filters="filters" stripedRows
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 :rowsPerPageOptions="[5, 10, 25]"
-                currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products">
+                currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products"
+                :globalFilterFields="['first_name', 'last_name']">
                 <template #header>
                     <div class="flex flex-wrap gap-2 items-center justify-between">
                         <div class="flex gap-4">
                             <h4 class="m-0">قائمة الطلبة</h4>
                             <Select name="class_id" :options="studentStore.classOptions" optionLabel="label"
-                                optionValue="value" placeholder="اختر الصف" @update:modelValue="changeClass" v-model="studentStore.selectedClassId"/>
+                                optionValue="value" placeholder="اختر الصف" @update:modelValue="changeClass"
+                                v-model="studentStore.selectedClassId" />
                         </div>
                         <IconField>
                             <InputIcon>
                                 <i class="pi pi-search" />
                             </InputIcon>
-                            <InputText v-model="filters['global'].value" placeholder="Search..." />
+                            <InputText v-model="filters['global'].value" placeholder="بحث عن..." />
                         </IconField>
+
                     </div>
                 </template>
 
                 <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
 
+                <Column field="first_name" header="الاسم" class="hidden" />
+                <Column field="last_name" header="اللقب" class="hidden" />
                 <Column header="الاسم واللقب" sortable class="font-bold">
                     <template #body="slotProps: DataTableSlot<Student>">
                         <p>{{ slotProps.data.last_name + " " + slotProps.data.first_name }}</p>
@@ -66,7 +71,7 @@
 <script setup lang="ts">
 import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
-import type { Student, Class, DataTableSlot, NewStudent } from '~/data/types'
+import type { Student, DataTableSlot, NewStudent } from '~/data/types'
 import { ProductService } from "~/service/ProductService.js";
 import { useStudentStore } from '~/store/studentStore';
 const studentStore = useStudentStore();
@@ -79,7 +84,7 @@ const studentsToShow = computed(() => studentStore.searchedStudents.length ? stu
 const showStudentDialog = ref(false);
 const studentToEdit = ref<Student | undefined>(undefined)
 
-const changeClass = (classId:number) => {
+const changeClass = (classId: number) => {
     studentStore.populateStudents(classId)
 }
 
