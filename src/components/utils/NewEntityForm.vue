@@ -36,7 +36,7 @@
 
             <!-- Class ID -->
             <div class="flex flex-col gap-1">
-                <Select name="class_id" :options="classOptions" optionLabel="label" optionValue="value"
+                <Select name="class_id" :options="studentStore.classOptions" optionLabel="label" optionValue="value"
                     placeholder="اختر الصف" fluid />
                 <Message v-if="$form.class_id?.invalid" severity="error" size="small" variant="simple">
                     {{ $form.class_id.error?.message }}
@@ -84,14 +84,21 @@
 
         <Form v-else-if="props.entityType == 'class'" :initialValues="props.entityObject" v-slot="$form" :resolver="resolver" @submit="onFormSubmit"
             class="flex flex-col gap-4 w-full sm:w-80"> 
-            <!-- Level -->
+            <!-- Grade -->
             <div class="flex flex-col gap-1">
-                <InputNumber  name="level" placeholder="المستوى" :min="0" :max="10" fluid />
-                <Message v-if="$form.level?.invalid" severity="error" size="small" variant="simple">{{
-                    $form.level.error.message }}</Message>
+                <InputNumber  name="grade" placeholder="المستوى" :min="0" :max="10" fluid />
+                <Message v-if="$form.grade?.invalid" severity="error" size="small" variant="simple">{{
+                    $form.grade.error.message }}</Message>
+            </div>
+            <!-- school_level -->
+            <div class="flex flex-col gap-1">
+              <Select name="school_level" :options="schoolLevelOptions" optionLabel="label" optionValue="value"
+                    placeholder="اختر الصف" fluid />
+                <Message v-if="$form.school_level?.invalid" severity="error" size="small" variant="simple">{{
+                    $form.school_level.error.message }}</Message>
             </div>
 
-            <!-- Abbreviation -->
+            <!-- Section -->
             <div class="flex flex-col gap-1">
                 <InputText name="section" type="text" placeholder="الحرف" fluid />
                 <Message v-if="$form.section?.invalid" severity="error" size="small" variant="simple">{{
@@ -105,22 +112,19 @@
 </template>
 
 <script setup lang="ts"  generic="T extends 'student' | 'class'">
+
 import { useStudentStore } from '~/store/studentStore';
 import { genderOptions } from '~/data/static';
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from 'primevue/usetoast';
 import type { NewClass, NewStudent, Student, Class  } from '~/data/types';
+import { schoolLevelOptions } from '~/data/static';
 import type { FormSubmitEvent } from "@primevue/forms"
 const { getRequiredFieldMessage } = useFormUtils()
 const studentStore = useStudentStore();
 
-const classOptions = computed(() => {
-    return studentStore.classes.map(cls => ({
-        label: cls.level + cls.section,
-        value: cls.id,
-    }))
-})
+
 const toast = useToast();
 
 type Entity<T extends 'student' | 'class'> = T extends 'student' ? Student : Class
@@ -152,10 +156,10 @@ const studentZodSchema = z.object({
 }) satisfies z.ZodType<NewStudent>
 
 const classZodSchema = z.object({
-    level: z.number({ error: getRequiredFieldMessage("level") }).max(10, { message: 'يرجى إدخال مستوى منطقي' }),
+    grade: z.number({ error: getRequiredFieldMessage("grade") }).max(10, { message: 'يرجى إدخال مستوى منطقي' }),
+    school_level : z.literal(['primary','middle','high'], {error: getRequiredFieldMessage("school_level")}),
     section: z.string({ error: getRequiredFieldMessage("section") })
 }) satisfies z.ZodType<NewClass>
-
 
 
 

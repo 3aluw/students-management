@@ -3,8 +3,14 @@
     <div class="font-semibold text-xl mb-4">الأقسام
       <Button class="mx-4" icon="pi pi-plus" severity="contrast" text raised rounded @click="showClassDialog = true" />
     </div>
-    <DataTable :value="studentStore.classes" scrollable scrollHeight="400px" class="mt-6">
-      <Column field="level" header="المستوى" style="min-width: 200px" class="font-bold"></Column>
+    <DataTable :value="studentStore.classes" scrollable scrollHeight="400px" stripedRows class="mt-6">
+      <Column field="grade" header="المستوى" style="min-width: 200px" class="font-bold">
+      </Column>
+      <Column header="الطور" style="min-width: 200px">
+        <template #body="{ data }: { data: Class }">
+          <p>{{ ArabicSchoolLevels[data.school_level] }}</p>
+        </template>
+      </Column>
       <Column field="section" header="الحرف" style="min-width: 200px"> </Column>
       <Column header="تعديل" style="min-width: 50px">
         <template #body="slotProps">
@@ -33,6 +39,8 @@
 
 import type { Class, NewClass } from '~/data/types'
 import { useStudentStore } from '~/store/studentStore';
+import { ArabicSchoolLevels } from '~/data/static';
+
 const studentStore = useStudentStore()
 const backend = useBackend()
 const toast = useToast();
