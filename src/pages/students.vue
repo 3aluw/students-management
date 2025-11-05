@@ -108,7 +108,7 @@ const createNewStudent = async (newStudent: NewStudent) => {
         await backend.createStudent(newStudent)
         await studentStore.populateStudents(newStudent.class_id)
         showStudentDialog.value = false
-        toast.add({ severity: 'success', summary: 'تم إنشاء القسم بنجاح', life: 3000 })
+        toast.add({ severity: 'success', summary: 'تمت إضافة التلميذ بنجاح', life: 3000 })
 
     } catch (error) {
         toast.add({ severity: 'error', summary: 'حدث خطأ أثناء إنشاء القسم', life: 3000 })

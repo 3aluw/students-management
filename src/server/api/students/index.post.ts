@@ -4,12 +4,13 @@ import useDBUtils from "../../../composables/useDBUtils";
 
 export default defineEventHandler(async (event) => {
   const { generateDBSetClause } = useDBUtils();
-
+  
   const reqBody = await readBody<Student>(event);
   const {
     id,
     first_name,
     last_name,
+    class_id,
     father_name,
     grandfather_name,
     sex,
@@ -21,9 +22,10 @@ export default defineEventHandler(async (event) => {
   if (!id) {
     try {
       const stmt = db.prepare(
-        "INSERT INTO student (first_name, last_name, father_name,grandfather_name, sex, phone_number, birth_date, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        "INSERT INTO student (class_id, first_name, last_name, father_name,grandfather_name, sex, phone_number, birth_date, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
       );
       const info = stmt.run(
+        class_id,
         first_name,
         last_name,
         father_name,
@@ -35,7 +37,10 @@ export default defineEventHandler(async (event) => {
       );
       return { success: true, id: info.lastInsertRowid, info };
     } catch (err) {
-      return { success: false, error: (err as Error).message };
+       throw createError({
+      statusCode: 400,
+      statusMessage: (err as Error).message || 'لم تتم إضافة الطالب',
+    });
     }
   } // if id : item exists So update it
   else {
