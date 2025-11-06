@@ -37,7 +37,7 @@ import { ref, watch } from 'vue'
 const props = defineProps({
   modelValue: { type: Boolean, required: true },     // controls open state
   header: { type: String, default: 'تأكيد' },
-  message: { type: String, default: 'هل أنت متأكد من المواصلة؟?' },
+  message: { type: String, default: 'هل أنت متأكد من المواصلة؟' },
   danger: { type: Boolean, default: false },
   confirmLabel: { type: String, default: 'نعم' },
   cancelLabel: { type: String, default: 'لا' },
