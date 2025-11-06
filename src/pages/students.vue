@@ -3,14 +3,21 @@
         <div class="card">
             <Toolbar class="mb-6">
                 <template #start>
-                    <Button label="New" icon="pi pi-plus" severity="secondary" class="mr-2"
+                    <Button label="جديد" icon="pi pi-plus" iconPos="right" severity="secondary" class="mx-2"
                         @click="showStudentDialog = true" />
-                    <Button label="Delete" icon="pi pi-trash" severity="secondary" @click="confirmDeleteSelected"
-                        :disabled="!selectedProducts || !selectedProducts.length" />
+                    <Button label="حذف" icon="pi pi-trash" iconPos="right" severity="secondary" class="mx-2"
+                        @click="deleteStudents(selectedStudents)"
+                        :disabled="!selectedStudents || !selectedStudents.length" />
+                    <Button label="تعديل" icon="pi pi-pencil" iconPos="right" severity="secondary" class="mx-2"
+                        @click="confirmDeleteSelected" v-if="selectedStudents.length == 1" />
+                    <Button label="نقل إلى" icon="pi pi-undo" iconPos="right" severity="secondary" class="mx-2"
+                        @click="confirmDeleteSelected" v-else-if="selectedStudents.length > 1" />
+
                 </template>
 
                 <template #end>
-                    <Button label="تحميل" icon="pi pi-download" severity="secondary" @click="exportCSV()" />
+                    <Button label="تحميل" icon="pi pi-download" iconPos="right" severity="secondary"
+                        @click="exportCSV()" />
                 </template>
             </Toolbar>
 
@@ -38,7 +45,7 @@
 
                     </div>
                 </template>
-
+                
                 <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
 
                 <Column field="first_name" header="الاسم" class="hidden" />
@@ -61,7 +68,6 @@
                 </template>
             </DataTable>
         </div>
-
         <Dialog header="أدخل معلومات القسم" @hide="studentToEdit = undefined" v-model:visible="showStudentDialog"
             :style="{ width: '350px' }" :modal="true">
             <UtilsNewEntityForm entityType="student" :entityObject="studentToEdit" @submit="handleStudentSubmit" />
@@ -79,7 +85,7 @@ const backend = useBackend()
 const toast = useToast();
 const dt = ref();
 
-const selectedStudents = ref<Student[]>()
+const selectedStudents = ref<Student[]>([])
 const studentsToShow = computed(() => studentStore.searchedStudents.length ? studentStore.searchedStudents : studentStore.students)
 const showStudentDialog = ref(false);
 const studentToEdit = ref<Student | undefined>(undefined)
@@ -115,7 +121,19 @@ const createNewStudent = async (newStudent: NewStudent) => {
 
     }
 }
+const deleteStudents = async (students: Student[]) => {
+    try {
+        const studentIds = students.map((student) => student.id)
+        await backend.deleteStudents(studentIds);
+        studentStore.populateClasses()
+        selectedStudents.value = []
+        toast.add({ severity: "success", summary: 'مجحت المهمة', detail: 'لم يتم حذف ما تم تحديده ', life: 3000 })
+    }
+    catch (err) {
+        toast.add({ severity: "error", summary: 'فشلت المهمة', detail: 'تم حذف ما تم تحديده بنجاح', life: 3000 })
+    }
 
+}
 
 onMounted(() => {
     ProductService.getProducts().then((data) => (products.value = data));
@@ -127,7 +145,6 @@ const productDialog = ref(false);
 const deleteProductDialog = ref(false);
 const deleteProductsDialog = ref(false);
 const product = ref({});
-const selectedProducts = ref();
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS }
 });
@@ -218,9 +235,9 @@ function confirmDeleteSelected() {
 }
 
 function deleteSelectedProducts() {
-    products.value = products.value.filter((val) => !selectedProducts.value.includes(val));
+    products.value = products.value.filter((val) => !selectedStudents.value.includes(val));
     deleteProductsDialog.value = false;
-    selectedProducts.value = null;
+    selectedStudents.value = null;
     toast.add({ severity: 'success', summary: 'Successful', detail: 'Products Deleted', life: 3000 });
 }
 
