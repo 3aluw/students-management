@@ -1,42 +1,44 @@
-import { ref } from 'vue'
-import { useToast } from 'primevue/usetoast'
+import { ref } from "vue";
+import { useToast } from "primevue/usetoast";
 
-export function useConfirmHandler<T>(
-  actionFn: (item: T) => Promise<void>,
+export function useConfirmHandler<T, A extends unknown[]>(
+  actionFn: (item: T, ...args: A) => Promise<void>,
   onAfterAction?: () => Promise<void>,
-  successMsg = 'تمت العملية بنجاح',
-  errorMsg = 'حدث خطأ أثناء العملية'
+  successMsg = "تمت العملية بنجاح",
+  errorMsg = "حدث خطأ أثناء العملية"
 ) {
-  const toast = useToast()
-  const showConfirm = ref(false)
-  const targetItem = ref<T | null>(null)
-  const loading = ref(false)
+  const toast = useToast();
+  const showConfirm = ref(false);
+  const targetItem = ref<T | null>(null);
+  const loading = ref(false);
+  const argsRef = ref<A | []>([]);
 
-  const requestAction = (item: T) => {
-    targetItem.value = item
-    showConfirm.value = true
-  }
+  const requestAction = (item: T, ...args: A) => {
+    targetItem.value = item;
+    argsRef.value = args;
+    showConfirm.value = true;
+  };
 
   const confirmAction = async (confirmed: boolean) => {
-    if (!confirmed || !targetItem.value) return reset()
+    if (!confirmed || !targetItem.value) return reset();
 
-    loading.value = true
+    loading.value = true;
     try {
-      await actionFn(targetItem.value)
-      if (onAfterAction) await onAfterAction()
-      toast.add({ severity: 'success', summary: successMsg, life: 3000 })
+      await actionFn(targetItem.value, ...argsRef.value);
+      if (onAfterAction) await onAfterAction();
+      toast.add({ severity: "success", summary: successMsg, life: 3000 });
     } catch {
-      toast.add({ severity: 'error', summary: errorMsg, life: 3000 })
+      toast.add({ severity: "error", summary: errorMsg, life: 3000 });
     } finally {
-      loading.value = false
-      reset()
+      loading.value = false;
+      reset();
     }
-  }
+  };
 
   const reset = () => {
-    showConfirm.value = false
-    targetItem.value = null
-  }
+    showConfirm.value = false;
+    targetItem.value = null;
+  };
 
   return {
     showConfirm,
@@ -44,5 +46,5 @@ export function useConfirmHandler<T>(
     loading,
     requestAction,
     confirmAction,
-  }
+  };
 }
