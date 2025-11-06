@@ -32,11 +32,33 @@ export const ArabicStudentProperties: Record<keyof Student, string> = {
 export const ArabicClassProperties: Record<keyof Class, string> = {
   id: "المعرف",
   grade: "المستوى",
-  school_level : "الطور التعليمي",
+  school_level: "الطور التعليمي",
   section: "الحرف",
 };
 export const ArabicSchoolLevels: Record<SchoolLevel, string> = {
- primary: "ابتدائي",
- middle : "متوسط",
- high : "ثانوي"
+  primary: "ابتدائي",
+  middle: "متوسط",
+  high: "ثانوي",
+};
+export const userFeedbackMessages = {
+  student: {
+    addSuccess: "تمت إضافة التلميذ بنجاح",
+    addFailed: "حدث خطأ أثناء إضافة التلميذ",
+    fetchSuccess: "تم تحميل بيانات التلاميذ بنجاح",
+    fetchFailed: "حدث خطأ أثناء تحميل بيانات التلاميذ",
+    updateSuccess: "تم تحديث بيانات التلميذ بنجاح",
+    updateFailed: "حدث خطأ أثناء تحديث بيانات التلميذ",
+    deleteSuccess: "تم حذف التلميذ بنجاح",
+    deleteFailed: "حدث خطأ أثناء حذف التلميذ",
+  },
+  class: {
+    addSuccess: "تمت إضافة القسم بنجاح",
+    addFailed: "حدث خطأ أثناء إضافة القسم",
+    fetchSuccess: "تم تحميل بيانات الأقسام بنجاح",
+    fetchFailed: "حدث خطأ أثناء تحميل بيانات الأقسام",
+    updateSuccess: "تم تحديث بيانات القسم بنجاح",
+    updateFailed: "حدث خطأ أثناء تحديث بيانات القسم",
+    deleteSuccess: "تم حذف القسم بنجاح",
+    deleteFailed: "حدث خطأ أثناء حذف القسم",
+  },
 };
