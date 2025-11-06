@@ -44,6 +44,12 @@ export default function () {
       body,
     });
   };
+  const deleteStudents = (body : Student["id"][])=>{
+    return $fetch(`/api/students/`, {
+      method: "DELETE",
+      body
+    });
+  };
 
   return {
     createClass,
@@ -53,5 +59,6 @@ export default function () {
     getStudentsByClass,
     createStudent,
     updateStudent,
+    deleteStudents
   };
 }
