@@ -5,6 +5,7 @@ import type {
   Student,
   NewStudent,
   EditStudent,
+  BatchEditStudent
 } from "~/data/types";
 
 export default function () {
@@ -38,7 +39,7 @@ export default function () {
       body,
     });
   };
-  const updateStudent = (body: EditStudent) => {
+  const updateStudents = (body: EditStudent | BatchEditStudent) => {
     return $fetch("/api/students", {
       method: "POST",
       body,
@@ -51,6 +52,7 @@ export default function () {
     });
   };
 
+
   return {
     createClass,
     updateClass,
@@ -58,7 +60,7 @@ export default function () {
     deleteClass,
     getStudentsByClass,
     createStudent,
-    updateStudent,
-    deleteStudents
+    deleteStudents,
+    updateStudents
   };
 }

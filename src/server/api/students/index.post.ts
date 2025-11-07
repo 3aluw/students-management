@@ -1,13 +1,33 @@
-import { Student } from "~/data/types";
+import { EditStudent, BatchEditStudent, NewStudent } from "~/data/types";
 import db from "~/db/db";
 import useDBUtils from "../../../composables/useDBUtils";
 
 export default defineEventHandler(async (event) => {
-  const { generateDBSetClause } = useDBUtils();
-  
-  const reqBody = await readBody<Student>(event);
+  const { generateDBSetClause, generateDBInClause } = useDBUtils();
+
+  const reqBody = await readBody<NewStudent | EditStudent | BatchEditStudent>(
+    event
+  );
+  if ("ids" in reqBody) {
+    try {
+      const { ids, ...props } = reqBody;
+      const values = Object.values(props);
+      const inClause = generateDBInClause(ids.length);
+      const setClause = generateDBSetClause(props);
+      const stmt = db.prepare(
+        `UPDATE student SET ${setClause} WHERE id IN (${inClause}) `
+      );
+      const info = stmt.run(...values, ...ids);
+      return { success: true, id: info.lastInsertRowid, info };
+    } catch (err) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: (err as Error).message || "لم يتم تعديل معلومات الطلاب",
+      });
+    }
+  }
+
   const {
-    id,
     first_name,
     last_name,
     class_id,
@@ -19,7 +39,7 @@ export default defineEventHandler(async (event) => {
     address,
   } = reqBody;
   // if no id : Create a new item
-  if (!id) {
+  if (!("id" in reqBody)) {
     try {
       const stmt = db.prepare(
         "INSERT INTO student (class_id, first_name, last_name, father_name,grandfather_name, sex, phone_number, birth_date, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -37,10 +57,10 @@ export default defineEventHandler(async (event) => {
       );
       return { success: true, id: info.lastInsertRowid, info };
     } catch (err) {
-       throw createError({
-      statusCode: 400,
-      statusMessage: (err as Error).message || 'لم تتم إضافة الطالب',
-    });
+      throw createError({
+        statusCode: 400,
+        statusMessage: (err as Error).message || "لم تتم إضافة الطالب",
+      });
     }
   } // if id : item exists So update it
   else {

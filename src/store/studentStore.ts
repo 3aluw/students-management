@@ -12,7 +12,8 @@ export const useStudentStore = defineStore("studentStore", () => {
   const populateClasses = async () => {
     classes.value = await backend.getClasses();
   };
-  const populateStudents = async (classId: number) => {
+  const populateStudents = async (classId?: number) => {
+    if(!classId) classId = selectedClassId.value ?? classes.value[0].id
     try{
       students.value = await backend.getStudentsByClass(classId);
       selectedClassId.value = classId
