@@ -1,6 +1,7 @@
 <template>
     <div>
         <div class="card">
+            
             <Toolbar class="mb-6">
                 <template #start>
                     <Button label="جديد" icon="pi pi-plus" iconPos="right" severity="secondary" class="mx-2"
@@ -10,9 +11,15 @@
                         :disabled="!selectedStudents || !selectedStudents.length" />
                     <Button label="تعديل" icon="pi pi-pencil" iconPos="right" severity="secondary" class="mx-2"
                         @click="" v-if="selectedStudents.length == 1" />
-                    <Button label="نقل إلى" icon="pi pi-undo" iconPos="right" severity="secondary" class="mx-2"
-                        @click="" v-else-if="selectedStudents.length > 1" />
-
+                    <Button v-if="selectedStudents.length" label="نقل إلى" icon="pi pi-undo" @click="toggle"
+                        aria-haspopup="true" aria-controls="overlay_menu" iconPos="right" severity="secondary"
+                        class="mx-2" />
+                    <Menu ref="transferStudentsMenu" id="overlay_menu" :model="filteredClassOptions" :popup="true">
+                        <template #item="{ item }">
+                            <Button variant="text" severity="secondary"
+                                @click="useTransferConfirm.requestAction(selectedStudents, item.value)"> {{ item.label }}</Button>
+                        </template>
+                    </Menu>
                 </template>
 
                 <template #end>
@@ -74,22 +81,29 @@
         </Dialog>
         <UtilsConfirmDialog header="حذف الطلبة" :danger="true" v-model="useDeleteConfirm.showConfirm.value"
             @confirm="useDeleteConfirm.confirmAction" />
+        <UtilsConfirmDialog header="تحويل الطلبة" message="هل أنت متأكد من رغبتك في  التحويل إلى قسم آخر ؟" :danger="false" v-model="useTransferConfirm.showConfirm.value"
+            @confirm="useTransferConfirm.confirmAction" />
     </div>
 </template>
 <script setup lang="ts">
 import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
-import type { Student, DataTableSlot, NewStudent } from '~/data/types'
-import { userFeedbackMessages } from '~/data/static';
-import { ProductService } from "~/service/ProductService.js";
+import type { Student, DataTableSlot, NewStudent, BatchEditStudent } from '~/data/types'
+import { userFeedbackMessages, } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
 const studentStore = useStudentStore();
 const backend = useBackend()
 const toast = useToast();
 const dt = ref();
-const { student : toastMessages } = userFeedbackMessages
+const { student: toastMessages } = userFeedbackMessages
 
+const transferStudentsMenu = ref();
+const toggle = (event: Event) => {
+    transferStudentsMenu.value.toggle(event);
+};
+const filteredClassOptions = computed(()=>studentStore.classOptions.filter((classObject)=> classObject.value !== studentStore.selectedClassId ))
 const selectedStudents = ref<Student[]>([])
+const resetSelectedStudents = () => { selectedStudents.value = []}
 const studentsToShow = computed(() => studentStore.searchedStudents.length ? studentStore.searchedStudents : studentStore.students)
 const showStudentDialog = ref(false);
 const studentToEdit = ref<Student | undefined>(undefined)
@@ -101,18 +115,19 @@ const changeClass = (classId: number) => {
 const handleStudentSubmit = (newStudent: NewStudent) => {
     studentToEdit.value ? EditStudent({ ...newStudent, id: studentToEdit.value.id }) : createNewStudent(newStudent)
 }
+
 const EditStudent = async (studentObj: Student) => {
     try {
-        await backend.updateStudent(studentObj)
+        await backend.updateStudents(studentObj)
         await studentStore.populateStudents(studentToEdit.value?.class_id!)
         showStudentDialog.value = false
-        toast.add({ severity: 'success', summary: toastMessages.updateSuccess , life: 3000 })
+        toast.add({ severity: 'success', summary: toastMessages.updateSuccess, life: 3000 })
 
     } catch (error) {
         toast.add({ severity: 'error', summary: toastMessages.updateFailed, life: 3000 })
-
     }
 }
+
 const createNewStudent = async (newStudent: NewStudent) => {
     try {
         await backend.createStudent(newStudent)
@@ -128,16 +143,19 @@ const createNewStudent = async (newStudent: NewStudent) => {
 const deleteStudents = async (students: Student[]) => {
     const studentIds = students.map((student) => student.id)
     await backend.deleteStudents(studentIds);
+    resetSelectedStudents()
+    
 }
 
-const transferStudents = async (students: Student[], classId : number) =>{
-const studentIds = students.map((student) => student.id)
-    await backend.deleteStudents(studentIds);
+const transferStudents = async (students: Student[], classId: number) => {
+    const studentIds = students.map((student) => student.id)
+    const reqBody: BatchEditStudent = { class_id: classId, ids: studentIds }
+    await backend.updateStudents(reqBody)
+    studentStore.populateStudents()
+    resetSelectedStudents()
 }
-const useDeleteConfirm = useConfirmHandler(deleteStudents, studentStore.populateClasses)
-const useTransferConfirm = useConfirmHandler(transferStudents, studentStore.populateClasses)
-
-
+const useDeleteConfirm = useConfirmHandler(deleteStudents, studentStore.populateStudents)
+const useTransferConfirm = useConfirmHandler(transferStudents, studentStore.populateStudents)
 
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS }
