@@ -28,6 +28,8 @@
   "devDependencies": {
     "@primevue/nuxt-module": "^4.2.2",
     "@types/better-sqlite3": "^7.6.13",
+    "@vueuse/core": "^14.0.0",
+    "@vueuse/nuxt": "^14.0.0",
     "autoprefixer": "^10.4.19",
     "nitro-public-module": "^0.1.2",
     "sass": "^1.81.0"
