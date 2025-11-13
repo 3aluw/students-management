@@ -1,7 +1,17 @@
 <template>
     <div>
         <div class="card">
-            
+            <Toolbar class="mb-6">
+                <template #start>
+                    <IconField>
+                        <InputIcon>
+                            <i class="pi pi-search" />
+                        </InputIcon>
+                        <InputText v-model.trim="globalSearchInput" placeholder="بحث عام" type="search" />
+                    </IconField>
+                </template>
+            </Toolbar>
+
             <Toolbar class="mb-6">
                 <template #start>
                     <Button label="جديد" icon="pi pi-plus" iconPos="right" severity="secondary" class="mx-2"
@@ -17,7 +27,8 @@
                     <Menu ref="transferStudentsMenu" id="overlay_menu" :model="filteredClassOptions" :popup="true">
                         <template #item="{ item }">
                             <Button variant="text" severity="secondary"
-                                @click="useTransferConfirm.requestAction(selectedStudents, item.value)"> {{ item.label }}</Button>
+                                @click="useTransferConfirm.requestAction(selectedStudents, item.value)"> {{ item.label
+                                }}</Button>
                         </template>
                     </Menu>
                 </template>
@@ -35,15 +46,15 @@
                 :rowsPerPageOptions="[5, 10, 25]"
                 currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products"
                 :globalFilterFields="['first_name', 'last_name']">
-                <template #header>
+                <template #header >
                     <div class="flex flex-wrap gap-2 items-center justify-between">
                         <div class="flex gap-4">
                             <h4 class="m-0">قائمة الطلبة</h4>
                             <Select name="class_id" :options="studentStore.classOptions" optionLabel="label"
                                 optionValue="value" placeholder="اختر الصف" @update:modelValue="changeClass"
-                                v-model="studentStore.selectedClassId" />
+                                v-model="studentStore.selectedClassId" v-show="!globalSearchInput.length"/>
                         </div>
-                        <IconField>
+                        <IconField v-show="!globalSearchInput.length">
                             <InputIcon>
                                 <i class="pi pi-search" />
                             </InputIcon>
@@ -81,7 +92,8 @@
         </Dialog>
         <UtilsConfirmDialog header="حذف الطلبة" :danger="true" v-model="useDeleteConfirm.showConfirm.value"
             @confirm="useDeleteConfirm.confirmAction" />
-        <UtilsConfirmDialog header="تحويل الطلبة" message="هل أنت متأكد من رغبتك في  التحويل إلى قسم آخر ؟" :danger="false" v-model="useTransferConfirm.showConfirm.value"
+        <UtilsConfirmDialog header="تحويل الطلبة" message="هل أنت متأكد من رغبتك في  التحويل إلى قسم آخر ؟"
+            :danger="false" v-model="useTransferConfirm.showConfirm.value"
             @confirm="useTransferConfirm.confirmAction" />
     </div>
 </template>
@@ -94,17 +106,22 @@ import { useStudentStore } from '~/store/studentStore';
 const studentStore = useStudentStore();
 const backend = useBackend()
 const toast = useToast();
-const dt = ref();
 const { student: toastMessages } = userFeedbackMessages
 
-const transferStudentsMenu = ref();
+const dt = ref(); //dataTable Ref
+const globalSearchInput = ref('')
+const transferStudentsMenu = ref(); // transfer students menu Ref
 const toggle = (event: Event) => {
     transferStudentsMenu.value.toggle(event);
 };
-const filteredClassOptions = computed(()=>studentStore.classOptions.filter((classObject)=> classObject.value !== studentStore.selectedClassId ))
+watchDebounced(globalSearchInput, () => {
+    studentStore.populateSearchedStudents(globalSearchInput.value)
+}, { debounce: 500, maxWait: 2000 },)
+
+const filteredClassOptions = computed(() => studentStore.classOptions.filter((classObject) => classObject.value !== studentStore.selectedClassId))
 const selectedStudents = ref<Student[]>([])
-const resetSelectedStudents = () => { selectedStudents.value = []}
-const studentsToShow = computed(() => studentStore.searchedStudents.length ? studentStore.searchedStudents : studentStore.students)
+const resetSelectedStudents = () => { selectedStudents.value = [] }
+const studentsToShow = computed(() => globalSearchInput.value.trim().length ? studentStore.searchedStudents : studentStore.students)
 const showStudentDialog = ref(false);
 const studentToEdit = ref<Student | undefined>(undefined)
 
@@ -144,7 +161,7 @@ const deleteStudents = async (students: Student[]) => {
     const studentIds = students.map((student) => student.id)
     await backend.deleteStudents(studentIds);
     resetSelectedStudents()
-    
+
 }
 
 const transferStudents = async (students: Student[], classId: number) => {
