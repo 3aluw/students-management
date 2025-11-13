@@ -6,22 +6,29 @@ export const useStudentStore = defineStore("studentStore", () => {
 
   const classes = ref<Class[]>([]);
   const students = ref<Student[]>([]);
-  const selectedClassId = ref<number>()
+  const selectedClassId = ref<number>();
   const searchedStudents = ref<Student[]>([]);
 
   const populateClasses = async () => {
     classes.value = await backend.getClasses();
   };
   const populateStudents = async (classId?: number) => {
-    if(!classId) classId = selectedClassId.value ?? classes.value[0].id
-    try{
+    if (!classId) classId = selectedClassId.value ?? classes.value[0].id;
+    try {
       students.value = await backend.getStudentsByClass(classId);
-      selectedClassId.value = classId
-    }catch(err){
+      selectedClassId.value = classId;
+    } catch (err) {
       console.log(err);
     }
   };
-
+  const populateSearchedStudents = async (name: string) => {
+    if(!name.trim().length) searchedStudents.value = []
+    try {
+      searchedStudents.value = await backend.getStudentsByName(name);
+    } catch (err) {
+      console.log(err);
+    }
+  };
   const classOptions = computed(() => {
     return classes.value.map((cls) => ({
       label:
@@ -40,6 +47,7 @@ export const useStudentStore = defineStore("studentStore", () => {
     searchedStudents,
     populateClasses,
     populateStudents,
+    populateSearchedStudents,
     classOptions,
   };
 });
