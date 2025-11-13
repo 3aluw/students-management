@@ -33,6 +33,9 @@ export default function () {
   const getStudentsByClass = (classId: number) => {
     return $fetch<Student[]>(`/api/students/?classId=${classId}`);
   };
+  const getStudentsByName = (name:string)=>{
+     return $fetch<Student[]>(`/api/students/?name=${name}`);
+  }
   const createStudent = (body: NewStudent) => {
     return $fetch("/api/students", {
       method: "POST",
@@ -59,6 +62,7 @@ export default function () {
     getClasses,
     deleteClass,
     getStudentsByClass,
+    getStudentsByName,
     createStudent,
     deleteStudents,
     updateStudents
