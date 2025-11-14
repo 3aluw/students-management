@@ -46,13 +46,13 @@
                 :rowsPerPageOptions="[5, 10, 25]"
                 currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products"
                 :globalFilterFields="['first_name', 'last_name']">
-                <template #header >
+                <template #header>
                     <div class="flex flex-wrap gap-2 items-center justify-between">
                         <div class="flex gap-4">
                             <h4 class="m-0">قائمة الطلبة</h4>
                             <Select name="class_id" :options="studentStore.classOptions" optionLabel="label"
                                 optionValue="value" placeholder="اختر الصف" @update:modelValue="changeClass"
-                                v-model="studentStore.selectedClassId" v-show="!globalSearchInput.length"/>
+                                v-model="studentStore.selectedClassId" v-show="!globalSearchInput.length" />
                         </div>
                         <IconField v-show="!globalSearchInput.length">
                             <InputIcon>
@@ -80,7 +80,11 @@
                 </Column>
                 <Column field="phone_number" header="رقم الهاتف" style="min-width: 5rem"></Column>
                 <Column field="address" header="العنوان" style="min-width: 16rem"></Column>
-                <Column field="class_id" header="القسم"></Column>
+                <Column header="القسم" v-show="globalSearchInput.length">
+                     <template #body="slotProps: DataTableSlot<Student>">
+                        <p>{{ studentStore.classOptions.find((classObj)=>classObj.value === slotProps.data.class_id)?.label }}</p>
+                    </template>
+                </Column>
                 <template #empty>
                     <p class="text-center bold"> لا يوجد أي طلبة</p>
                 </template>
@@ -108,31 +112,43 @@ const backend = useBackend()
 const toast = useToast();
 const { student: toastMessages } = userFeedbackMessages
 
+//table logic
 const dt = ref(); //dataTable Ref
-const globalSearchInput = ref('')
-const transferStudentsMenu = ref(); // transfer students menu Ref
-const toggle = (event: Event) => {
-    transferStudentsMenu.value.toggle(event);
-};
-watchDebounced(globalSearchInput, () => {
-    studentStore.populateSearchedStudents(globalSearchInput.value)
-}, { debounce: 500, maxWait: 2000 },)
-
-const filteredClassOptions = computed(() => studentStore.classOptions.filter((classObject) => classObject.value !== studentStore.selectedClassId))
-const selectedStudents = ref<Student[]>([])
-const resetSelectedStudents = () => { selectedStudents.value = [] }
+const filters = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS }
+});
 const studentsToShow = computed(() => globalSearchInput.value.trim().length ? studentStore.searchedStudents : studentStore.students)
-const showStudentDialog = ref(false);
-const studentToEdit = ref<Student | undefined>(undefined)
-
 const changeClass = (classId: number) => {
     studentStore.populateStudents(classId)
 }
 
-const handleStudentSubmit = (newStudent: NewStudent) => {
-    studentToEdit.value ? EditStudent({ ...newStudent, id: studentToEdit.value.id }) : createNewStudent(newStudent)
+// global search logic
+const globalSearchInput = ref('')
+watchDebounced(globalSearchInput, () => {
+    studentStore.populateSearchedStudents(globalSearchInput.value)
+}, { debounce: 500, maxWait: 2000 },)
+
+//transfer student Menu logic
+const transferStudentsMenu = ref(); // transfer students menu Ref
+const toggle = (event: Event) => {
+    transferStudentsMenu.value.toggle(event);
+};
+const filteredClassOptions = computed(() => studentStore.classOptions.filter((classObject) => classObject.value !== studentStore.selectedClassId))
+const transferStudents = async (students: Student[], classId: number) => {
+    const studentIds = students.map((student) => student.id)
+    const reqBody: BatchEditStudent = { class_id: classId, ids: studentIds }
+    await backend.updateStudents(reqBody)
+    studentStore.populateStudents()
+    resetSelectedStudents()
 }
 
+// select students logic
+const selectedStudents = ref<Student[]>([])
+const resetSelectedStudents = () => { selectedStudents.value = [] }
+
+// edit / create student logic
+const showStudentDialog = ref(false);
+const studentToEdit = ref<Student | undefined>(undefined)
 const EditStudent = async (studentObj: Student) => {
     try {
         await backend.updateStudents(studentObj)
@@ -144,7 +160,6 @@ const EditStudent = async (studentObj: Student) => {
         toast.add({ severity: 'error', summary: toastMessages.updateFailed, life: 3000 })
     }
 }
-
 const createNewStudent = async (newStudent: NewStudent) => {
     try {
         await backend.createStudent(newStudent)
@@ -157,6 +172,11 @@ const createNewStudent = async (newStudent: NewStudent) => {
 
     }
 }
+const handleStudentSubmit = (newStudent: NewStudent) => {
+    studentToEdit.value ? EditStudent({ ...newStudent, id: studentToEdit.value.id }) : createNewStudent(newStudent)
+}
+
+
 const deleteStudents = async (students: Student[]) => {
     const studentIds = students.map((student) => student.id)
     await backend.deleteStudents(studentIds);
@@ -164,20 +184,11 @@ const deleteStudents = async (students: Student[]) => {
 
 }
 
-const transferStudents = async (students: Student[], classId: number) => {
-    const studentIds = students.map((student) => student.id)
-    const reqBody: BatchEditStudent = { class_id: classId, ids: studentIds }
-    await backend.updateStudents(reqBody)
-    studentStore.populateStudents()
-    resetSelectedStudents()
-}
+
+
+//confirm dialogs
 const useDeleteConfirm = useConfirmHandler(deleteStudents, studentStore.populateStudents)
 const useTransferConfirm = useConfirmHandler(transferStudents, studentStore.populateStudents)
-
-const filters = ref({
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS }
-});
-
 
 
 function exportCSV() {
