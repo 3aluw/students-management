@@ -1,4 +1,4 @@
-import type { Class, Gender, Student, SchoolLevel } from "./types";
+import type { Class, Gender, Student, SchoolLevel,SupportedDateRanges } from "./types";
 
 export const genderOptions = [
   { label: "ذكر", value: "M" },
@@ -15,6 +15,16 @@ export const schoolLevelOptions = [
 ] satisfies {
   label: string;
   value: SchoolLevel;
+}[];
+
+export const dateFilterOptions = [
+  { label: "اليوم", value: "today" },
+  { label: "أمس", value: "yesterday" },
+  { label: "هذا الأسبوع", value: "this week" },
+  { label: "هذا الشهر", value: "this month" },
+] satisfies {
+  label: string;
+  value: SupportedDateRanges;
 }[];
 
 export const ArabicStudentProperties: Record<keyof Student, string> = {
