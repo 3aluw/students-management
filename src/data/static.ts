@@ -1,4 +1,10 @@
-import type { Class, Gender, Student, SchoolLevel,SupportedDateRanges } from "./types";
+import type {
+  Class,
+  Gender,
+  Student,
+  SchoolLevel,
+  SupportedDateRanges,
+} from "./types";
 
 export const genderOptions = [
   { label: "ذكر", value: "M" },
@@ -26,7 +32,10 @@ export const dateFilterOptions = [
   label: string;
   value: SupportedDateRanges;
 }[];
-
+export const sqliteBoolean = [
+  { label: "لا", value: 0 },
+  { label: "نعم", value: 1 },
+];
 export const ArabicStudentProperties: Record<keyof Student, string> = {
   id: "المعرف",
   first_name: "الاسم",

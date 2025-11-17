@@ -47,7 +47,7 @@ export interface Lateness {
   enter_time: string | number; // unspecified type in schema, use string or number depending on storage
   lateBy: number; // INT NOT NULL (minutes, presumably)
   reason: string | null; // TEXT (nullable)
-  reason_accepted: boolean; // BOOLEAN DEFAULT FALSE
+  reason_accepted: 1 | 0; // BOOLEAN DEFAULT FALSE
 }
 
 /**
@@ -58,7 +58,7 @@ export interface Absence {
   student_id: number; // FOREIGN KEY -> student.id
   date: number; // INT (timestamp)
   reason: string | null; // TEXT (nullable)
-  reason_accepted: boolean; // BOOLEAN DEFAULT FALSE
+  reason_accepted: 1 | 0; // BOOLEAN DEFAULT FALSE
 }
 
 export type AllEntitiesUnion = Student | Class | Absence | Lateness;
