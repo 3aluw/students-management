@@ -2,8 +2,11 @@
  * Utility types
  */
 export type NewEntity<T extends { id: any }> = Omit<T, "id">;
-type PartialExceptId<T extends {id :number}> = Partial<Omit<T, "id">> & Pick<T, "id">;
-type BatchEdit<T extends AllEntitiesUnion> = Partial<Omit<T, "id">> & { ids : number[]}
+type PartialExceptId<T extends { id: number }> = Partial<Omit<T, "id">> &
+  Pick<T, "id">;
+type BatchEdit<T extends AllEntitiesUnion> = Partial<Omit<T, "id">> & {
+  ids: number[];
+};
 
 export type DataTableSlot<T> = { data: T };
 
@@ -57,6 +60,7 @@ export interface Absence {
   reason: string | null; // TEXT (nullable)
   reason_accepted: boolean; // BOOLEAN DEFAULT FALSE
 }
+
 export type AllEntitiesUnion = Student | Class | Absence | Lateness;
 
 export type NewStudent = NewEntity<Student>;
@@ -69,6 +73,19 @@ export type EditClass = PartialExceptId<Class>;
 export type EditLateness = PartialExceptId<Lateness>;
 export type EditAbsence = PartialExceptId<Absence>;
 
-export type BatchEditStudent = BatchEdit<Student>
+export type BatchEditStudent = BatchEdit<Student>;
+
+export type LocalAbsence = Absence & {
+  first_name: string;
+  last_name: string;
+  class_id: number;
+} & Omit<Class, "id">;
+
 export type Gender = "M" | "F";
-export type SchoolLevel = 'primary' | 'middle' | 'high';
+export type SchoolLevel = "primary" | "middle" | "high";
+
+export type SupportedDateRanges =
+  | "today"
+  | "yesterday"
+  | "this week"
+  | "this month";
