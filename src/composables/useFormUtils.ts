@@ -1,4 +1,7 @@
-import { ArabicStudentProperties, ArabicClassProperties } from "~/data/static";
+import {
+  ArabicStudentProperties,
+  ArabicClassProperties,
+} from "~/data/static";
 import type { Student, Class, SupportedDateRanges } from "~/data/types";
 
 export default function () {
@@ -78,8 +81,25 @@ export default function () {
     return [start.getTime(), end.getTime()];
   };
 
+  //a function that transform 0/1 in DB results to real booleans 
+  const normalizeResultBooleans = <
+    R extends Record<string, any>,
+    K extends (keyof R)[]
+  >(
+    results: R[],
+    keys: K
+  ) => {
+    results.map((result) =>
+      keys.forEach((key) => {
+        result[key] = (result[key] === 1 ? 'نعم' : 'لا') as R[keyof R];
+      })
+    );
+
+    return results;
+  };
   return {
     getRequiredFieldMessage,
     getTimeRange,
+    normalizeResultBooleans
   };
 }
