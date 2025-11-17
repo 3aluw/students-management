@@ -5,7 +5,8 @@ import type {
   Student,
   NewStudent,
   EditStudent,
-  BatchEditStudent
+  BatchEditStudent,
+  LocalAbsence,
 } from "~/data/types";
 
 export default function () {
@@ -33,9 +34,9 @@ export default function () {
   const getStudentsByClass = (classId: number) => {
     return $fetch<Student[]>(`/api/students/?classId=${classId}`);
   };
-  const getStudentsByName = (name:string)=>{
-     return $fetch<Student[]>(`/api/students/?name=${name}`);
-  }
+  const getStudentsByName = (name: string) => {
+    return $fetch<Student[]>(`/api/students/?name=${name}`);
+  };
   const createStudent = (body: NewStudent) => {
     return $fetch("/api/students", {
       method: "POST",
@@ -48,14 +49,17 @@ export default function () {
       body,
     });
   };
-  const deleteStudents = (body : Student["id"][])=>{
+  const deleteStudents = (body: Student["id"][]) => {
     return $fetch(`/api/students/`, {
       method: "DELETE",
-      body
+      body,
     });
   };
 
 
+  const getAbsences = () => {
+    return $fetch<LocalAbsence[]>(`/api/absences`);
+  };
   return {
     createClass,
     updateClass,
@@ -65,6 +69,7 @@ export default function () {
     getStudentsByName,
     createStudent,
     deleteStudents,
-    updateStudents
+    updateStudents,
+    getAbsences,
   };
 }
