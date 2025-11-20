@@ -1,5 +1,5 @@
 import { defineStore, acceptHMRUpdate } from "pinia";
-import type { Lateness, Absence, LocalAbsence } from "~/data/types";
+import type { Lateness, Absence, LocalAbsence, EventQueryFilters } from "~/data/types";
 import { ArabicSchoolLevels } from "~/data/static";
 export const useEventStore = defineStore("eventStore", () => {
   const backend = useBackend();
@@ -7,8 +7,8 @@ export const useEventStore = defineStore("eventStore", () => {
   const lateness = ref<Lateness[]>([]);
   const absences = ref<LocalAbsence[]>([]);
 
-  const populateAbsences = async () => {
-    absences.value = await backend.getAbsences();
+  const populateAbsences = async (query: EventQueryFilters) => {
+    absences.value = await backend.getAbsences(query);
   };
   return { lateness, absences, populateAbsences };
 });

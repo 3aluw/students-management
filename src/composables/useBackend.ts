@@ -1,4 +1,5 @@
 import type {
+  EventQueryFilters,
   Class,
   NewClass,
   EditClass,
@@ -7,6 +8,7 @@ import type {
   EditStudent,
   BatchEditStudent,
   LocalAbsence,
+
 } from "~/data/types";
 
 export default function () {
@@ -57,8 +59,10 @@ export default function () {
   };
 
 
-  const getAbsences = () => {
-    return $fetch<LocalAbsence[]>(`/api/absences`);
+  const getAbsences = (params: EventQueryFilters) => {
+    return $fetch<LocalAbsence[]>(`/api/absences`,{
+      params
+    });
   };
   return {
     createClass,
