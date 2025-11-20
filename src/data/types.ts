@@ -89,3 +89,12 @@ export type SupportedDateRanges =
   | "yesterday"
   | "this week"
   | "this month";
+
+  export type EventQueryFilters = Partial<{
+    limit : number,
+    offset : number,
+    classId : number,
+    name: string,
+    minDate : number,
+    maxDate : number
+  }>
