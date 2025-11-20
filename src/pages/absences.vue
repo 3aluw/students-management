@@ -28,19 +28,19 @@
                 <template #header>
                     <div class="flex flex-wrap gap-2 items-center justify-between">
                         <div class="flex gap-4">
-                            <h4 class="m-0">قائمة الطلبة</h4>
-                            <Select name="class_id" :options="studentStore.classOptions" optionLabel="label"
-                                optionValue="value" placeholder="اختر الصف" @update:modelValue="changeClass"
-                                v-model="studentStore.selectedClassId" v-show="!globalSearchInput.length" />
+                            <h4 class="m-0">آخر الغيابات </h4>
+                            <Select name="class_id" :options="classOptions" optionLabel="label" optionValue="value"
+                                placeholder="اختر الصف" v-model="dbFilters.classId"
+                                v-show="!globalSearchInput.length" />
                         </div>
-
-                        <SelectButton name="sex" :options="dateFilterOptions" optionLabel="label" optionValue="value" />
+                        <SelectButton name="sex" :options="dateFilterOptions" optionLabel="label" optionValue="value"
+                            @update:modelValue="updateDateRange" />
 
                         <IconField v-show="!globalSearchInput.length">
                             <InputIcon>
                                 <i class="pi pi-search" />
                             </InputIcon>
-                            <InputText v-model="filters['global'].value" placeholder="بحث عن..." />
+                            <InputText v-model="dbFilters.name" placeholder="بحث عن..." />
                         </IconField>
 
                     </div>
@@ -55,7 +55,11 @@
                     </template>
                 </Column>
 
-                <Column field="date" header="التاريخ" style="min-width: 5rem"></Column>
+                <Column field="date" header="التاريخ" style="min-width: 5rem">
+                    <template #body="slotProps: DataTableSlot<LocalAbsence>">
+                        <p>{{ useDateFormat(slotProps.data.date, 'YYYY-MM-DD (ddd)', { locales: 'ar-SA' }) }}</p>
+                    </template>
+                </Column>
                 <Column field="reason" header="العنوان" style="min-width: 16rem"></Column>
                 <Column field="reason_accepted" header="عذر مقبول" style="min-width: 16rem">
                 </Column>
@@ -76,54 +80,58 @@
         </Dialog>
         <UtilsConfirmDialog header="حذف الطلبة" :danger="true" v-model="useDeleteConfirm.showConfirm.value"
             @confirm="useDeleteConfirm.confirmAction" />
-        <UtilsConfirmDialog header="تحويل الطلبة" message="هل أنت متأكد من رغبتك في  التحويل إلى قسم آخر ؟"
-            :danger="false" v-model="useTransferConfirm.showConfirm.value"
-            @confirm="useTransferConfirm.confirmAction" />
     </div>
 </template>
 <script setup lang="ts">
 import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
-import type { Student, DataTableSlot, NewStudent, BatchEditStudent, LocalAbsence } from '~/data/types'
+import type { Student, DataTableSlot, NewStudent, LocalAbsence, EventQueryFilters, SupportedDateRanges } from '~/data/types'
 import { userFeedbackMessages, dateFilterOptions } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
 import { useEventStore } from '~/store/eventStore';
 const studentStore = useStudentStore();
 const eventStore = useEventStore()
-const { normalizeResultBooleans } = useFormUtils()
+const { normalizeResultBooleans, getTimeRange } = useFormUtils()
 const backend = useBackend()
 const toast = useToast();
 const { student: toastMessages } = userFeedbackMessages
 
-onMounted(() => eventStore.populateAbsences())
-const absences = computed(() => normalizeResultBooleans(eventStore.absences,['reason_accepted']))
+const dbFilters = ref<EventQueryFilters>({
+    limit: 20,
+    offset: 0,
+})
+const classOptions = computed(() => {
+    return [{ label: 'كل الأقسام', value: undefined }, ...studentStore.classOptions]
+})
+watch(dbFilters.value,()=>{
+    eventStore.populateAbsences(dbFilters.value)
+})
+onMounted(() => eventStore.populateAbsences(dbFilters.value))
+const absences = computed(() => normalizeResultBooleans(eventStore.absences, ['reason_accepted']))
 
 //table logic
 const dt = ref(); //dataTable Ref
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS }
 });
-const studentsToShow = computed(() => globalSearchInput.value.trim().length ? studentStore.searchedStudents : studentStore.students)
-const changeClass = (classId: number) => {
-    studentStore.populateStudents(classId)
-}
+const updateDateRange = (value: SupportedDateRanges | null) => {
+    if (value === null) {
+        dbFilters.value.maxDate = undefined
+        dbFilters.value.minDate = undefined
+        return
+    }
 
+    const [min, max] = getTimeRange(value)
+    dbFilters.value.minDate = min
+    dbFilters.value.maxDate = max
+
+}
 // global search logic
 const globalSearchInput = ref('')
 watchDebounced(globalSearchInput, () => {
     studentStore.populateSearchedStudents(globalSearchInput.value)
 }, { debounce: 500, maxWait: 2000 },)
 
-//transfer student Menu logic
-const transferStudentsMenu = ref(); // transfer students menu Ref
-
-const transferStudents = async (students: Student[], classId: number) => {
-    const studentIds = students.map((student) => student.id)
-    const reqBody: BatchEditStudent = { class_id: classId, ids: studentIds }
-    await backend.updateStudents(reqBody)
-    studentStore.populateStudents()
-    resetSelectedStudents()
-}
 
 // select students logic
 const selectedStudents = ref<Student[]>([])
@@ -171,8 +179,6 @@ const deleteStudents = async (students: Student[]) => {
 
 //confirm dialogs
 const useDeleteConfirm = useConfirmHandler(deleteStudents, studentStore.populateStudents)
-const useTransferConfirm = useConfirmHandler(transferStudents, studentStore.populateStudents)
-
 
 function exportCSV() {
     dt.value.exportCSV();
