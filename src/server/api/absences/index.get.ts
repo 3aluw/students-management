@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
     LIMIT ? OFFSET ?
 `
     )
-    .bind(...params, limit, offset);
+    .bind(...params, Number(limit), Number(offset));
     console.log(stmt);
   const absences = stmt.all();
   return absences as LocalAbsence[];

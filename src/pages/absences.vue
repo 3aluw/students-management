@@ -20,7 +20,7 @@
             </Toolbar>
 
             <DataTable :ref="dt" v-model:selection="selectedStudents" :value="absences" dataKey="id" :paginator="true"
-                :rows="10" :filters="filters" stripedRows
+                :rows="10" :filters="filters" stripedRows lazy @page="updatePage" :totalRecords="100"
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 currentPageReportTemplate="يتم عرض من {first} إلى {last} من مجموع الغيابات: {totalRecords}"
                 :globalFilterFields="['first_name', 'last_name']">
@@ -89,6 +89,7 @@ import type { Student, DataTableSlot, NewStudent, LocalAbsence, EventQueryFilter
 import { userFeedbackMessages, dateFilterOptions } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
 import { useEventStore } from '~/store/eventStore';
+import type { DataTablePageEvent } from 'primevue';
 const studentStore = useStudentStore();
 const eventStore = useEventStore()
 const { normalizeResultBooleans, getTimeRange } = useFormUtils()
@@ -103,12 +104,16 @@ const dbFilters = ref<EventQueryFilters>({
 const classOptions = computed(() => {
     return [{ label: 'كل الأقسام', value: undefined }, ...studentStore.classOptions]
 })
-watch(dbFilters.value,()=>{
+watch(dbFilters.value, () => {
     eventStore.populateAbsences(dbFilters.value)
 })
 onMounted(() => eventStore.populateAbsences(dbFilters.value))
 const absences = computed(() => normalizeResultBooleans(eventStore.absences, ['reason_accepted']))
-
+const updatePage = (event: DataTablePageEvent) => {
+    const { page, rows } = event
+    dbFilters.value.offset = page * rows
+    dbFilters.value.limit = rows
+}
 //table logic
 const dt = ref(); //dataTable Ref
 const filters = ref({
@@ -124,7 +129,6 @@ const updateDateRange = (value: SupportedDateRanges | null) => {
     const [min, max] = getTimeRange(value)
     dbFilters.value.minDate = min
     dbFilters.value.maxDate = max
-
 }
 // global search logic
 const globalSearchInput = ref('')
