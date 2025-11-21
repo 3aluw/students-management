@@ -8,6 +8,7 @@ import type {
   EditStudent,
   BatchEditStudent,
   LocalAbsence,
+  Absence,
 
 } from "~/data/types";
 
@@ -64,6 +65,12 @@ export default function () {
       params
     });
   };
+    const deleteAbsences = (body: Absence["id"][]) => {
+    return $fetch(`/api/absences/`, {
+      method: "DELETE",
+      body,
+    });
+  };
   return {
     createClass,
     updateClass,
@@ -75,5 +82,6 @@ export default function () {
     deleteStudents,
     updateStudents,
     getAbsences,
+    deleteAbsences
   };
 }
