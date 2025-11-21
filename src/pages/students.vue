@@ -187,7 +187,7 @@ const deleteStudents = async (students: Student[]) => {
 
 
 //confirm dialogs
-const useDeleteConfirm = useConfirmHandler(deleteStudents, studentStore.populateStudents)
+const useDeleteConfirm = useConfirmHandler(()=> deleteStudents(selectedStudents.value), studentStore.populateStudents)
 const useTransferConfirm = useConfirmHandler(transferStudents, studentStore.populateStudents)
 
 

@@ -5,10 +5,10 @@
             <Toolbar class="mb-6">
                 <template #start>
                     <Button label="حذف" icon="pi pi-trash" iconPos="right" severity="secondary" class="mx-2"
-                        @click="useDeleteConfirm.requestAction(selectedStudents)"
-                        :disabled="!selectedStudents || !selectedStudents.length" />
+                        @click="useDeleteConfirm.requestAction(selectedAbsences)"
+                        :disabled="!selectedAbsences || !selectedAbsences.length" />
                     <Button label="تعديل" icon="pi pi-pencil" iconPos="right" severity="secondary" class="mx-2"
-                        @click="" :disabled="!selectedStudents || !selectedStudents.length" />
+                        @click="" :disabled="!selectedAbsences || !selectedAbsences.length" />
                 </template>
 
                 <template #end>
@@ -17,7 +17,7 @@
                 </template>
             </Toolbar>
 
-            <DataTable :ref="dt" v-model:selection="selectedStudents" :value="absences" dataKey="id" :paginator="true"
+            <DataTable :ref="dt" v-model:selection="selectedAbsences" :value="absences" dataKey="id" :paginator="true"
                 :rows="10" :filters="filters" stripedRows lazy @page="updatePage" :totalRecords="totalRecords"
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 currentPageReportTemplate="يتم عرض من {first} إلى {last} من مجموع الغيابات: {totalRecords}"
@@ -108,8 +108,8 @@ const classOptions = computed(() => {
 watch(dbFilters.value, () => {
     eventStore.populateAbsences(dbFilters.value)
 })
-onMounted(async() => {
-   totalRecords.value = await eventStore.populateAbsences(dbFilters.value)
+onMounted(async () => {
+    totalRecords.value = await eventStore.populateAbsences(dbFilters.value)
 })
 const absences = computed(() => normalizeResultBooleans(eventStore.absences, ['reason_accepted']))
 const updatePage = (event: DataTablePageEvent) => {
@@ -147,8 +147,8 @@ watchDebounced(globalSearchInput, () => {
 
 
 // select students logic
-const selectedStudents = ref<Student[]>([])
-const resetSelectedStudents = () => { selectedStudents.value = [] }
+const selectedAbsences = ref<LocalAbsence[]>([])
+const resetSelected = () => { selectedAbsences.value = [] }
 
 // edit / create student logic
 const showStudentDialog = ref(false);
@@ -181,17 +181,16 @@ const handleStudentSubmit = (newStudent: NewStudent) => {
 }
 
 
-const deleteStudents = async (students: Student[]) => {
-    const studentIds = students.map((student) => student.id)
-    await backend.deleteStudents(studentIds);
-    resetSelectedStudents()
-
+const deleteAbsences = async (absences: LocalAbsence[]) => {
+    const studentIds = absences.map((absence) => absence.id)
+    await backend.deleteAbsences(studentIds);
+    resetSelected()
 }
 
 
 
 //confirm dialogs
-const useDeleteConfirm = useConfirmHandler(deleteStudents, studentStore.populateStudents)
+const useDeleteConfirm = useConfirmHandler(() => deleteAbsences(selectedAbsences.value), () => eventStore.populateAbsences(dbFilters.value))
 
 function exportCSV() {
     dt.value.exportCSV();
