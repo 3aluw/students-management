@@ -8,7 +8,9 @@ export const useEventStore = defineStore("eventStore", () => {
   const absences = ref<LocalAbsence[]>([]);
 
   const populateAbsences = async (query: EventQueryFilters) => {
-    absences.value = await backend.getAbsences(query);
+    const {absences : dbAbsences, total} = await backend.getAbsences(query);
+    absences.value = dbAbsences;
+    return total;
   };
   return { lateness, absences, populateAbsences };
 });

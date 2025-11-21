@@ -4,13 +4,11 @@
             <!-- Toolbar above the table - action buttons -->
             <Toolbar class="mb-6">
                 <template #start>
-                    <Button label="جديد" icon="pi pi-plus" iconPos="right" severity="secondary" class="mx-2"
-                        @click="showStudentDialog = true" />
                     <Button label="حذف" icon="pi pi-trash" iconPos="right" severity="secondary" class="mx-2"
                         @click="useDeleteConfirm.requestAction(selectedStudents)"
                         :disabled="!selectedStudents || !selectedStudents.length" />
                     <Button label="تعديل" icon="pi pi-pencil" iconPos="right" severity="secondary" class="mx-2"
-                        @click="" v-if="selectedStudents.length == 1" />
+                        @click="" :disabled="!selectedStudents || !selectedStudents.length" />
                 </template>
 
                 <template #end>
@@ -20,15 +18,15 @@
             </Toolbar>
 
             <DataTable :ref="dt" v-model:selection="selectedStudents" :value="absences" dataKey="id" :paginator="true"
-                :rows="10" :filters="filters" stripedRows lazy @page="updatePage" :totalRecords="100"
+                :rows="10" :filters="filters" stripedRows lazy @page="updatePage" :totalRecords="totalRecords"
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 currentPageReportTemplate="يتم عرض من {first} إلى {last} من مجموع الغيابات: {totalRecords}"
                 :globalFilterFields="['first_name', 'last_name']">
 
                 <template #header>
                     <div class="flex flex-wrap gap-2 items-center justify-between">
+                        <h4 class="m-0">آخر الغيابات </h4>
                         <div class="flex gap-4">
-                            <h4 class="m-0">آخر الغيابات </h4>
                             <Select name="class_id" :options="classOptions" optionLabel="label" optionValue="value"
                                 placeholder="اختر الصف" v-model="dbFilters.classId"
                                 v-show="!globalSearchInput.length" />
@@ -41,8 +39,10 @@
                                 <i class="pi pi-search" />
                             </InputIcon>
                             <InputText v-model="dbFilters.name" placeholder="بحث عن..." />
-                        </IconField>
 
+                        </IconField>
+                        <Button icon="pi pi-times" severity="secondary" variant="text" rounded aria-label="Cancel"
+                            @click="resetFilters" />
                     </div>
                 </template>
 
@@ -97,6 +97,7 @@ const backend = useBackend()
 const toast = useToast();
 const { student: toastMessages } = userFeedbackMessages
 
+const totalRecords = ref(0)
 const dbFilters = ref<EventQueryFilters>({
     limit: 20,
     offset: 0,
@@ -107,12 +108,20 @@ const classOptions = computed(() => {
 watch(dbFilters.value, () => {
     eventStore.populateAbsences(dbFilters.value)
 })
-onMounted(() => eventStore.populateAbsences(dbFilters.value))
+onMounted(async() => {
+   totalRecords.value = await eventStore.populateAbsences(dbFilters.value)
+})
 const absences = computed(() => normalizeResultBooleans(eventStore.absences, ['reason_accepted']))
 const updatePage = (event: DataTablePageEvent) => {
     const { page, rows } = event
     dbFilters.value.offset = page * rows
     dbFilters.value.limit = rows
+}
+const resetFilters = () => {
+    dbFilters.value = {
+        limit: dbFilters.value.limit,
+        offset: dbFilters.value.offset,
+    }
 }
 //table logic
 const dt = ref(); //dataTable Ref
