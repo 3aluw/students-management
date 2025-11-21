@@ -60,7 +60,7 @@ export default function () {
 
 
   const getAbsences = (params: EventQueryFilters) => {
-    return $fetch<LocalAbsence[]>(`/api/absences`,{
+    return $fetch<{absences : LocalAbsence[], total: number}>(`/api/absences`,{
       params
     });
   };

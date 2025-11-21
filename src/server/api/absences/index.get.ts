@@ -2,6 +2,8 @@ import db from "~/db/db";
 import type { EventQueryFilters, LocalAbsence } from "~/data/types";
 import useDBUtils from "~/composables/useDBUtils";
 
+type TotalRow = { total: number };
+
 export default defineEventHandler(async (event) => {
   const { buildWhereQuery } = useDBUtils();
 
@@ -30,7 +32,19 @@ export default defineEventHandler(async (event) => {
 `
     )
     .bind(...params, Number(limit), Number(offset));
-    console.log(stmt);
-  const absences = stmt.all();
-  return absences as LocalAbsence[];
+  const absences = stmt.all()  as LocalAbsence[];
+
+  const stmtTotal = db
+    .prepare(
+    `SELECT COUNT(*) OVER() AS total
+    FROM absence a
+    INNER JOIN student s ON s.id = a.student_id
+    INNER JOIN class c ON c.id = s.class_id
+    ${where ? where : ""}
+    ORDER BY a.date DESC`
+    )
+    .bind(...params);
+  const total = (stmtTotal.get() as TotalRow).total;
+  
+  return {total, absences};
 });
