@@ -10,8 +10,7 @@ export default defineEventHandler(async (event) => {
   const query = getQuery<EventQueryFilters>(event); // time filter / class filter / offset
   const { limit = 20, offset = 0 } = query;
   const { where, params } = buildWhereQuery(query, "absence");
-  console.log(query, where, params);
-
+  
   const stmt = db
     .prepare(
       `
@@ -36,7 +35,7 @@ export default defineEventHandler(async (event) => {
 
   const stmtTotal = db
     .prepare(
-    `SELECT COUNT(*) OVER() AS total
+    `SELECT COALESCE(COUNT(*), 0) AS total
     FROM absence a
     INNER JOIN student s ON s.id = a.student_id
     INNER JOIN class c ON c.id = s.class_id
@@ -45,6 +44,6 @@ export default defineEventHandler(async (event) => {
     )
     .bind(...params);
   const total = (stmtTotal.get() as TotalRow).total;
-  
+
   return {total, absences};
 });

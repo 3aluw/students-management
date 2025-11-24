@@ -18,12 +18,13 @@
             </Toolbar>
 
             <DataTable :ref="dt" v-model:selection="selectedAbsences" :value="absences" dataKey="id" :paginator="true"
-                :rows="10" :filters="filters" stripedRows lazy @page="updatePage" :totalRecords="totalRecords"
+                :rows="10" stripedRows lazy @page="updatePage" :totalRecords="totalRecords"
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 currentPageReportTemplate="يتم عرض من {first} إلى {last} من مجموع الغيابات: {totalRecords}"
                 :globalFilterFields="['first_name', 'last_name']">
 
                 <template #header>
+
                     <div class="flex flex-wrap gap-2 items-center justify-between">
                         <h4 class="m-0">آخر الغيابات </h4>
                         <div class="flex gap-4">
@@ -31,9 +32,14 @@
                                 placeholder="اختر الصف" v-model="dbFilters.classId"
                                 v-show="!globalSearchInput.length" />
                         </div>
-                        <SelectButton name="sex" :options="dateFilterOptions" optionLabel="label" optionValue="value"
-                            @update:modelValue="updateDateRange" />
+                        <div class="flex flex-col gap-2">
+                            <SelectButton name="date range" :options="dateFilterOptions" optionLabel="label"
+                                optionValue="value" v-model="selectedDateRange"
+                                @update:modelValue="updateDateRangeSelect" />
+                            <DatePicker v-model="dateRange" showIcon fluid iconDisplay="input" selection-mode="range"
+                                @value-change="(e) => updateDateRange(e, 'date picker')" />
 
+                        </div>
                         <IconField v-show="!globalSearchInput.length">
                             <InputIcon>
                                 <i class="pi pi-search" />
@@ -74,11 +80,7 @@
                 </template>
             </DataTable>
         </div>
-        <Dialog header="أدخل معلومات القسم" @hide="studentToEdit = undefined" v-model:visible="showStudentDialog"
-            :style="{ width: '350px' }" :modal="true">
-            <UtilsNewEntityForm entityType="student" :entityObject="studentToEdit" @submit="handleStudentSubmit" />
-        </Dialog>
-        <UtilsConfirmDialog header="حذف الطلبة" :danger="true" v-model="useDeleteConfirm.showConfirm.value"
+        <UtilsConfirmDialog header="حذف الغياب" :danger="true" v-model="useDeleteConfirm.showConfirm.value"
             @confirm="useDeleteConfirm.confirmAction" />
     </div>
 </template>
@@ -118,26 +120,49 @@ const updatePage = (event: DataTablePageEvent) => {
     dbFilters.value.limit = rows
 }
 const resetFilters = () => {
+    dateRange.value = undefined
+    selectedDateRange.value = undefined
+    const dbFiltersKeys = Object.keys(dbFilters.value) as (keyof EventQueryFilters)[]
+    dbFiltersKeys.forEach((key) => {
+        if (key !== 'limit' && key !== 'offset') {
+            dbFilters.value[key] = undefined
+        }
+    })
     dbFilters.value = {
         limit: dbFilters.value.limit,
         offset: dbFilters.value.offset,
     }
+
 }
 //table logic
 const dt = ref(); //dataTable Ref
-const filters = ref({
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS }
-});
-const updateDateRange = (value: SupportedDateRanges | null) => {
+const selectedDateRange = ref<SupportedDateRanges | undefined>(undefined) //used By date ranges select buttons
+const dateRange = ref<Date[] | undefined>(undefined) //used By datePicker
+
+const updateDateRangeSelect = (value: SupportedDateRanges | null) => {
     if (value === null) {
-        dbFilters.value.maxDate = undefined
-        dbFilters.value.minDate = undefined
+        dateRange.value = undefined
         return
     }
-
     const [min, max] = getTimeRange(value)
-    dbFilters.value.minDate = min
-    dbFilters.value.maxDate = max
+    dateRange.value = [new Date(min), new Date(max)]
+    updateDateRange(dateRange.value, "select buttons")
+
+}
+
+const updateDateRange = (value: Date | Date[] | (Date | null)[] | null | undefined, changeSource: "select buttons" | "date picker" = 'date picker') => {
+    if (!Array.isArray(value) || value.length !== 2) return
+    if (value[0] === null || value[1] === null) {
+        dateRange.value = undefined
+        dbFilters.value.minDate = undefined
+        dbFilters.value.maxDate = undefined
+        return
+    }
+    dbFilters.value.minDate = value[0].getTime()
+    dbFilters.value.maxDate = value[1].getTime()
+    if (changeSource === "date picker") {
+        selectedDateRange.value = undefined
+    }
 }
 // global search logic
 const globalSearchInput = ref('')
@@ -146,39 +171,9 @@ watchDebounced(globalSearchInput, () => {
 }, { debounce: 500, maxWait: 2000 },)
 
 
-// select students logic
+// select absences logic
 const selectedAbsences = ref<LocalAbsence[]>([])
 const resetSelected = () => { selectedAbsences.value = [] }
-
-// edit / create student logic
-const showStudentDialog = ref(false);
-const studentToEdit = ref<Student | undefined>(undefined)
-const EditStudent = async (studentObj: Student) => {
-    try {
-        await backend.updateStudents(studentObj)
-        await studentStore.populateStudents(studentToEdit.value?.class_id!)
-        showStudentDialog.value = false
-        toast.add({ severity: 'success', summary: toastMessages.updateSuccess, life: 3000 })
-
-    } catch (error) {
-        toast.add({ severity: 'error', summary: toastMessages.updateFailed, life: 3000 })
-    }
-}
-const createNewStudent = async (newStudent: NewStudent) => {
-    try {
-        await backend.createStudent(newStudent)
-        await studentStore.populateStudents(newStudent.class_id)
-        showStudentDialog.value = false
-        toast.add({ severity: 'success', summary: toastMessages.addSuccess, life: 3000 })
-
-    } catch (error) {
-        toast.add({ severity: 'error', summary: toastMessages.addFailed, life: 3000 })
-
-    }
-}
-const handleStudentSubmit = (newStudent: NewStudent) => {
-    studentToEdit.value ? EditStudent({ ...newStudent, id: studentToEdit.value.id }) : createNewStudent(newStudent)
-}
 
 
 const deleteAbsences = async (absences: LocalAbsence[]) => {
