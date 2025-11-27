@@ -17,8 +17,8 @@
                 </template>
             </Toolbar>
 
-            <DataTable :ref="dt" v-model:selection="selectedAbsences" :value="eventStore.absences" dataKey="id" :paginator="true"
-                :rows="10" stripedRows lazy @page="updatePage" :totalRecords="totalRecords"
+            <DataTable :ref="dt" v-model:selection="selectedAbsences" :value="eventStore.absences" dataKey="id"
+                :paginator="true" :rows="10" stripedRows lazy @page="updatePage" :totalRecords="totalRecords"
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 currentPageReportTemplate="يتم عرض من {first} إلى {last} من مجموع الغيابات: {totalRecords}"
                 :globalFilterFields="['first_name', 'last_name']">
@@ -98,7 +98,7 @@
 <script setup lang="ts">
 import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
-import type { Student, DataTableSlot, NewStudent, LocalAbsence, EventQueryFilters, SupportedDateRanges, AbsenceInfo, NewAbsence } from '~/data/types'
+import type { Student, DataTableSlot, NewStudent, LocalAbsence, EventQueryFilters, SupportedDateRanges, AbsenceInfo, NewAbsence, EditAbsence, BatchEditAbsence } from '~/data/types'
 import { userFeedbackMessages, dateFilterOptions } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
 import { useEventStore } from '~/store/eventStore';
@@ -108,7 +108,7 @@ const eventStore = useEventStore()
 const { normalizeResultBooleans, getTimeRange } = useFormUtils()
 const backend = useBackend()
 const toast = useToast();
-const { student: toastMessages } = userFeedbackMessages
+const { absence: toastMessages } = userFeedbackMessages
 
 onMounted(async () => {
     totalRecords.value = await eventStore.populateAbsences(dbFilters.value)
@@ -117,18 +117,43 @@ onMounted(async () => {
 const showAbsenceDialog = ref(false)
 const absenceToEdit = ref<AbsenceInfo | undefined>(undefined)
 const totalRecords = ref(0)
-const handleAbsenceSubmit = (absence: NewAbsence) => {
+
+const handleAbsenceSubmit = async (absenceInfo: AbsenceInfo) => {
+    let absences: BatchEditAbsence | EditAbsence;
+
+    if (selectedAbsences.value.length === 1) {
+        absences = { id: selectedAbsences.value[0].id, ...absenceInfo }
+    }
+    else {
+        const ids = selectedAbsences.value.map((absence) => absence.id)
+        absences = { ...absenceInfo, ids }
+    }
+    EditAbsences(absences)
+}
+const EditAbsences = async (absences: BatchEditAbsence | EditAbsence) => {
+    try {
+        await backend.updateAbsences(absences)
+        toast.add({ severity: 'success', summary: toastMessages.updateSuccess, life: 3000 });
+        showAbsenceDialog.value = false
+        absenceToEdit.value = undefined
+        resetSelected()
+    }
+    catch (error) {
+        toast.add({ severity: 'error', summary: toastMessages.updateFailed, life: 3000 });
+        return
+    }
+    await eventStore.populateAbsences(dbFilters.value)
 
 }
 const handleEditClick = () => {
     showAbsenceDialog.value = true
-        const absence = selectedAbsences.value[0] // pass the first selected absence
-        absenceToEdit.value = {
-            date: absence.date,
-            reason: absence.reason,
-            reason_accepted: absence.reason_accepted,
-        }
-    
+    const absence = selectedAbsences.value[0] // pass the first selected absence
+    absenceToEdit.value = {
+        date: absence.date,
+        reason: absence.reason,
+        reason_accepted: absence.reason_accepted,
+    }
+
 }
 const dbFilters = ref<EventQueryFilters>({
     limit: 20,
@@ -141,7 +166,6 @@ watch(dbFilters.value, () => {
     eventStore.populateAbsences(dbFilters.value)
 })
 
-const absences = computed(() => normalizeResultBooleans(eventStore.absences, ['reason_accepted']))
 const updatePage = (event: DataTablePageEvent) => {
     const { page, rows } = event
     dbFilters.value.offset = page * rows
@@ -213,7 +237,7 @@ const deleteAbsences = async (absences: LocalAbsence[]) => {
 
 
 //confirm dialogs
-const useDeleteConfirm = useConfirmHandler(() => deleteAbsences(selectedAbsences.value), () => eventStore.populateAbsences(dbFilters.value))
+const useDeleteConfirm = useConfirmHandler(() => deleteAbsences(selectedAbsences.value), () => eventStore.populateAbsences(dbFilters.value),toastMessages.deleteSuccess, toastMessages.deleteFailed)
 
 function exportCSV() {
     dt.value.exportCSV();

@@ -74,6 +74,7 @@ export type EditLateness = PartialExceptId<Lateness>;
 export type EditAbsence = PartialExceptId<Absence>;
 
 export type BatchEditStudent = BatchEdit<Student>;
+export type BatchEditAbsence = BatchEdit<Absence>;
 
 export type AbsenceInfo = Omit<Absence, "student_id" | 'id'>
 export type LocalAbsence = Absence & {
