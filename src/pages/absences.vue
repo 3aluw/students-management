@@ -8,7 +8,7 @@
                         @click="useDeleteConfirm.requestAction(selectedAbsences)"
                         :disabled="!selectedAbsences || !selectedAbsences.length" />
                     <Button label="تعديل" icon="pi pi-pencil" iconPos="right" severity="secondary" class="mx-2"
-                        @click="" :disabled="!selectedAbsences || !selectedAbsences.length" />
+                        @click="handleEditClick" :disabled="!selectedAbsences || !selectedAbsences.length" />
                 </template>
 
                 <template #end>
@@ -17,7 +17,7 @@
                 </template>
             </Toolbar>
 
-            <DataTable :ref="dt" v-model:selection="selectedAbsences" :value="absences" dataKey="id" :paginator="true"
+            <DataTable :ref="dt" v-model:selection="selectedAbsences" :value="eventStore.absences" dataKey="id" :paginator="true"
                 :rows="10" stripedRows lazy @page="updatePage" :totalRecords="totalRecords"
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 currentPageReportTemplate="يتم عرض من {first} إلى {last} من مجموع الغيابات: {totalRecords}"
@@ -25,28 +25,32 @@
 
                 <template #header>
 
-                    <div class="flex flex-wrap gap-2 items-center justify-between">
+                    <div class="flex flex-wrap gap-2 items-center justify-around">
                         <h4 class="m-0">آخر الغيابات </h4>
-                        <div class="flex gap-4">
-                            <Select name="class_id" :options="classOptions" optionLabel="label" optionValue="value"
-                                placeholder="اختر الصف" v-model="dbFilters.classId"
-                                v-show="!globalSearchInput.length" />
-                        </div>
-                        <div class="flex flex-col gap-2">
-                            <SelectButton name="date range" :options="dateFilterOptions" optionLabel="label"
-                                optionValue="value" v-model="selectedDateRange"
-                                @update:modelValue="updateDateRangeSelect" />
-                            <DatePicker v-model="dateRange" showIcon fluid iconDisplay="input" selection-mode="range"
-                                @value-change="(e) => updateDateRange(e, 'date picker')" />
 
-                        </div>
-                        <IconField v-show="!globalSearchInput.length">
-                            <InputIcon>
-                                <i class="pi pi-search" />
-                            </InputIcon>
-                            <InputText v-model="dbFilters.name" placeholder="بحث عن..." />
+                        <div class="flex flex-wrap gap-4 items-center justify-between">
+                            <div class="flex gap-4">
+                                <Select name="class_id" :options="classOptions" optionLabel="label" optionValue="value"
+                                    placeholder="اختر الصف" v-model="dbFilters.classId"
+                                    v-show="!globalSearchInput.length" />
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <SelectButton name="date range" :options="dateFilterOptions" optionLabel="label"
+                                    optionValue="value" v-model="selectedDateRange"
+                                    @update:modelValue="updateDateRangeSelect" />
+                                <DatePicker v-model="dateRange" showIcon fluid iconDisplay="input"
+                                    selection-mode="range" @value-change="(e) => updateDateRange(e, 'date picker')" />
 
-                        </IconField>
+                            </div>
+                            <IconField>
+                                <InputIcon>
+                                    <i class="pi pi-search" />
+                                </InputIcon>
+                                <InputText v-model="dbFilters.name" placeholder="بحث عن..." />
+
+                            </IconField>
+                        </div>
+
                         <Button icon="pi pi-times" severity="secondary" variant="text" rounded aria-label="Cancel"
                             @click="resetFilters" />
                     </div>
@@ -68,6 +72,9 @@
                 </Column>
                 <Column field="reason" header="العنوان" style="min-width: 16rem"></Column>
                 <Column field="reason_accepted" header="عذر مقبول" style="min-width: 16rem">
+                    <template #body="slotProps: DataTableSlot<LocalAbsence>">
+                        <p>{{ slotProps.data.reason_accepted ? 'نعم' : 'لا' }}</p>
+                    </template>
                 </Column>
                 <Column header="القسم">
                     <template #body="slotProps: DataTableSlot<LocalAbsence>">
@@ -80,6 +87,10 @@
                 </template>
             </DataTable>
         </div>
+        <Dialog header="أدخل معلومات القسم" @hide="absenceToEdit = undefined" v-model:visible="showAbsenceDialog"
+            :style="{ width: '350px' }" :modal="true">
+            <UtilsEventForm eventType="absence" :entityObject="absenceToEdit" @submit="handleAbsenceSubmit" />
+        </Dialog>
         <UtilsConfirmDialog header="حذف الغياب" :danger="true" v-model="useDeleteConfirm.showConfirm.value"
             @confirm="useDeleteConfirm.confirmAction" />
     </div>
@@ -87,7 +98,7 @@
 <script setup lang="ts">
 import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
-import type { Student, DataTableSlot, NewStudent, LocalAbsence, EventQueryFilters, SupportedDateRanges } from '~/data/types'
+import type { Student, DataTableSlot, NewStudent, LocalAbsence, EventQueryFilters, SupportedDateRanges, AbsenceInfo, NewAbsence } from '~/data/types'
 import { userFeedbackMessages, dateFilterOptions } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
 import { useEventStore } from '~/store/eventStore';
@@ -99,7 +110,26 @@ const backend = useBackend()
 const toast = useToast();
 const { student: toastMessages } = userFeedbackMessages
 
+onMounted(async () => {
+    totalRecords.value = await eventStore.populateAbsences(dbFilters.value)
+})
+
+const showAbsenceDialog = ref(false)
+const absenceToEdit = ref<AbsenceInfo | undefined>(undefined)
 const totalRecords = ref(0)
+const handleAbsenceSubmit = (absence: NewAbsence) => {
+
+}
+const handleEditClick = () => {
+    showAbsenceDialog.value = true
+        const absence = selectedAbsences.value[0] // pass the first selected absence
+        absenceToEdit.value = {
+            date: absence.date,
+            reason: absence.reason,
+            reason_accepted: absence.reason_accepted,
+        }
+    
+}
 const dbFilters = ref<EventQueryFilters>({
     limit: 20,
     offset: 0,
@@ -110,9 +140,7 @@ const classOptions = computed(() => {
 watch(dbFilters.value, () => {
     eventStore.populateAbsences(dbFilters.value)
 })
-onMounted(async () => {
-    totalRecords.value = await eventStore.populateAbsences(dbFilters.value)
-})
+
 const absences = computed(() => normalizeResultBooleans(eventStore.absences, ['reason_accepted']))
 const updatePage = (event: DataTablePageEvent) => {
     const { page, rows } = event

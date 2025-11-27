@@ -75,6 +75,7 @@ export type EditAbsence = PartialExceptId<Absence>;
 
 export type BatchEditStudent = BatchEdit<Student>;
 
+export type AbsenceInfo = Omit<Absence, "student_id" | 'id'>
 export type LocalAbsence = Absence & {
   first_name: string;
   last_name: string;
