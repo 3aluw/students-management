@@ -29,7 +29,7 @@
     </UtilsConfirmDialog>
     <Dialog header="أدخل معلومات القسم" @hide="classToEdit = undefined" v-model:visible="showClassDialog"
       :style="{ width: '350px' }" :modal="true">
-      <UtilsNewEntityForm entityType="class" :entityObject="classToEdit" @submit="handleSubmit" />
+      <UtilsEntityForm entityType="class" :entityObject="classToEdit" @submit="handleSubmit" />
     </Dialog>
 
   </div>
