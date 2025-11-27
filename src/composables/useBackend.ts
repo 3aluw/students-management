@@ -9,7 +9,8 @@ import type {
   BatchEditStudent,
   LocalAbsence,
   Absence,
-
+  BatchEditAbsence,
+  EditAbsence,
 } from "~/data/types";
 
 export default function () {
@@ -59,18 +60,27 @@ export default function () {
     });
   };
 
-
   const getAbsences = (params: EventQueryFilters) => {
-    return $fetch<{absences : LocalAbsence[], total: number}>(`/api/absences`,{
-      params
-    });
+    return $fetch<{ absences: LocalAbsence[]; total: number }>(
+      `/api/absences`,
+      {
+        params,
+      }
+    );
   };
-    const deleteAbsences = (body: Absence["id"][]) => {
+  const deleteAbsences = (body: Absence["id"][]) => {
     return $fetch(`/api/absences/`, {
       method: "DELETE",
       body,
     });
-  };
+  }
+    const updateAbsences = (body: BatchEditAbsence | EditAbsence) => {
+      return $fetch("/api/absences", {
+        method: "POST",
+        body,
+      });
+    };
+  
   return {
     createClass,
     updateClass,
@@ -82,6 +92,7 @@ export default function () {
     deleteStudents,
     updateStudents,
     getAbsences,
-    deleteAbsences
+    deleteAbsences,
+    updateAbsences,
   };
 }

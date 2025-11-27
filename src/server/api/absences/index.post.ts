@@ -1,13 +1,12 @@
-import { EditStudent, BatchEditStudent, NewStudent } from "~/data/types";
+import { EditAbsence, BatchEditAbsence, NewAbsence } from "~/data/types";
 import db from "~/db/db";
 import useDBUtils from "../../../composables/useDBUtils";
 
 export default defineEventHandler(async (event) => {
   const { generateDBSetClause, generateDBInClause } = useDBUtils();
 
-  const reqBody = await readBody<NewStudent | EditStudent | BatchEditStudent>(
-    event
-  );
+  const reqBody = await readBody<NewAbsence | EditAbsence | BatchEditAbsence>( event );
+  // Batch Edit Absences
   if ("ids" in reqBody) {
     try {
       const { ids, ...props } = reqBody;
@@ -15,7 +14,7 @@ export default defineEventHandler(async (event) => {
       const inClause = generateDBInClause(ids.length);
       const setClause = generateDBSetClause(props);
       const stmt = db.prepare(
-        `UPDATE student SET ${setClause} WHERE id IN (${inClause}) `
+        `UPDATE absence SET ${setClause} WHERE id IN (${inClause}) `
       );
       const info = stmt.run(...values, ...ids);
       return { success: true, id: info.lastInsertRowid, info };
@@ -27,17 +26,7 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const {
-    first_name,
-    last_name,
-    class_id,
-    father_name,
-    grandfather_name,
-    sex,
-    phone_number,
-    birth_date,
-    address,
-  } = reqBody;
+  const { student_id, date, reason, reason_accepted } = reqBody;
   // if no id : Create a new item
   if (!("id" in reqBody)) {
     try {
@@ -68,7 +57,7 @@ export default defineEventHandler(async (event) => {
       const values = Object.values(reqBody);
 
       const setClause = generateDBSetClause(reqBody);
-      const stmt = db.prepare(`UPDATE student SET ${setClause} WHERE id = ?`);
+      const stmt = db.prepare(`UPDATE absence SET ${setClause} WHERE id = ?`);
       const info = stmt.run(...values, reqBody.id);
       return { success: true, id: info.lastInsertRowid, info };
     } catch (err) {
