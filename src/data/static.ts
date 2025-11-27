@@ -80,4 +80,14 @@ export const userFeedbackMessages = {
     deleteSuccess: "تم حذف القسم بنجاح",
     deleteFailed: "حدث خطأ أثناء حذف القسم",
   },
+  absence: {
+    addSuccess: "تم تسجيل الغياب بنجاح",
+    addFailed: "حدث خطأ أثناء تسجيل الغياب",
+    fetchSuccess: "تم تحميل بيانات الغيابات بنجاح",
+    fetchFailed: "حدث خطأ أثناء تحميل بيانات الغيابات",
+    updateSuccess: "تم تحديث الغياب بنجاح",
+    updateFailed: "حدث خطأ أثناء تحديث الغياب",
+    deleteSuccess: "تم حذف الغياب بنجاح",
+    deleteFailed: "حدث خطأ أثناء حذف الغياب",
+  },
 };

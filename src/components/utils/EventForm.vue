@@ -89,7 +89,6 @@ if(props.eventType == 'absence' && props.entityObject){
 const toast = useToast();
 
 type Event<T extends 'absence' | 'lateness'> = T extends 'absence' ? AbsenceInfo : Lateness
-
 type newEvent<T extends 'absence' | 'lateness'> = T extends 'absence' ? NewAbsence : NewLateness
 
 const props = defineProps<{
@@ -98,7 +97,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-    (e: 'submit', obj: newEvent<T>): void;
+    (e: 'submit', obj: Event<T>): void;
 }>()
 
 const resolver = computed(() => props.eventType == 'absence' ? zodResolver(absenceZodSchema) :
@@ -122,7 +121,7 @@ const onFormSubmit = (event: FormSubmitEvent) => {
     if (!event.valid) return
 
     toast.add({ severity: 'info', summary: 'يتم معالجة طلبك', life: 3000 })
-    emit('submit', event.values as newEvent<T>)
+    emit('submit', event.values as Event<T>)
 }
 
 </script>

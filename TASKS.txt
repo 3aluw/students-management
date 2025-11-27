@@ -2,3 +2,4 @@
    school times, school year terms,  
  - lateness and absences page to delete / edit them
  - add lateness / absence in workspace or dashboard page
+ - delete normalizeResultBooleans If not used
