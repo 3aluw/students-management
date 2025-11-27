@@ -31,8 +31,7 @@
                         <div class="flex flex-wrap gap-4 items-center justify-between">
                             <div class="flex gap-4">
                                 <Select name="class_id" :options="classOptions" optionLabel="label" optionValue="value"
-                                    placeholder="اختر الصف" v-model="dbFilters.classId"
-                                    v-show="!globalSearchInput.length" />
+                                    placeholder="اختر الصف" v-model="dbFilters.classId" />
                             </div>
                             <div class="flex flex-col gap-2">
                                 <SelectButton name="date range" :options="dateFilterOptions" optionLabel="label"
@@ -96,28 +95,59 @@
     </div>
 </template>
 <script setup lang="ts">
-import { FilterMatchMode } from '@primevue/core/api';
+
 import { useToast } from 'primevue/usetoast';
-import type { Student, DataTableSlot, NewStudent, LocalAbsence, EventQueryFilters, SupportedDateRanges, AbsenceInfo, NewAbsence, EditAbsence, BatchEditAbsence } from '~/data/types'
+import type { DataTableSlot, LocalAbsence, EventQueryFilters, SupportedDateRanges, AbsenceInfo, EditAbsence, BatchEditAbsence } from '~/data/types'
 import { userFeedbackMessages, dateFilterOptions } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
 import { useEventStore } from '~/store/eventStore';
 import type { DataTablePageEvent } from 'primevue';
+
+// ========== STORES & SERVICES ==========
 const studentStore = useStudentStore();
 const eventStore = useEventStore()
-const { normalizeResultBooleans, getTimeRange } = useFormUtils()
+const { getTimeRange } = useFormUtils()
 const backend = useBackend()
 const toast = useToast();
+// ========== TOAST & MESSAGES ==========
 const { absence: toastMessages } = userFeedbackMessages
 
+// ========== LIFECYCLE HOOKS ==========
 onMounted(async () => {
     totalRecords.value = await eventStore.populateAbsences(dbFilters.value)
 })
-
+// ========== COMPUTED PROPERTIES ==========
+const classOptions = computed(() => {
+    return [{ label: 'كل الأقسام', value: undefined }, ...studentStore.classOptions]
+})
+// ========== REACTIVE REFERENCES ==========
+// Dialog states
 const showAbsenceDialog = ref(false)
 const absenceToEdit = ref<AbsenceInfo | undefined>(undefined)
-const totalRecords = ref(0)
 
+// Data table references
+const dt = ref(); //dataTable Ref
+const totalRecords = ref(0)
+const selectedAbsences = ref<LocalAbsence[]>([]);
+const dbFilters = ref<EventQueryFilters>({
+    limit: 20,
+    offset: 0,
+})
+
+// Date filter states
+const selectedDateRange = ref<SupportedDateRanges | undefined>(undefined) //used By date ranges select buttons
+const dateRange = ref<Date[] | undefined>(undefined) //used By datePicker
+
+
+// ========== WATCHERS ==========
+// Repopulate absences when filters change
+watch(dbFilters.value, () => {
+    eventStore.populateAbsences(dbFilters.value)
+})
+
+// ========== EVENT HANDLERS ==========
+
+// Absence management handlers
 const handleAbsenceSubmit = async (absenceInfo: AbsenceInfo) => {
     let absences: BatchEditAbsence | EditAbsence;
 
@@ -130,21 +160,7 @@ const handleAbsenceSubmit = async (absenceInfo: AbsenceInfo) => {
     }
     EditAbsences(absences)
 }
-const EditAbsences = async (absences: BatchEditAbsence | EditAbsence) => {
-    try {
-        await backend.updateAbsences(absences)
-        toast.add({ severity: 'success', summary: toastMessages.updateSuccess, life: 3000 });
-        showAbsenceDialog.value = false
-        absenceToEdit.value = undefined
-        resetSelected()
-    }
-    catch (error) {
-        toast.add({ severity: 'error', summary: toastMessages.updateFailed, life: 3000 });
-        return
-    }
-    await eventStore.populateAbsences(dbFilters.value)
 
-}
 const handleEditClick = () => {
     showAbsenceDialog.value = true
     const absence = selectedAbsences.value[0] // pass the first selected absence
@@ -155,42 +171,18 @@ const handleEditClick = () => {
     }
 
 }
-const dbFilters = ref<EventQueryFilters>({
-    limit: 20,
-    offset: 0,
-})
-const classOptions = computed(() => {
-    return [{ label: 'كل الأقسام', value: undefined }, ...studentStore.classOptions]
-})
-watch(dbFilters.value, () => {
-    eventStore.populateAbsences(dbFilters.value)
-})
+//selection handlers
+const resetSelected = () => { selectedAbsences.value = [] }
 
+// Data table handlers
 const updatePage = (event: DataTablePageEvent) => {
     const { page, rows } = event
     dbFilters.value.offset = page * rows
     dbFilters.value.limit = rows
 }
-const resetFilters = () => {
-    dateRange.value = undefined
-    selectedDateRange.value = undefined
-    const dbFiltersKeys = Object.keys(dbFilters.value) as (keyof EventQueryFilters)[]
-    dbFiltersKeys.forEach((key) => {
-        if (key !== 'limit' && key !== 'offset') {
-            dbFilters.value[key] = undefined
-        }
-    })
-    dbFilters.value = {
-        limit: dbFilters.value.limit,
-        offset: dbFilters.value.offset,
-    }
 
-}
-//table logic
-const dt = ref(); //dataTable Ref
-const selectedDateRange = ref<SupportedDateRanges | undefined>(undefined) //used By date ranges select buttons
-const dateRange = ref<Date[] | undefined>(undefined) //used By datePicker
 
+// Date filter handlers
 const updateDateRangeSelect = (value: SupportedDateRanges | null) => {
     if (value === null) {
         dateRange.value = undefined
@@ -216,17 +208,28 @@ const updateDateRange = (value: Date | Date[] | (Date | null)[] | null | undefin
         selectedDateRange.value = undefined
     }
 }
-// global search logic
-const globalSearchInput = ref('')
-watchDebounced(globalSearchInput, () => {
-    studentStore.populateSearchedStudents(globalSearchInput.value)
-}, { debounce: 500, maxWait: 2000 },)
 
 
-// select absences logic
-const selectedAbsences = ref<LocalAbsence[]>([])
-const resetSelected = () => { selectedAbsences.value = [] }
 
+
+
+// ========== BUSINESS LOGIC ==========
+
+const EditAbsences = async (absences: BatchEditAbsence | EditAbsence) => {
+    try {
+        await backend.updateAbsences(absences)
+        toast.add({ severity: 'success', summary: toastMessages.updateSuccess, life: 3000 });
+        showAbsenceDialog.value = false
+        absenceToEdit.value = undefined
+        resetSelected()
+    }
+    catch (error) {
+        toast.add({ severity: 'error', summary: toastMessages.updateFailed, life: 3000 });
+        return
+    }
+    await eventStore.populateAbsences(dbFilters.value)
+
+}
 
 const deleteAbsences = async (absences: LocalAbsence[]) => {
     const studentIds = absences.map((absence) => absence.id)
@@ -234,11 +237,24 @@ const deleteAbsences = async (absences: LocalAbsence[]) => {
     resetSelected()
 }
 
+// ========== CONFIRMATION DIALOG ==========
+const useDeleteConfirm = useConfirmHandler(() => deleteAbsences(selectedAbsences.value), () => eventStore.populateAbsences(dbFilters.value), toastMessages.deleteSuccess, toastMessages.deleteFailed)
 
-
-//confirm dialogs
-const useDeleteConfirm = useConfirmHandler(() => deleteAbsences(selectedAbsences.value), () => eventStore.populateAbsences(dbFilters.value),toastMessages.deleteSuccess, toastMessages.deleteFailed)
-
+// ========== UTILITY FUNCTIONS ==========
+const resetFilters = () => {
+    dateRange.value = undefined
+    selectedDateRange.value = undefined
+    const dbFiltersKeys = Object.keys(dbFilters.value) as (keyof EventQueryFilters)[]
+    dbFiltersKeys.forEach((key) => {
+        if (key !== 'limit' && key !== 'offset') {
+            dbFilters.value[key] = undefined
+        }
+    })
+    dbFilters.value = {
+        limit: dbFilters.value.limit,
+        offset: dbFilters.value.offset,
+    }
+}
 function exportCSV() {
     dt.value.exportCSV();
 }
