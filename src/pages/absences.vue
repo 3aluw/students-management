@@ -24,35 +24,7 @@
                 :globalFilterFields="['first_name', 'last_name']">
 
                 <template #header>
-
-                    <div class="flex flex-wrap gap-2 items-center justify-around">
-                        <h4 class="m-0">آخر الغيابات </h4>
-
-                        <div class="flex flex-wrap gap-4 items-center justify-between">
-                            <div class="flex gap-4">
-                                <Select name="class_id" :options="classOptions" optionLabel="label" optionValue="value"
-                                    placeholder="اختر الصف" v-model="dbFilters.classId" />
-                            </div>
-                            <div class="flex flex-col gap-2">
-                                <SelectButton name="date range" :options="dateFilterOptions" optionLabel="label"
-                                    optionValue="value" v-model="selectedDateRange"
-                                    @update:modelValue="updateDateRangeSelect" />
-                                <DatePicker v-model="dateRange" showIcon fluid iconDisplay="input"
-                                    selection-mode="range" @value-change="(e) => updateDateRange(e, 'date picker')" />
-
-                            </div>
-                            <IconField>
-                                <InputIcon>
-                                    <i class="pi pi-search" />
-                                </InputIcon>
-                                <InputText v-model="dbFilters.name" placeholder="بحث عن..." />
-
-                            </IconField>
-                        </div>
-
-                        <Button icon="pi pi-times" severity="secondary" variant="text" rounded aria-label="Cancel"
-                            @click="resetFilters" />
-                    </div>
+                    <UtilsFilterPanel title="آخر الغيابات" :filters="['classId', 'name', 'dateRange']" @updateFilters="updateFilters"/>
                 </template>
 
                 <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
@@ -112,14 +84,18 @@ const toast = useToast();
 // ========== TOAST & MESSAGES ==========
 const { absence: toastMessages } = userFeedbackMessages
 
+
+const updateFilters = (filtersObj: EventQueryFilters) => {
+    const {limit, offset} = dbFilters.value
+    dbFilters.value = { limit, offset, ...filtersObj }
+    eventStore.populateAbsences(dbFilters.value)
+}
+
 // ========== LIFECYCLE HOOKS ==========
 onMounted(async () => {
     totalRecords.value = await eventStore.populateAbsences(dbFilters.value)
 })
-// ========== COMPUTED PROPERTIES ==========
-const classOptions = computed(() => {
-    return [{ label: 'كل الأقسام', value: undefined }, ...studentStore.classOptions]
-})
+
 // ========== REACTIVE REFERENCES ==========
 // Dialog states
 const showAbsenceDialog = ref(false)
@@ -132,17 +108,6 @@ const selectedAbsences = ref<LocalAbsence[]>([]);
 const dbFilters = ref<EventQueryFilters>({
     limit: 20,
     offset: 0,
-})
-
-// Date filter states
-const selectedDateRange = ref<SupportedDateRanges | undefined>(undefined) //used By date ranges select buttons
-const dateRange = ref<Date[] | undefined>(undefined) //used By datePicker
-
-
-// ========== WATCHERS ==========
-// Repopulate absences when filters change
-watch(dbFilters.value, () => {
-    eventStore.populateAbsences(dbFilters.value)
 })
 
 // ========== EVENT HANDLERS ==========
@@ -179,37 +144,8 @@ const updatePage = (event: DataTablePageEvent) => {
     const { page, rows } = event
     dbFilters.value.offset = page * rows
     dbFilters.value.limit = rows
+    eventStore.populateAbsences(dbFilters.value)
 }
-
-
-// Date filter handlers
-const updateDateRangeSelect = (value: SupportedDateRanges | null) => {
-    if (value === null) {
-        dateRange.value = undefined
-        return
-    }
-    const [min, max] = getTimeRange(value)
-    dateRange.value = [new Date(min), new Date(max)]
-    updateDateRange(dateRange.value, "select buttons")
-
-}
-
-const updateDateRange = (value: Date | Date[] | (Date | null)[] | null | undefined, changeSource: "select buttons" | "date picker" = 'date picker') => {
-    if (!Array.isArray(value) || value.length !== 2) return
-    if (value[0] === null || value[1] === null) {
-        dateRange.value = undefined
-        dbFilters.value.minDate = undefined
-        dbFilters.value.maxDate = undefined
-        return
-    }
-    dbFilters.value.minDate = value[0].getTime()
-    dbFilters.value.maxDate = value[1].getTime()
-    if (changeSource === "date picker") {
-        selectedDateRange.value = undefined
-    }
-}
-
-
 
 
 
@@ -241,20 +177,6 @@ const deleteAbsences = async (absences: LocalAbsence[]) => {
 const useDeleteConfirm = useConfirmHandler(() => deleteAbsences(selectedAbsences.value), () => eventStore.populateAbsences(dbFilters.value), toastMessages.deleteSuccess, toastMessages.deleteFailed)
 
 // ========== UTILITY FUNCTIONS ==========
-const resetFilters = () => {
-    dateRange.value = undefined
-    selectedDateRange.value = undefined
-    const dbFiltersKeys = Object.keys(dbFilters.value) as (keyof EventQueryFilters)[]
-    dbFiltersKeys.forEach((key) => {
-        if (key !== 'limit' && key !== 'offset') {
-            dbFilters.value[key] = undefined
-        }
-    })
-    dbFilters.value = {
-        limit: dbFilters.value.limit,
-        offset: dbFilters.value.offset,
-    }
-}
 function exportCSV() {
     dt.value.exportCSV();
 }
