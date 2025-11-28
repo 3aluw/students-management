@@ -1,4 +1,10 @@
-import type { Class, Gender, Student, SchoolLevel } from "./types";
+import type {
+  Class,
+  Gender,
+  Student,
+  SchoolLevel,
+  SupportedDateRanges,
+} from "./types";
 
 export const genderOptions = [
   { label: "ذكر", value: "M" },
@@ -17,6 +23,19 @@ export const schoolLevelOptions = [
   value: SchoolLevel;
 }[];
 
+export const dateFilterOptions = [
+  { label: "اليوم", value: "today" },
+  { label: "أمس", value: "yesterday" },
+  { label: "هذا الأسبوع", value: "this week" },
+  { label: "هذا الشهر", value: "this month" },
+] satisfies {
+  label: string;
+  value: SupportedDateRanges;
+}[];
+export const sqliteBoolean = [
+  { label: "لا", value: 0 },
+  { label: "نعم", value: 1 },
+];
 export const ArabicStudentProperties: Record<keyof Student, string> = {
   id: "المعرف",
   first_name: "الاسم",
@@ -60,5 +79,15 @@ export const userFeedbackMessages = {
     updateFailed: "حدث خطأ أثناء تحديث بيانات القسم",
     deleteSuccess: "تم حذف القسم بنجاح",
     deleteFailed: "حدث خطأ أثناء حذف القسم",
+  },
+  absence: {
+    addSuccess: "تم تسجيل الغياب بنجاح",
+    addFailed: "حدث خطأ أثناء تسجيل الغياب",
+    fetchSuccess: "تم تحميل بيانات الغيابات بنجاح",
+    fetchFailed: "حدث خطأ أثناء تحميل بيانات الغيابات",
+    updateSuccess: "تم تحديث الغياب بنجاح",
+    updateFailed: "حدث خطأ أثناء تحديث الغياب",
+    deleteSuccess: "تم حذف الغياب بنجاح",
+    deleteFailed: "حدث خطأ أثناء حذف الغياب",
   },
 };

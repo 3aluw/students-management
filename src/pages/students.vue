@@ -92,7 +92,7 @@
         </div>
         <Dialog header="أدخل معلومات القسم" @hide="studentToEdit = undefined" v-model:visible="showStudentDialog"
             :style="{ width: '350px' }" :modal="true">
-            <UtilsNewEntityForm entityType="student" :entityObject="studentToEdit" @submit="handleStudentSubmit" />
+            <UtilsEntityForm entityType="student" :entityObject="studentToEdit" @submit="handleStudentSubmit" />
         </Dialog>
         <UtilsConfirmDialog header="حذف الطلبة" :danger="true" v-model="useDeleteConfirm.showConfirm.value"
             @confirm="useDeleteConfirm.confirmAction" />
@@ -187,7 +187,7 @@ const deleteStudents = async (students: Student[]) => {
 
 
 //confirm dialogs
-const useDeleteConfirm = useConfirmHandler(deleteStudents, studentStore.populateStudents)
+const useDeleteConfirm = useConfirmHandler(()=> deleteStudents(selectedStudents.value), studentStore.populateStudents)
 const useTransferConfirm = useConfirmHandler(transferStudents, studentStore.populateStudents)
 
 

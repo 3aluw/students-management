@@ -10,8 +10,8 @@ export default defineEventHandler(async (event) => {
   const stmt = db.prepare(`DELETE FROM student WHERE id IN (${inClause})`);
   const result = stmt.run(studentsIds);
   if (result.changes > 0) {
-    return { status: 200, message: "تم حذف القسم" };
+    return { status: 200, message: "تم حذف الطلبة الذين تم تحديدهم" };
   } else {
-    return { status: 404, message: "لم يتم إيجاد القسم" };
+    return { status: 404, message: "لم يتم إيجاد الطالب" };
   }
 });

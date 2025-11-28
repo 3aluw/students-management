@@ -1,11 +1,16 @@
 import type {
+  EventQueryFilters,
   Class,
   NewClass,
   EditClass,
   Student,
   NewStudent,
   EditStudent,
-  BatchEditStudent
+  BatchEditStudent,
+  LocalAbsence,
+  Absence,
+  BatchEditAbsence,
+  EditAbsence,
 } from "~/data/types";
 
 export default function () {
@@ -33,9 +38,9 @@ export default function () {
   const getStudentsByClass = (classId: number) => {
     return $fetch<Student[]>(`/api/students/?classId=${classId}`);
   };
-  const getStudentsByName = (name:string)=>{
-     return $fetch<Student[]>(`/api/students/?name=${name}`);
-  }
+  const getStudentsByName = (name: string) => {
+    return $fetch<Student[]>(`/api/students/?name=${name}`);
+  };
   const createStudent = (body: NewStudent) => {
     return $fetch("/api/students", {
       method: "POST",
@@ -48,14 +53,34 @@ export default function () {
       body,
     });
   };
-  const deleteStudents = (body : Student["id"][])=>{
+  const deleteStudents = (body: Student["id"][]) => {
     return $fetch(`/api/students/`, {
       method: "DELETE",
-      body
+      body,
     });
   };
 
-
+  const getAbsences = (params: EventQueryFilters) => {
+    return $fetch<{ absences: LocalAbsence[]; total: number }>(
+      `/api/absences`,
+      {
+        params,
+      }
+    );
+  };
+  const deleteAbsences = (body: Absence["id"][]) => {
+    return $fetch(`/api/absences/`, {
+      method: "DELETE",
+      body,
+    });
+  }
+    const updateAbsences = (body: BatchEditAbsence | EditAbsence) => {
+      return $fetch("/api/absences", {
+        method: "POST",
+        body,
+      });
+    };
+  
   return {
     createClass,
     updateClass,
@@ -65,6 +90,9 @@ export default function () {
     getStudentsByName,
     createStudent,
     deleteStudents,
-    updateStudents
+    updateStudents,
+    getAbsences,
+    deleteAbsences,
+    updateAbsences,
   };
 }

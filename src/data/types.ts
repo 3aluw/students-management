@@ -2,8 +2,11 @@
  * Utility types
  */
 export type NewEntity<T extends { id: any }> = Omit<T, "id">;
-type PartialExceptId<T extends {id :number}> = Partial<Omit<T, "id">> & Pick<T, "id">;
-type BatchEdit<T extends AllEntitiesUnion> = Partial<Omit<T, "id">> & { ids : number[]}
+type PartialExceptId<T extends { id: number }> = Partial<Omit<T, "id">> &
+  Pick<T, "id">;
+type BatchEdit<T extends AllEntitiesUnion> = Partial<Omit<T, "id">> & {
+  ids: number[];
+};
 
 export type DataTableSlot<T> = { data: T };
 
@@ -44,7 +47,7 @@ export interface Lateness {
   enter_time: string | number; // unspecified type in schema, use string or number depending on storage
   lateBy: number; // INT NOT NULL (minutes, presumably)
   reason: string | null; // TEXT (nullable)
-  reason_accepted: boolean; // BOOLEAN DEFAULT FALSE
+  reason_accepted: 1 | 0; // BOOLEAN DEFAULT FALSE
 }
 
 /**
@@ -55,8 +58,9 @@ export interface Absence {
   student_id: number; // FOREIGN KEY -> student.id
   date: number; // INT (timestamp)
   reason: string | null; // TEXT (nullable)
-  reason_accepted: boolean; // BOOLEAN DEFAULT FALSE
+  reason_accepted: 1 | 0; // BOOLEAN DEFAULT FALSE
 }
+
 export type AllEntitiesUnion = Student | Class | Absence | Lateness;
 
 export type NewStudent = NewEntity<Student>;
@@ -69,6 +73,30 @@ export type EditClass = PartialExceptId<Class>;
 export type EditLateness = PartialExceptId<Lateness>;
 export type EditAbsence = PartialExceptId<Absence>;
 
-export type BatchEditStudent = BatchEdit<Student>
+export type BatchEditStudent = BatchEdit<Student>;
+export type BatchEditAbsence = BatchEdit<Absence>;
+
+export type AbsenceInfo = Omit<Absence, "student_id" | 'id'>
+export type LocalAbsence = Absence & {
+  first_name: string;
+  last_name: string;
+  class_id: number;
+} & Omit<Class, "id">;
+
 export type Gender = "M" | "F";
-export type SchoolLevel = 'primary' | 'middle' | 'high';
+export type SchoolLevel = "primary" | "middle" | "high";
+
+export type SupportedDateRanges =
+  | "today"
+  | "yesterday"
+  | "this week"
+  | "this month";
+
+  export type EventQueryFilters = Partial<{
+    limit : number,
+    offset : number,
+    classId : number,
+    name: string,
+    minDate : number,
+    maxDate : number
+  }>
