@@ -82,6 +82,11 @@ export type LocalAbsence = Absence & {
   last_name: string;
   class_id: number;
 } & Omit<Class, "id">;
+export type LocalLateness = Lateness & {
+  first_name: string;
+  last_name: string;
+  class_id: number;
+} & Omit<Class, "id">;
 
 export type Gender = "M" | "F";
 export type SchoolLevel = "primary" | "middle" | "high";
