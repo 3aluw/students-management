@@ -5,10 +5,10 @@
             <Toolbar class="mb-6">
                 <template #start>
                     <Button label="حذف" icon="pi pi-trash" iconPos="right" severity="secondary" class="mx-2"
-                        @click="useDeleteConfirm.requestAction(selectedAbsences)"
-                        :disabled="!selectedAbsences || !selectedAbsences.length" />
+                        @click="useDeleteConfirm.requestAction(selectedLateness)"
+                        :disabled="!selectedLateness || !selectedLateness.length" />
                     <Button label="تعديل" icon="pi pi-pencil" iconPos="right" severity="secondary" class="mx-2"
-                        @click="handleEditClick" :disabled="!selectedAbsences || !selectedAbsences.length" />
+                        @click="handleEditClick" :disabled="!selectedLateness || !selectedLateness.length" />
                 </template>
 
                 <template #end>
@@ -16,7 +16,7 @@
                         @click="exportCSV()" />
                 </template>
             </Toolbar>
-            <DataTable :ref="dt" v-model:selection="selectedAbsences" :value="eventStore.lateness" dataKey="id"
+            <DataTable :ref="dt" v-model:selection="selectedLateness" :value="eventStore.lateness" dataKey="id"
                 :paginator="true" :rows="10" stripedRows lazy @page="updatePage" :totalRecords="totalRecords"
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 currentPageReportTemplate="يتم عرض من {first} إلى {last} من مجموع التأخرات: {totalRecords}">
@@ -56,9 +56,9 @@
                 </template>
             </DataTable>
         </div>
-        <Dialog header="أدخل معلومات القسم" @hide="absenceToEdit = undefined" v-model:visible="showAbsenceDialog"
+        <Dialog header="أدخل معلومات التأخر" @hide="latenessToEdit = undefined" v-model:visible="showLatenessDialog"
             :style="{ width: '350px' }" :modal="true">
-            <UtilsEventForm eventType="absence" :entityObject="absenceToEdit" @submit="handleLatenessSubmit" />
+            <UtilsEventForm eventType="lateness" :entityObject="latenessToEdit" @submit="handleLatenessSubmit" />
         </Dialog>
         <UtilsConfirmDialog header="حذف الغياب" :danger="true" v-model="useDeleteConfirm.showConfirm.value"
             @confirm="useDeleteConfirm.confirmAction" />
@@ -67,7 +67,7 @@
 <script setup lang="ts">
 
 import { useToast } from 'primevue/usetoast';
-import type { DataTableSlot, EventQueryFilters, SupportedDateRanges, AbsenceInfo, EditAbsence, BatchEditAbsence, LocalLateness, EditLateness, BatchEditLateness } from '~/data/types'
+import type { DataTableSlot, EventQueryFilters, SupportedDateRanges, LocalLateness, EditLateness, BatchEditLateness, LatenessInfo } from '~/data/types'
 import { userFeedbackMessages, dateFilterOptions } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
 import { useEventStore } from '~/store/eventStore';
@@ -85,7 +85,6 @@ const { lateness: toastMessages } = userFeedbackMessages
 const updateFilters = (filtersObj: EventQueryFilters) => {
     const { limit, offset } = dbFilters.value
     dbFilters.value = { limit, offset, ...filtersObj }
-    console.log(dbFilters.value);
     eventStore.populateLateness(dbFilters.value)
 }
 
@@ -96,13 +95,13 @@ onMounted(async () => {
 
 // ========== REACTIVE REFERENCES ==========
 // Dialog states
-const showAbsenceDialog = ref(false)
-const absenceToEdit = ref<AbsenceInfo | undefined>(undefined)
+const showLatenessDialog = ref(false)
+const latenessToEdit = ref<LatenessInfo | undefined>(undefined)
 
 // Data table references
 const dt = ref(); //dataTable Ref
 const totalRecords = ref(0)
-const selectedAbsences = ref<LocalLateness[]>([]);
+const selectedLateness = ref<LocalLateness[]>([]);
 const dbFilters = ref<EventQueryFilters>({
     limit: 20,
     offset: 0,
@@ -110,32 +109,33 @@ const dbFilters = ref<EventQueryFilters>({
 
 // ========== EVENT HANDLERS ==========
 
-// Absence management handlers
-const handleLatenessSubmit = async (absenceInfo: AbsenceInfo) => {
+// Lateness management handlers
+const handleLatenessSubmit = async (latenessInfo: LatenessInfo) => {
     let lateness: BatchEditLateness | EditLateness;
 
-    if (selectedAbsences.value.length === 1) {
-        lateness = { id: selectedAbsences.value[0].id, ...absenceInfo }
+    if (selectedLateness.value.length === 1) {
+        lateness = { id: selectedLateness.value[0].id, ...latenessInfo }
     }
     else {
-        const ids = selectedAbsences.value.map((absence) => absence.id)
-        lateness = { ...absenceInfo, ids }
+        const ids = selectedLateness.value.map((lateness) => lateness.id)
+        lateness = { ...latenessInfo, ids }
     }
     editLateness(lateness)
 }
 
 const handleEditClick = () => {
-    showAbsenceDialog.value = true
-    const absence = selectedAbsences.value[0] // pass the first selected absence
-    absenceToEdit.value = {
-        date: absence.date,
-        reason: absence.reason,
-        reason_accepted: absence.reason_accepted,
+    const lateness = selectedLateness.value[0] // pass the first selected lateness
+    latenessToEdit.value = {
+        date: lateness.date,
+        reason: lateness.reason,
+        reason_accepted: lateness.reason_accepted,
+        late_by: lateness.late_by,
+        start_time: lateness.start_time,
     }
-
+    showLatenessDialog.value = true
 }
 //selection handlers
-const resetSelected = () => { selectedAbsences.value = [] }
+const resetSelected = () => { selectedLateness.value = [] }
 
 // Data table handlers
 const updatePage = (event: DataTablePageEvent) => {
@@ -153,8 +153,8 @@ const editLateness = async (lateness: BatchEditLateness | EditLateness) => {
     try {
         await backend.updateLateness(lateness)
         toast.add({ severity: 'success', summary: toastMessages.updateSuccess, life: 3000 });
-        showAbsenceDialog.value = false
-        absenceToEdit.value = undefined
+        showLatenessDialog.value = false
+        latenessToEdit.value = undefined
         resetSelected()
     }
     catch (error) {
@@ -168,12 +168,11 @@ const editLateness = async (lateness: BatchEditLateness | EditLateness) => {
 const deleteLateness = async (lateness: LocalLateness[]) => {
     const studentIds = lateness.map((lateness) => lateness.id)
     await backend.deleteLateness(studentIds);
-    eventStore.populateLateness(dbFilters.value)
     resetSelected()
 }
 
 // ========== CONFIRMATION DIALOG ==========
-const useDeleteConfirm = useConfirmHandler(() => deleteLateness(selectedAbsences.value), () => eventStore.populateAbsences(dbFilters.value), toastMessages.deleteSuccess, toastMessages.deleteFailed)
+const useDeleteConfirm = useConfirmHandler(() => deleteLateness(selectedLateness.value), () => eventStore.populateLateness(dbFilters.value), toastMessages.deleteSuccess, toastMessages.deleteFailed)
 
 // ========== UTILITY FUNCTIONS ==========
 function exportCSV() {
