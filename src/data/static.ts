@@ -90,4 +90,14 @@ export const userFeedbackMessages = {
     deleteSuccess: "تم حذف الغياب بنجاح",
     deleteFailed: "حدث خطأ أثناء حذف الغياب",
   },
+   lateness: {
+    addSuccess: "تم تسجيل التأخر بنجاح",
+    addFailed: "حدث خطأ أثناء تسجيل التأخر",
+    fetchSuccess: "تم تحميل بيانات التأخرات بنجاح",
+    fetchFailed: "حدث خطأ أثناء تحميل بيانات التأخرات",
+    updateSuccess: "تم تحديث التأخر بنجاح",
+    updateFailed: "حدث خطأ أثناء تحديث التأخر",
+    deleteSuccess: "تم حذف التأخر بنجاح",
+    deleteFailed: "حدث خطأ أثناء حذف التأخر",
+  },
 };
