@@ -1,11 +1,12 @@
-import { EditAbsence, BatchEditAbsence, NewAbsence } from "~/data/types";
+import { BatchEditLateness, EditLateness, NewLateness } from "~/data/types";
 import db from "~/db/db";
 import useDBUtils from "../../../composables/useDBUtils";
 
 export default defineEventHandler(async (event) => {
   const { generateDBSetClause, generateDBInClause } = useDBUtils();
 
-  const reqBody = await readBody<NewAbsence | EditAbsence | BatchEditAbsence>( event );
+  const reqBody = await readBody<NewLateness | EditLateness | BatchEditLateness>( event );
+  console.log(reqBody);
   // Batch Edit Absences
   if ("ids" in reqBody) {
     try {
@@ -14,7 +15,7 @@ export default defineEventHandler(async (event) => {
       const inClause = generateDBInClause(ids.length);
       const setClause = generateDBSetClause(props);
       const stmt = db.prepare(
-        `UPDATE absence SET ${setClause} WHERE id IN (${inClause}) `
+        `UPDATE lateness SET ${setClause} WHERE id IN (${inClause}) `
       );
       const info = stmt.run(...values, ...ids);
       return { success: true, id: info.lastInsertRowid, info };
@@ -57,7 +58,7 @@ export default defineEventHandler(async (event) => {
       const values = Object.values(reqBody);
 
       const setClause = generateDBSetClause(reqBody);
-      const stmt = db.prepare(`UPDATE absence SET ${setClause} WHERE id = ?`);
+      const stmt = db.prepare(`UPDATE lateness SET ${setClause} WHERE id = ?`);
       const info = stmt.run(...values, reqBody.id);
       return { success: true, id: info.lastInsertRowid, info };
     } catch (err) {

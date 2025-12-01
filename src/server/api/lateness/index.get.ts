@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
 
   const query = getQuery<EventQueryFilters>(event); // time filter / class filter / offset
   const { limit = 20, offset = 0 } = query;
-  const { where, params } = buildWhereQuery(query, "absence");
+  const { where, params } = buildWhereQuery(query, "lateness");
 
   const stmt = db
     .prepare(

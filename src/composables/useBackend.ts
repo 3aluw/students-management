@@ -89,6 +89,12 @@ export default function () {
       }
     );
   }
+      const updateLateness = (body: BatchEditAbsence | EditAbsence) => {
+      return $fetch("/api/lateness", {
+        method: "POST",
+        body,
+      });
+    };
   return {
     createClass,
     updateClass,
@@ -102,6 +108,7 @@ export default function () {
     getAbsences,
     deleteAbsences,
     updateAbsences,
-    getLateness
+    getLateness,
+    updateLateness
   };
 }
