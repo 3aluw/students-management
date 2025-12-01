@@ -56,7 +56,7 @@
                 </template>
             </DataTable>
         </div>
-        <Dialog header="أدخل معلومات القسم" @hide="absenceToEdit = undefined" v-model:visible="showAbsenceDialog"
+        <Dialog header="أدخل معلومات الغياب" @hide="absenceToEdit = undefined" v-model:visible="showAbsenceDialog"
             :style="{ width: '350px' }" :modal="true">
             <UtilsEventForm eventType="absence" :entityObject="absenceToEdit" @submit="handleAbsenceSubmit" />
         </Dialog>
@@ -168,7 +168,6 @@ const EditAbsences = async (absences: BatchEditAbsence | EditAbsence) => {
 const deleteAbsences = async (absences: LocalAbsence[]) => {
     const studentIds = absences.map((absence) => absence.id)
     await backend.deleteAbsences(studentIds);
-    eventStore.populateAbsences(dbFilters.value)
     resetSelected()
 }
 

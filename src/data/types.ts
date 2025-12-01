@@ -44,8 +44,8 @@ export interface Lateness {
   id: number; // PRIMARY KEY AUTOINCREMENT
   student_id: number; // FOREIGN KEY -> student.id
   date: number; // INT (timestamp)
-  enter_time: string | number; // unspecified type in schema, use string or number depending on storage
-  lateBy: number; // INT NOT NULL (minutes, presumably)
+  start_time: string | number; // unspecified type in schema, use string or number depending on storage
+  late_by: number; // INT NOT NULL (minutes, presumably)
   reason: string | null; // TEXT (nullable)
   reason_accepted: 1 | 0; // BOOLEAN DEFAULT FALSE
 }
@@ -78,6 +78,8 @@ export type BatchEditAbsence = BatchEdit<Absence>;
 export type BatchEditLateness = BatchEdit<Lateness>;
 
 export type AbsenceInfo = Omit<Absence, "student_id" | 'id'>
+export type LatenessInfo  = Omit<Lateness, "student_id" | 'id'>
+
 export type LocalAbsence = Absence & {
   first_name: string;
   last_name: string;
