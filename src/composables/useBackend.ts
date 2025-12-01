@@ -11,6 +11,7 @@ import type {
   Absence,
   BatchEditAbsence,
   EditAbsence,
+  LocalLateness,
 } from "~/data/types";
 
 export default function () {
@@ -80,7 +81,14 @@ export default function () {
         body,
       });
     };
-  
+  const getLateness = (params: EventQueryFilters) => {
+      return $fetch<{ lateness: LocalLateness[]; total: number }>(
+      `/api/lateness`,
+      {
+        params,
+      }
+    );
+  }
   return {
     createClass,
     updateClass,
@@ -94,5 +102,6 @@ export default function () {
     getAbsences,
     deleteAbsences,
     updateAbsences,
+    getLateness
   };
 }
