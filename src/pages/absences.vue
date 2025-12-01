@@ -168,6 +168,7 @@ const EditAbsences = async (absences: BatchEditAbsence | EditAbsence) => {
 const deleteAbsences = async (absences: LocalAbsence[]) => {
     const studentIds = absences.map((absence) => absence.id)
     await backend.deleteAbsences(studentIds);
+    eventStore.populateAbsences(dbFilters.value)
     resetSelected()
 }
 
