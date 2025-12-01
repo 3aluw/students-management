@@ -43,13 +43,24 @@
                     {{ $form.date.error?.message }}
                 </Message>
             </div>
+            <div class="flex flex-col gap-1">
+                <DatePicker name="start_time" placeholder="بداية الحصة" fluid timeOnly />
+                <Message v-if="$form.start_time?.invalid" severity="error" size="small" variant="simple">
+                    {{ $form.start_time.error?.message }}
+                </Message>
+            </div>
+            <div class="flex flex-col gap-1">
+                <DatePicker name="late_by" placeholder="وقت الدخول" fluid timeOnly />
+                <Message v-if="$form.late_by?.invalid" severity="error" size="small" variant="simple">
+                    {{ $form.late_by.error?.message }}
+                </Message>
+            </div>
 
             <!-- Reason -->
             <div class="flex flex-col gap-1">
                 <InputText name="reason" type="text" placeholder="سبب الغياب" fluid />
                 <Message v-if="$form.reason?.invalid" severity="error" size="small" variant="simple">{{
                     $form.reason.error.message }}</Message>
-
             </div>
 
             <!-- reason accepted -->
@@ -64,6 +75,7 @@
         </Form>
     </div>
 
+
 </template>
 
 <script setup lang="ts" generic="T extends 'absence' | 'lateness'">
@@ -73,18 +85,26 @@ import { sqliteBoolean } from '~/data/static';
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from 'primevue/usetoast';
-import type {  Absence, Lateness, NewAbsence, NewLateness, AbsenceInfo, LatenessInfo } from '~/data/types';
-import { schoolLevelOptions } from '~/data/static';
+import type { NewAbsence, NewLateness, AbsenceInfo, LatenessInfo } from '~/data/types';
 import type { FormSubmitEvent } from "@primevue/forms"
-const { getRequiredFieldMessage } = useFormUtils()
+const { getDateForLateness } = useFormUtils()
 const studentStore = useStudentStore();
 
 const formatEventObject = () => {
-    if ( props.entityObject) {
-        const entityObj = props.entityObject
+    if (props.entityObject && props.eventType == 'absence') {
+        const entityObj = props.entityObject as AbsenceInfo
         return {
             ...entityObj,
-            date: new Date(entityObj.date)
+            date: new Date(entityObj.date),
+        }
+    }
+    else {
+        const entityObj = props.entityObject as LatenessInfo
+        const { late_by, start_time } = entityObj
+        return {
+            ...entityObj,
+            date: new Date(entityObj.date),
+            ...getDateForLateness({ late_by, start_time })
         }
     }
 }
@@ -111,19 +131,28 @@ const absenceZodSchema = z.object({
     reason_accepted: z.literal([0, 1])
 }) satisfies z.ZodType<AbsenceInfo>
 
-const latenessZodSchema = z.object({
+const latenessZodSchema = (z.object({
     date: z.date().transform(d => d.getTime()),
     reason: z.string().min(5, { message: 'يجب إدخال سبب الغياب' }),
     reason_accepted: z.literal([0, 1]),
-    late_by: z.number().min(1, { message: 'يجب إدخال مدة التأخر بالدقائق' }),
-    start_time: z.string().min(1, { message: 'يجب إدخال وقت بدء الدوام' }),
-}) satisfies z.ZodType<LatenessInfo>
+    late_by: z.date().transform(d => d.getTime()),
+    start_time: z.date().transform(d => d.getTime()),
+}) satisfies z.ZodType<LatenessInfo>)
+    .refine(
+        (data) => data.late_by > data.start_time,
+        { message: "وقت الدخول يجب أن يكون بعد بداية الحصة", path: ["late_by"] }
+    )
+    .transform((data) => {
+        return {
+            ...data,
+            late_by: Math.floor((data.late_by - data.start_time) / 60000)
+        }
+    })
 
 
 
 const onFormSubmit = (event: FormSubmitEvent) => {
     if (!event.valid) return
-
     toast.add({ severity: 'info', summary: 'يتم معالجة طلبك', life: 3000 })
     emit('submit', event.values as Event<T>)
 }

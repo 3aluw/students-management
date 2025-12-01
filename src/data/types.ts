@@ -44,7 +44,7 @@ export interface Lateness {
   id: number; // PRIMARY KEY AUTOINCREMENT
   student_id: number; // FOREIGN KEY -> student.id
   date: number; // INT (timestamp)
-  start_time: string | number; // unspecified type in schema, use string or number depending on storage
+  start_time:  number; // unspecified type in schema, use string or number depending on storage
   late_by: number; // INT NOT NULL (minutes, presumably)
   reason: string | null; // TEXT (nullable)
   reason_accepted: 1 | 0; // BOOLEAN DEFAULT FALSE

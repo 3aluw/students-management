@@ -1,8 +1,10 @@
-import {
-  ArabicStudentProperties,
-  ArabicClassProperties,
-} from "~/data/static";
-import type { Student, Class, SupportedDateRanges } from "~/data/types";
+import { ArabicStudentProperties, ArabicClassProperties } from "~/data/static";
+import type {
+  Student,
+  Class,
+  SupportedDateRanges,
+  LatenessInfo,
+} from "~/data/types";
 
 export default function () {
   const formatRequiredFieldMessage = (
@@ -80,8 +82,21 @@ export default function () {
 
     return [start.getTime(), end.getTime()];
   };
+  // A function that calculates the start_time and late_by Date objects for lateness
+  const getDateForLateness = (
+    obj: Pick<LatenessInfo, "late_by" | "start_time">
+  ) => {
+    const { late_by: lBy, start_time: sTime } = obj;
+    const start_time = new Date();
+    start_time.setHours(0, sTime, 0, 0); // hour = 0, minutes = x
 
-  //a function that transform 0/1 in DB results to real booleans 
+    const late_by = new Date(start_time);
+    late_by.setMinutes(late_by.getMinutes() + lBy);
+    return {start_time, late_by}
+  };
+  const getMinutesDifference = (start: Date, end: Date) => {
+  }
+  //a function that transform 0/1 in DB results to real booleans
   const normalizeResultBooleans = <
     R extends Record<string, any>,
     K extends (keyof R)[]
@@ -91,7 +106,7 @@ export default function () {
   ) => {
     results.map((result) =>
       keys.forEach((key) => {
-        result[key] = (result[key] === 1 ? 'نعم' : 'لا') as R[keyof R];
+        result[key] = (result[key] === 1 ? "نعم" : "لا") as R[keyof R];
       })
     );
 
@@ -100,6 +115,7 @@ export default function () {
   return {
     getRequiredFieldMessage,
     getTimeRange,
-    normalizeResultBooleans
+    getDateForLateness,
+    normalizeResultBooleans,
   };
 }
