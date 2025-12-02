@@ -4,6 +4,7 @@ import type {
   Class,
   SupportedDateRanges,
   LatenessInfo,
+  AbsenceInfo,
 } from "~/data/types";
 
 export default function () {
@@ -82,20 +83,35 @@ export default function () {
 
     return [start.getTime(), end.getTime()];
   };
-  // A function that calculates the start_time and late_by Date objects for lateness
-  const getDateForLateness = (
-    obj: Pick<LatenessInfo, "late_by" | "start_time">
-  ) => {
-    const { late_by: lBy, start_time: sTime } = obj;
+  // A function that return dates for lateness info or absence info
+const getDatesForEventInfo = <
+  T extends
+    | Pick<LatenessInfo, "late_by" | "start_time" | "date">
+    | Pick<AbsenceInfo, "date">
+>(obj: T) => {
+  // common base
+  const base = {
+    date: new Date(obj.date),
+  };
+
+  if ("late_by" in obj && "start_time" in obj) {
     const start_time = new Date();
-    start_time.setHours(0, sTime, 0, 0); // hour = 0, minutes = x
+    start_time.setHours(0, obj.start_time, 0, 0);
 
     const late_by = new Date(start_time);
-    late_by.setMinutes(late_by.getMinutes() + lBy);
-    return {start_time, late_by}
-  };
-  const getMinutesDifference = (start: Date, end: Date) => {
+    late_by.setMinutes(late_by.getMinutes() + obj.late_by);
+
+    return {
+      ...base,
+      late_by,
+      start_time,
+    };
   }
+
+  return base;
+};
+
+  const getMinutesDifference = (start: Date, end: Date) => {};
   //a function that transform 0/1 in DB results to real booleans
   const normalizeResultBooleans = <
     R extends Record<string, any>,
@@ -115,7 +131,7 @@ export default function () {
   return {
     getRequiredFieldMessage,
     getTimeRange,
-    getDateForLateness,
+    getDatesForEventInfo,
     normalizeResultBooleans,
   };
 }

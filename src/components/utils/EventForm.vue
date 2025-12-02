@@ -87,7 +87,7 @@ import { z } from 'zod';
 import { useToast } from 'primevue/usetoast';
 import type { NewAbsence, NewLateness, AbsenceInfo, LatenessInfo } from '~/data/types';
 import type { FormSubmitEvent } from "@primevue/forms"
-const { getDateForLateness } = useFormUtils()
+const { getDatesForEventInfo } = useFormUtils()
 const studentStore = useStudentStore();
 
 const formatEventObject = () => {
@@ -95,16 +95,15 @@ const formatEventObject = () => {
         const entityObj = props.entityObject as AbsenceInfo
         return {
             ...entityObj,
-            date: new Date(entityObj.date),
+            ...getDatesForEventInfo({date: entityObj.date})
         }
     }
     else {
         const entityObj = props.entityObject as LatenessInfo
-        const { late_by, start_time } = entityObj
+        const { late_by, start_time, date } = entityObj
         return {
             ...entityObj,
-            date: new Date(entityObj.date),
-            ...getDateForLateness({ late_by, start_time })
+            ...getDatesForEventInfo({date, late_by, start_time})
         }
     }
 }
@@ -131,11 +130,12 @@ const absenceZodSchema = z.object({
     reason_accepted: z.literal([0, 1])
 }) satisfies z.ZodType<AbsenceInfo>
 
+
 const latenessZodSchema = (z.object({
     date: z.date().transform(d => d.getTime()),
     reason: z.string().min(5, { message: 'يجب إدخال سبب الغياب' }),
     reason_accepted: z.literal([0, 1]),
-    late_by: z.date().transform(d => d.getTime()),
+    late_by: z.date().transform(d => d.getTime()),      // it will be used to enter the time of enter and later transformed to minutes after shift start
     start_time: z.date().transform(d => d.getTime()),
 }) satisfies z.ZodType<LatenessInfo>)
     .refine(
