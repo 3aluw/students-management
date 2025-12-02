@@ -121,7 +121,7 @@ import { useToast } from 'primevue/usetoast';
 import type { NewClass, NewStudent, Student, Class  } from '~/data/types';
 import { schoolLevelOptions } from '~/data/static';
 import type { FormSubmitEvent } from "@primevue/forms"
-const { getRequiredFieldMessage } = useFormUtils()
+const { getRequiredFieldMessage } = useDataUtils()
 const studentStore = useStudentStore();
 
 

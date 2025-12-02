@@ -76,7 +76,7 @@ import type { DataTablePageEvent } from 'primevue';
 // ========== STORES & SERVICES ==========
 const studentStore = useStudentStore();
 const eventStore = useEventStore()
-const { getTimeRange } = useFormUtils()
+const { getTimeRange } = useDataUtils()
 const backend = useBackend()
 const toast = useToast();
 // ========== TOAST & MESSAGES ==========

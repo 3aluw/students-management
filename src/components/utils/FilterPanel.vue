@@ -30,7 +30,7 @@
 import type { EventQueryFilters, SupportedDateRanges } from '~/data/types';
 import { dateFilterOptions } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
-const { getTimeRange } = useFormUtils()
+const { getTimeRange } = useDataUtils()
 const studentStore = useStudentStore();
 
 type availableFilters = 'classId' | 'name' | 'dateRange'
