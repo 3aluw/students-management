@@ -84,32 +84,31 @@ export default function () {
     return [start.getTime(), end.getTime()];
   };
   // A function that return dates for lateness info or absence info
-const getDatesForEventInfo = <
-  T extends
-    | Pick<LatenessInfo, "late_by" | "start_time" | "date">
-    | Pick<AbsenceInfo, "date">
->(obj: T) => {
-  // common base
-  const base = {
-    date: new Date(obj.date),
-  };
-
-  if ("late_by" in obj && "start_time" in obj) {
-    const start_time = new Date();
-    start_time.setHours(0, obj.start_time, 0, 0);
-
-    const late_by = new Date(start_time);
-    late_by.setMinutes(late_by.getMinutes() + obj.late_by);
-
-    return {
-      ...base,
-      late_by,
-      start_time,
+  const getDatesForEventInfo = <
+    T extends
+      | Pick<LatenessInfo, "late_by" | "start_time" | "date">
+      | Pick<AbsenceInfo, "date">
+  >(
+    obj: T
+  ) => {
+    // common base
+    const base = {
+      date: new Date(obj.date),
     };
-  }
 
-  return base;
-};
+    if ("late_by" in obj && "start_time" in obj) {
+      const start_time = new Date(obj.start_time);
+      const late_by = new Date(start_time);
+      late_by.setMinutes(late_by.getMinutes() + obj.late_by);
+      return {
+        ...base,
+        late_by,
+        start_time, 
+      };
+    }
+
+    return base;
+  };
 
   const getMinutesDifference = (start: Date, end: Date) => {};
   //a function that transform 0/1 in DB results to real booleans
