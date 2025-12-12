@@ -6,7 +6,6 @@ export default defineEventHandler(async (event) => {
   const { generateDBSetClause, generateDBInClause } = useDBUtils();
 
   const reqBody = await readBody<NewLateness | EditLateness | BatchEditLateness>( event );
-  console.log(reqBody);
   // Batch Edit Absences
   if ("ids" in reqBody) {
     try {

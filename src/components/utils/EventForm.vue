@@ -58,6 +58,9 @@
 
             <!-- Reason -->
             <div class="flex flex-col gap-1">
+                <!-- Activate after primevue autocomplete issue #7633 is resolved
+                  <AutoComplete :forceSelection="false" name="reason"  :suggestions="filteredReasons" @complete="searchReasons"
+                    placeholder="سبب الغياب" :showEmptyMessage="false" fluid /> -->
                 <InputText name="reason" type="text" placeholder="سبب الغياب" fluid />
                 <Message v-if="$form.reason?.invalid" severity="error" size="small" variant="simple">{{
                     $form.reason.error.message }}</Message>
@@ -79,9 +82,7 @@
 </template>
 
 <script setup lang="ts" generic="T extends 'absence' | 'lateness'">
-
-import { useStudentStore } from '~/store/studentStore';
-import { sqliteBoolean } from '~/data/static';
+import { sqliteBoolean, commonReasons } from '~/data/static';
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from 'primevue/usetoast';
@@ -89,14 +90,19 @@ import type { NewAbsence, NewLateness, AbsenceInfo, LatenessInfo } from '~/data/
 import type { FormSubmitEvent } from "@primevue/forms"
 
 const { getDatesForEventInfo } = useDataUtils()
-const studentStore = useStudentStore();
-
+const filteredReasons = ref<string[]>([])
+function searchReasons(e: { query: string }) {
+    const { query } = e
+    filteredReasons.value = !query.length ? commonReasons : commonReasons.filter((reasons) => {
+        return reasons.startsWith(query)
+    })
+}
 const formatEventObject = () => {
     if (props.entityObject && props.eventType == 'absence') {
         const entityObj = props.entityObject as AbsenceInfo
         return {
             ...entityObj,
-            ...getDatesForEventInfo({date: entityObj.date})
+            ...getDatesForEventInfo({ date: entityObj.date })
         }
     }
     else {
@@ -104,22 +110,22 @@ const formatEventObject = () => {
         const { late_by, start_time, date } = entityObj
         return {
             ...entityObj,
-            ...getDatesForEventInfo({date, late_by, start_time})
+            ...getDatesForEventInfo({ date, late_by, start_time })
         }
     }
 }
 const toast = useToast();
 
-type Event<T extends 'absence' | 'lateness'> = T extends 'absence' ? AbsenceInfo : LatenessInfo
+type EventInfo<T extends 'absence' | 'lateness'> = T extends 'absence' ? AbsenceInfo : LatenessInfo
 type newEvent<T extends 'absence' | 'lateness'> = T extends 'absence' ? NewAbsence : NewLateness
 
 const props = defineProps<{
     eventType: T;
-    entityObject?: Event<T>;
+    entityObject?: EventInfo<T>;
 }>()
 
 const emit = defineEmits<{
-    (e: 'submit', obj: Event<T>): void;
+    (e: 'submit', obj: EventInfo<T>): void;
 }>()
 
 const resolver = computed(() => props.eventType == 'absence' ? zodResolver(absenceZodSchema) :
@@ -155,7 +161,7 @@ const latenessZodSchema = (z.object({
 const onFormSubmit = (event: FormSubmitEvent) => {
     if (!event.valid) return
     toast.add({ severity: 'info', summary: 'يتم معالجة طلبك', life: 3000 })
-    emit('submit', event.values as Event<T>)
+    emit('submit', event.values as EventInfo<T>)
 }
 
 </script>
