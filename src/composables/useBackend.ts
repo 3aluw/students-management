@@ -11,6 +11,8 @@ import type {
   Absence,
   BatchEditAbsence,
   EditAbsence,
+  LocalLateness,
+  Lateness,
 } from "~/data/types";
 
 export default function () {
@@ -73,14 +75,33 @@ export default function () {
       method: "DELETE",
       body,
     });
-  }
-    const updateAbsences = (body: BatchEditAbsence | EditAbsence) => {
-      return $fetch("/api/absences", {
-        method: "POST",
-        body,
-      });
-    };
-  
+  };
+  const updateAbsences = (body: BatchEditAbsence | EditAbsence) => {
+    return $fetch("/api/absences", {
+      method: "POST",
+      body,
+    });
+  };
+  const getLateness = (params: EventQueryFilters) => {
+    return $fetch<{ lateness: LocalLateness[]; total: number }>(
+      `/api/lateness`,
+      {
+        params,
+      }
+    );
+  };
+  const updateLateness = (body: BatchEditAbsence | EditAbsence) => {
+    return $fetch("/api/lateness", {
+      method: "POST",
+      body,
+    });
+  };
+  const deleteLateness = (body: Lateness["id"][]) => {
+    return $fetch(`/api/lateness/`, {
+      method: "DELETE",
+      body,
+    });
+  };
   return {
     createClass,
     updateClass,
@@ -94,5 +115,8 @@ export default function () {
     getAbsences,
     deleteAbsences,
     updateAbsences,
+    getLateness,
+    updateLateness,
+    deleteLateness
   };
 }

@@ -59,6 +59,24 @@ export const ArabicSchoolLevels: Record<SchoolLevel, string> = {
   middle: "متوسط",
   high: "ثانوي",
 };
+export const commonReasons = [
+  "المرض",
+  "موعد طبي",
+  "ظرف عائلي ",
+  "عدم توفر المواصلات",
+  "ضغوط نفسية ",
+  "عدم الدافعية تجاه المدرسة",
+  "مشاكل التنمّر",
+  "سفر",
+  "سوء الطقس",
+  "مسؤوليات منزلية",
+  "ازدحام المرور",
+  "النوم",
+  "تأخر الحافلة المدرسية",
+  "فقدان المتعلّقات أو نسيانها",
+  "مهام منزلية أو رعاية إخوة أصغر",
+  "مشكلة مفاجئة في الطريق"
+]
 export const userFeedbackMessages = {
   student: {
     addSuccess: "تمت إضافة التلميذ بنجاح",
@@ -89,5 +107,15 @@ export const userFeedbackMessages = {
     updateFailed: "حدث خطأ أثناء تحديث الغياب",
     deleteSuccess: "تم حذف الغياب بنجاح",
     deleteFailed: "حدث خطأ أثناء حذف الغياب",
+  },
+   lateness: {
+    addSuccess: "تم تسجيل التأخر بنجاح",
+    addFailed: "حدث خطأ أثناء تسجيل التأخر",
+    fetchSuccess: "تم تحميل بيانات التأخرات بنجاح",
+    fetchFailed: "حدث خطأ أثناء تحميل بيانات التأخرات",
+    updateSuccess: "تم تحديث التأخر بنجاح",
+    updateFailed: "حدث خطأ أثناء تحديث التأخر",
+    deleteSuccess: "تم حذف التأخر بنجاح",
+    deleteFailed: "حدث خطأ أثناء حذف التأخر",
   },
 };

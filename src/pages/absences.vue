@@ -21,15 +21,13 @@
                 :paginator="true" :rows="10" stripedRows lazy @page="updatePage" :totalRecords="totalRecords"
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 currentPageReportTemplate="يتم عرض من {first} إلى {last} من مجموع الغيابات: {totalRecords}"
-                :globalFilterFields="['first_name', 'last_name']">
+                >
 
                 <template #header>
                     <UtilsFilterPanel title="آخر الغيابات" :filters="['classId', 'name', 'dateRange']" @updateFilters="updateFilters"/>
                 </template>
 
                 <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
-                <Column field="first_name" header="الاسم" class="hidden" />
-                <Column field="last_name" header="اللقب" class="hidden" />
                 <Column header="الاسم واللقب" sortable class="font-bold">
                     <template #body="slotProps: DataTableSlot<LocalAbsence>">
                         <p>{{ slotProps.data.last_name + " " + slotProps.data.first_name }}</p>
@@ -41,7 +39,7 @@
                         <p>{{ useDateFormat(slotProps.data.date, 'YYYY-MM-DD (ddd)', { locales: 'ar-SA' }) }}</p>
                     </template>
                 </Column>
-                <Column field="reason" header="العنوان" style="min-width: 16rem"></Column>
+                <Column field="reason" header="السبب" style="min-width: 16rem"></Column>
                 <Column field="reason_accepted" header="عذر مقبول" style="min-width: 16rem">
                     <template #body="slotProps: DataTableSlot<LocalAbsence>">
                         <p>{{ slotProps.data.reason_accepted ? 'نعم' : 'لا' }}</p>
@@ -58,7 +56,7 @@
                 </template>
             </DataTable>
         </div>
-        <Dialog header="أدخل معلومات القسم" @hide="absenceToEdit = undefined" v-model:visible="showAbsenceDialog"
+        <Dialog header="أدخل معلومات الغياب" @hide="absenceToEdit = undefined" v-model:visible="showAbsenceDialog"
             :style="{ width: '350px' }" :modal="true">
             <UtilsEventForm eventType="absence" :entityObject="absenceToEdit" @submit="handleAbsenceSubmit" />
         </Dialog>
@@ -78,7 +76,7 @@ import type { DataTablePageEvent } from 'primevue';
 // ========== STORES & SERVICES ==========
 const studentStore = useStudentStore();
 const eventStore = useEventStore()
-const { getTimeRange } = useFormUtils()
+const { getTimeRange } = useDataUtils()
 const backend = useBackend()
 const toast = useToast();
 // ========== TOAST & MESSAGES ==========
