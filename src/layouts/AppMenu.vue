@@ -7,7 +7,7 @@ const model = ref([
     {
         label: 'الجداول',
         items: [
-            { label: 'الطلبة', icon: 'pi pi-fw pi-graduation-cap', to: '/students' },
+            { label: 'ساحة العمل', icon: 'pi pi-fw pi-briefcase', to: '/playground' },
             { label: 'الإبطاءات', icon: 'pi pi-fw pi-clock', to: '/lateness' },
             { label: 'الغيابات', icon: 'pi pi-fw pi-ban', to: '/absences' },
 
@@ -17,6 +17,7 @@ const model = ref([
         label: 'إعدادات',
         items: [
             { label: 'إحصائيات', icon: 'pi pi-fw pi-chart-bar', to: '/stats' },
+            { label: 'الطلبة', icon: 'pi pi-fw pi-graduation-cap', to: '/students' },
             { label: 'الأقسام', icon: 'pi pi-fw pi-building-columns', to: '/classes' },
 
         ]

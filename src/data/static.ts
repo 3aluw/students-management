@@ -77,6 +77,10 @@ export const commonReasons = [
   "مهام منزلية أو رعاية إخوة أصغر",
   "مشكلة مفاجئة في الطريق"
 ]
+
+export const studyTimes = [
+{start:"08:00", end:"09:00"},
+]
 export const userFeedbackMessages = {
   student: {
     addSuccess: "تمت إضافة التلميذ بنجاح",
