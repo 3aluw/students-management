@@ -75,12 +75,10 @@ export const commonReasons = [
   "تأخر الحافلة المدرسية",
   "فقدان المتعلّقات أو نسيانها",
   "مهام منزلية أو رعاية إخوة أصغر",
-  "مشكلة مفاجئة في الطريق"
-]
+  "مشكلة مفاجئة في الطريق",
+];
 
-export const studyTimes = [
-{start:"08:00", end:"09:00"},
-]
+export const studyTimes = [{ start: 480, end: 660 }];
 export const userFeedbackMessages = {
   student: {
     addSuccess: "تمت إضافة التلميذ بنجاح",
@@ -112,7 +110,7 @@ export const userFeedbackMessages = {
     deleteSuccess: "تم حذف الغياب بنجاح",
     deleteFailed: "حدث خطأ أثناء حذف الغياب",
   },
-   lateness: {
+  lateness: {
     addSuccess: "تم تسجيل التأخر بنجاح",
     addFailed: "حدث خطأ أثناء تسجيل التأخر",
     fetchSuccess: "تم تحميل بيانات التأخرات بنجاح",

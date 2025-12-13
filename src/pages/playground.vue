@@ -14,31 +14,39 @@
 
             <Toolbar class="mb-6">
                 <template #start>
-                    <Button label="جديد" icon="pi pi-plus" iconPos="right" severity="secondary" class="mx-2"
-                        @click="showStudentDialog = true" />
-                    <Button label="حذف" icon="pi pi-trash" iconPos="right" severity="secondary" class="mx-2"
-                        @click="useDeleteConfirm.requestAction(selectedStudents)"
+                    <Button label="إبطاء" icon="pi pi-clock" iconPos="right" severity="secondary" class="mx-2" @click=""
                         :disabled="!selectedStudents || !selectedStudents.length" />
-                    <Button label="تعديل" icon="pi pi-pencil" iconPos="right" severity="secondary" class="mx-2"
-                        @click="" v-if="selectedStudents.length == 1" />
-                    <Button v-if="selectedStudents.length" label="نقل إلى" icon="pi pi-undo" @click="toggle"
-                        aria-haspopup="true" aria-controls="overlay_menu" iconPos="right" severity="secondary"
-                        class="mx-2" />
-                    <Menu ref="transferStudentsMenu" id="overlay_menu" :model="filteredClassOptions" :popup="true">
-                        <template #item="{ item }">
-                            <Button variant="text" severity="secondary"
-                                @click="useTransferConfirm.requestAction(selectedStudents, item.value)"> {{ item.label
-                                }}</Button>
-                        </template>
-                    </Menu>
-                </template>
+                    <Button label="غياب" icon="pi pi-ban" iconPos="right" severity="secondary" class="mx-2" @click=""
+                        :disabled="!selectedStudents || !selectedStudents.length" />
 
+                </template>
                 <template #end>
-                    <Button label="تحميل" icon="pi pi-download" iconPos="right" severity="secondary"
-                        @click="exportCSV()" />
+                    <Button label="طلبة تم تحديدهم" icon="pi pi-check" iconPos="right" severity="secondary"
+                        @click="displaySelectedStudentsDialog = true" />
+                    <Dialog header="Dialog" v-model:visible="displaySelectedStudentsDialog"
+                        :breakpoints="{ '960px': '75vw' }" :style="{ width: '40vw' }" :modal="true">
+                        <DataView :value="selectedStudents" dataKey="id">
+                            <template #list="slotProps">
+                                <div class="flex flex-col">
+                                    <div v-for="(student, index) in slotProps.items" :key="index"
+                                        class="flex flex-row justify-between items-center p-1 border-b">
+                                        <p class="w-40">{{ student.first_name + ' ' + student.last_name }}</p>
+                                        <p>{{
+                                            studentStore.classOptions.find((classObj) => classObj.value ===
+                                                student.class_id)?.label}}</p>
+                                        <Button @click="deleteFromSelectedStudents(student.id)"  icon="pi pi-times" severity="danger" variant="text" rounded
+                                            aria-label="delete" />
+                                    </div>
+                                </div>
+                            </template>
+                        </DataView>
+                        <template #footer>
+                            <Button label="إغلاق" @click="displaySelectedStudentsDialog = false" />
+                        </template>
+                    </Dialog>
                 </template>
             </Toolbar>
-{{selectedStudents}}
+          {{ selectedStudents }}
 
             <DataTable :ref="dt" v-model:selection="selectedStudents" :value="studentsToShow" dataKey="id"
                 :paginator="true" :rows="10" :filters="filters" stripedRows
@@ -81,8 +89,9 @@
                 <Column field="phone_number" header="رقم الهاتف" style="min-width: 5rem"></Column>
                 <Column field="address" header="العنوان" style="min-width: 16rem"></Column>
                 <Column header="القسم" v-show="globalSearchInput.length">
-                     <template #body="slotProps: DataTableSlot<Student>">
-                        <p>{{ studentStore.classOptions.find((classObj)=>classObj.value === slotProps.data.class_id)?.label }}</p>
+                    <template #body="slotProps: DataTableSlot<Student>">
+                        <p>{{studentStore.classOptions.find((classObj) => classObj.value ===
+                            slotProps.data.class_id)?.label}}</p>
                     </template>
                 </Column>
                 <template #empty>
@@ -128,11 +137,9 @@ watchDebounced(globalSearchInput, () => {
     studentStore.populateSearchedStudents(globalSearchInput.value)
 }, { debounce: 500, maxWait: 2000 },)
 
-//transfer student Menu logic
-const transferStudentsMenu = ref(); // transfer students menu Ref
-const toggle = (event: Event) => {
-    transferStudentsMenu.value.toggle(event);
-};
+//selected students dialog logic
+const displaySelectedStudentsDialog = ref(false);
+
 const filteredClassOptions = computed(() => studentStore.classOptions.filter((classObject) => classObject.value !== studentStore.selectedClassId))
 const transferStudents = async (students: Student[], classId: number) => {
     const studentIds = students.map((student) => student.id)
@@ -144,6 +151,9 @@ const transferStudents = async (students: Student[], classId: number) => {
 
 // select students logic
 const selectedStudents = ref<Student[]>([])
+const deleteFromSelectedStudents = (studentId: number) => {
+    selectedStudents.value = selectedStudents.value.filter((student) => student.id !== studentId)
+}
 const resetSelectedStudents = () => { selectedStudents.value = [] }
 
 // edit / create student logic
@@ -187,7 +197,7 @@ const deleteStudents = async (students: Student[]) => {
 
 
 //confirm dialogs
-const useDeleteConfirm = useConfirmHandler(()=> deleteStudents(selectedStudents.value), studentStore.populateStudents)
+const useDeleteConfirm = useConfirmHandler(() => deleteStudents(selectedStudents.value), studentStore.populateStudents)
 const useTransferConfirm = useConfirmHandler(transferStudents, studentStore.populateStudents)
 
 
