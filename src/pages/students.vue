@@ -119,6 +119,7 @@ const filters = ref({
 });
 const studentsToShow = computed(() => globalSearchInput.value.trim().length ? studentStore.searchedStudents : studentStore.students)
 const changeClass = (classId: number) => {
+    selectedStudents.value = []
     studentStore.populateStudents(classId)
 }
 

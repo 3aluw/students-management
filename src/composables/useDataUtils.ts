@@ -83,6 +83,12 @@ export default function () {
 
     return [start.getTime(), end.getTime()];
   };
+
+  function minutesAfterMidnight(date: number | Date) {
+    date = new Date(date);
+    return date.getHours() * 60 + date.getMinutes();
+  }
+
   // A function that return dates for lateness info or absence info
   const getDatesForEventInfo = <
     T extends
@@ -97,20 +103,20 @@ export default function () {
     };
 
     if ("late_by" in obj && "start_time" in obj) {
-      const start_time = new Date(obj.start_time);
+      const start_time = new Date(obj.date);
+      start_time.setHours(0, 0, 0, 0);
+      start_time.setMinutes(obj.start_time);
       const late_by = new Date(start_time);
       late_by.setMinutes(late_by.getMinutes() + obj.late_by);
       return {
         ...base,
         late_by,
-        start_time, 
+        start_time,
       };
     }
 
     return base;
   };
-
-  const getMinutesDifference = (start: Date, end: Date) => {};
   //a function that transform 0/1 in DB results to real booleans
   const normalizeResultBooleans = <
     R extends Record<string, any>,
@@ -130,6 +136,7 @@ export default function () {
   return {
     getRequiredFieldMessage,
     getTimeRange,
+    minutesAfterMidnight,
     getDatesForEventInfo,
     normalizeResultBooleans,
   };

@@ -89,14 +89,8 @@ import { useToast } from 'primevue/usetoast';
 import type { NewAbsence, NewLateness, AbsenceInfo, LatenessInfo } from '~/data/types';
 import type { FormSubmitEvent } from "@primevue/forms"
 
-const { getDatesForEventInfo } = useDataUtils()
-const filteredReasons = ref<string[]>([])
-function searchReasons(e: { query: string }) {
-    const { query } = e
-    filteredReasons.value = !query.length ? commonReasons : commonReasons.filter((reasons) => {
-        return reasons.startsWith(query)
-    })
-}
+const { getDatesForEventInfo, minutesAfterMidnight } = useDataUtils()
+
 const formatEventObject = () => {
     if (props.entityObject && props.eventType == 'absence') {
         const entityObj = props.entityObject as AbsenceInfo
@@ -142,7 +136,7 @@ const latenessZodSchema = (z.object({
     date: z.date().transform(d => d.getTime()),
     reason: z.string().min(5, { message: 'يجب إدخال سبب الغياب' }),
     reason_accepted: z.literal([0, 1]),
-    late_by: z.date().transform(d => d.getTime()),      // it will be used to enter the time of enter and later transformed to minutes after shift start
+    late_by: z.date().transform(d => d.getTime()),      // it will be used to insert the time of enter then  transformed to minutes after shift start
     start_time: z.date().transform(d => d.getTime()),
 }) satisfies z.ZodType<LatenessInfo>)
     .refine(
@@ -152,7 +146,8 @@ const latenessZodSchema = (z.object({
     .transform((data) => {
         return {
             ...data,
-            late_by: Math.floor((data.late_by - data.start_time) / 60000)
+            late_by: minutesAfterMidnight(data.late_by) - minutesAfterMidnight(data.start_time),
+            start_time: minutesAfterMidnight(data.start_time)
         }
     })
 
@@ -164,4 +159,12 @@ const onFormSubmit = (event: FormSubmitEvent) => {
     emit('submit', event.values as EventInfo<T>)
 }
 
+/* Reasons Autocomplete filtering logic */
+const filteredReasons = ref<string[]>([])
+function searchReasons(e: { query: string }) {
+    const { query } = e
+    filteredReasons.value = !query.length ? commonReasons : commonReasons.filter((reasons) => {
+        return reasons.startsWith(query)
+    })
+}
 </script>
