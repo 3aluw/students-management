@@ -18,9 +18,11 @@
 
             <Toolbar class="mb-6">
                 <template #start>
-                    <Button label="إبطاء" icon="pi pi-clock" iconPos="right" severity="secondary" class="mx-2" @click=""
+                    <Button label="إبطاء" icon="pi pi-clock" iconPos="right" severity="secondary" class="mx-2"
+                        @click="createEvent('lateness', selectedStudents.map(student => student.id))"
                         :disabled="!selectedStudents || !selectedStudents.length" />
-                    <Button label="غياب" icon="pi pi-ban" iconPos="right" severity="secondary" class="mx-2" @click=""
+                    <Button label="غياب" icon="pi pi-ban" iconPos="right" severity="secondary" class="mx-2"
+                        @click="createEvent('lateness', selectedStudents.map(student => student.id))"
                         :disabled="!selectedStudents || !selectedStudents.length" />
 
                 </template>
@@ -92,10 +94,22 @@
                 </Column>
                 <Column field="phone_number" header="رقم الهاتف" style="min-width: 5rem"></Column>
                 <Column field="address" header="العنوان" style="min-width: 16rem"></Column>
-                <Column header="القسم" v-show="globalSearchInput.length">
+                <Column header="القسم" v-if="globalSearchInput.length">
                     <template #body="slotProps: DataTableSlot<Student>">
                         <p>{{studentStore.classOptions.find((classObj) => classObj.value ===
                             slotProps.data.class_id)?.label}}</p>
+                    </template>
+                </Column>
+                <Column header="">
+                    <template #body="slotProps: DataTableSlot<Student>">
+                        <div class="flex gap-2">
+                            <Button @click="createEvent('lateness', [slotProps.data.id])" icon="pi pi-clock"
+                                severity="warn" rounded outlined />
+                            <Button @click="createEvent('absence', [slotProps.data.id])" icon="pi pi-ban"
+                                severity="danger" rounded outlined />
+                        </div>
+
+
                     </template>
                 </Column>
                 <template #empty>
@@ -103,28 +117,75 @@
                 </template>
             </DataTable>
         </div>
-        <Dialog header="إعدادت"  v-model:visible="showSettingsDialog"
-            :style="{ width: '350px' }" :modal="true">
-            <PlaygroundSettingsForm  :settings="PlaygroundSettings"/>
+        <Dialog header="إعدادت" v-model:visible="showSettingsDialog" :style="{ width: '350px' }" :modal="true">
+            <PlaygroundSettingsForm :settings="playgroundSettings" />
         </Dialog>
-        <UtilsConfirmDialog header="حذف الطلبة" :danger="true" v-model="useDeleteConfirm.showConfirm.value"
-            @confirm="useDeleteConfirm.confirmAction" />
-        <UtilsConfirmDialog header="تحويل الطلبة" message="هل أنت متأكد من رغبتك في  التحويل إلى قسم آخر ؟"
-            :danger="false" v-model="useTransferConfirm.showConfirm.value"
-            @confirm="useTransferConfirm.confirmAction" />
+
+        <Dialog :header="eventDialogHeader" v-model:visible="showEventDialog" :style="{ width: '350px' }" :modal="true">
+            <UtilsEventForm :eventType="selectedEventType" :entity-object="createDefaultEventData(selectedEventType)"
+                @submit="handleEventSubmit" />
+        </Dialog>
+
     </div>
 </template>
 <script setup lang="ts">
 import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
-import type { Student, DataTableSlot, PlaygroundSettings, BatchEditStudent } from '~/data/types'
-import { userFeedbackMessages, ArabicBooleans } from '~/data/static';
+import type { Student, DataTableSlot, PlaygroundSettings, EventTypes, AbsenceInfo, LatenessInfo } from '~/data/types'
+import { userFeedbackMessages } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
+const { minutesAfterMidnight } = useDataUtils();
 const studentStore = useStudentStore();
 const backend = useBackend()
 const toast = useToast();
 const { student: toastMessages } = userFeedbackMessages
+type EventInfo<T extends EventTypes> = T extends 'absence' ? AbsenceInfo : LatenessInfo
 
+const showEventDialog = ref(false);
+const eventDialogHeader = computed(() => `أدخل معلومات ${selectedEventType.value === 'lateness' ? 'التأخر' : 'الغياب'}`)
+const selectedEventType = ref<EventTypes>('lateness');
+const createEvent = <T extends EventTypes>(eventType: T, ids: number[], data?: EventInfo<T>) => {
+    //check if data is absent and fast mode is on => create event with defaults
+    if (playgroundSettings.value.fastMode) {
+        data = createDefaultEventData(eventType)
+        postEvent(eventType, ids, data)
+    }
+    //if the data is absent and fast mode is off => open dialog to fill data
+    else {
+        selectedEventType.value = eventType
+        showEventDialog.value = true
+    }
+}
+const handleEventSubmit = <T extends EventTypes>(data: EventInfo<T>) => {
+    const eventType = selectedEventType.value as T
+    const ids = selectedStudents.value.map(student => student.id)
+    postEvent(eventType, ids, data)
+    showEventDialog.value = false
+}
+const postEvent = <T extends EventTypes>(eventType: T, ids: number[], data: EventInfo<T>) => {
+    console.log(eventType, ids, data);
+}
+const lastEventValues = ref<Pick<EventInfo<'absence'> & EventInfo<'lateness'>, 'reason' | 'reason_accepted'>>({
+    reason: '',
+    reason_accepted: 0
+})
+const createDefaultEventData = <T extends EventTypes>(eventType: T): EventInfo<T> => {
+    if (eventType === 'lateness') {
+        return {
+            date: new Date().setMinutes(0, 0, 0),
+            start_time: playgroundSettings.value.defaultStartTime,
+            late_by: playgroundSettings.value.dynamicTime ? minutesAfterMidnight(new Date()) - playgroundSettings.value.defaultStartTime : playgroundSettings.value.defaultLateBy,
+            reason: playgroundSettings.value.defaultReason,
+            reason_accepted: playgroundSettings.value.reasonAcceptedByDefault
+        } as EventInfo<T>
+    } else {
+        return {
+            date: new Date().setMinutes(0, 0, 0),
+            reason: playgroundSettings.value.defaultReason,
+            reason_accepted: playgroundSettings.value.reasonAcceptedByDefault
+        } as EventInfo<T>
+    }
+}
 //table logic
 const dt = ref(); //dataTable Ref
 const filters = ref({
@@ -134,12 +195,13 @@ const studentsToShow = computed(() => globalSearchInput.value.trim().length ? st
 const changeClass = (classId: number) => {
     studentStore.populateStudents(classId)
 }
-const PlaygroundSettings = ref<PlaygroundSettings>({
+const playgroundSettings = ref<PlaygroundSettings>({
     defaultStartTime: 480,
-    dynamicTime : false,
-    defaultLateBy : 10,
-    fastMode : false,
-    defaultReason : 'غير محدد',
+    dynamicTime: false,
+    defaultLateBy: 10,
+    fastMode: false,
+    defaultReason: 'غير محدد',
+    reasonAcceptedByDefault: 0
 })
 // global search logic
 const globalSearchInput = ref('')
@@ -150,14 +212,6 @@ watchDebounced(globalSearchInput, () => {
 //selected students dialog logic
 const displaySelectedStudentsDialog = ref(false);
 
-const filteredClassOptions = computed(() => studentStore.classOptions.filter((classObject) => classObject.value !== studentStore.selectedClassId))
-const transferStudents = async (students: Student[], classId: number) => {
-    const studentIds = students.map((student) => student.id)
-    const reqBody: BatchEditStudent = { class_id: classId, ids: studentIds }
-    await backend.updateStudents(reqBody)
-    studentStore.populateStudents()
-    resetSelectedStudents()
-}
 
 // select students logic
 const selectedStudents = ref<Student[]>([])
@@ -166,27 +220,8 @@ const deleteFromSelectedStudents = (studentId: number) => {
 }
 const resetSelectedStudents = () => { selectedStudents.value = [] }
 
-// edit / create student logic
+// playground settings
 const showSettingsDialog = ref(false);
 
-
-
-const deleteStudents = async (students: Student[]) => {
-    const studentIds = students.map((student) => student.id)
-    await backend.deleteStudents(studentIds);
-    resetSelectedStudents()
-
-}
-
-
-
-//confirm dialogs
-const useDeleteConfirm = useConfirmHandler(() => deleteStudents(selectedStudents.value), studentStore.populateStudents)
-const useTransferConfirm = useConfirmHandler(transferStudents, studentStore.populateStudents)
-
-
-function exportCSV() {
-    dt.value.exportCSV();
-}
 
 </script>
