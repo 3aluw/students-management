@@ -81,12 +81,12 @@
 
 </template>
 
-<script setup lang="ts" generic="T extends 'absence' | 'lateness'">
+<script setup lang="ts" generic="T extends EventTypes">
 import { sqliteBoolean, commonReasons } from '~/data/static';
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from 'primevue/usetoast';
-import type { NewAbsence, NewLateness, AbsenceInfo, LatenessInfo } from '~/data/types';
+import type { NewAbsence, NewLateness, AbsenceInfo, LatenessInfo,EventTypes } from '~/data/types';
 import type { FormSubmitEvent } from "@primevue/forms"
 const { getDatesForEventInfo, minutesAfterMidnight } = useDataUtils()
 const toast = useToast();
@@ -109,8 +109,8 @@ const formatEventObject = () => {
     }
 }
 
-type EventInfo<T extends 'absence' | 'lateness'> = T extends 'absence' ? AbsenceInfo : LatenessInfo
-type newEvent<T extends 'absence' | 'lateness'> = T extends 'absence' ? NewAbsence : NewLateness
+type EventInfo<T extends EventTypes> = T extends 'absence' ? AbsenceInfo : LatenessInfo
+type newEvent<T extends EventTypes> = T extends 'absence' ? NewAbsence : NewLateness
 
 const props = defineProps<{
     eventType: T;

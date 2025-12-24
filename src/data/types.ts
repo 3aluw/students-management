@@ -91,6 +91,7 @@ export type LocalLateness = Lateness & {
   class_id: number;
 } & Omit<Class, "id">;
 
+export type EventTypes = "lateness" | "absence";
 export type Gender = "M" | "F";
 export type SchoolLevel = "primary" | "middle" | "high";
 
@@ -115,4 +116,5 @@ export type SupportedDateRanges =
     defaultLateBy: number;       // in minutes, optional if dynamicTime is false
     fastMode : boolean;
     defaultReason : string;
+    reasonAcceptedByDefault : 0 | 1;
   }
