@@ -88,8 +88,8 @@ import { z } from 'zod';
 import { useToast } from 'primevue/usetoast';
 import type { NewAbsence, NewLateness, AbsenceInfo, LatenessInfo } from '~/data/types';
 import type { FormSubmitEvent } from "@primevue/forms"
-
 const { getDatesForEventInfo, minutesAfterMidnight } = useDataUtils()
+const toast = useToast();
 
 const formatEventObject = () => {
     if (props.entityObject && props.eventType == 'absence') {
@@ -108,7 +108,6 @@ const formatEventObject = () => {
         }
     }
 }
-const toast = useToast();
 
 type EventInfo<T extends 'absence' | 'lateness'> = T extends 'absence' ? AbsenceInfo : LatenessInfo
 type newEvent<T extends 'absence' | 'lateness'> = T extends 'absence' ? NewAbsence : NewLateness
@@ -136,7 +135,7 @@ const latenessZodSchema = (z.object({
     date: z.date().transform(d => d.getTime()),
     reason: z.string().min(5, { message: 'يجب إدخال سبب الغياب' }),
     reason_accepted: z.literal([0, 1]),
-    late_by: z.date().transform(d => d.getTime()),      // it will be used to insert the time of enter then  transformed to minutes after shift start
+    late_by: z.date().transform(d => d.getTime()),      // it will be used to insert the time of enter then transformed to minutes after shift start
     start_time: z.date().transform(d => d.getTime()),
 }) satisfies z.ZodType<LatenessInfo>)
     .refine(

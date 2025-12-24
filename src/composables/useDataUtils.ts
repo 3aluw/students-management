@@ -5,6 +5,7 @@ import type {
   SupportedDateRanges,
   LatenessInfo,
   AbsenceInfo,
+  PlaygroundSettings,
 } from "~/data/types";
 
 export default function () {
@@ -88,7 +89,17 @@ export default function () {
     date = new Date(date);
     return date.getHours() * 60 + date.getMinutes();
   }
-
+  const getDatesForPlaygroundSettings = (settings: PlaygroundSettings) => {
+       const defaultStartTime = new Date();
+      defaultStartTime.setHours(0, 0, 0, 0);
+      defaultStartTime.setMinutes(settings.defaultStartTime);
+      const defaultLateBy = new Date(defaultStartTime);
+      defaultLateBy.setMinutes(defaultLateBy.getMinutes() + settings.defaultLateBy);
+      return {
+        defaultLateBy,
+        defaultStartTime,
+      };
+  };
   // A function that return dates for lateness info or absence info
   const getDatesForEventInfo = <
     T extends
@@ -137,6 +148,7 @@ export default function () {
     getRequiredFieldMessage,
     getTimeRange,
     minutesAfterMidnight,
+    getDatesForPlaygroundSettings,
     getDatesForEventInfo,
     normalizeResultBooleans,
   };
