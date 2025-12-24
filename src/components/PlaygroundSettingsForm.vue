@@ -11,7 +11,7 @@
 
         <div class=" flex flex-col gap-2">
             <div class="flex items-center gap-2">
-                تفعيل توقيت الإبطاء افتراضيا :
+                حساب توقيت الإبطاء تلقائيا :
                 <SelectButton name="dynamicTime" :options="ArabicBooleans" optionLabel="label" optionValue="value" />
                 <Message v-if="$form.dynamicTime?.invalid" severity="error" size="small" variant="simple">
                     {{ $form.dynamicTime.error?.message }}
@@ -29,8 +29,8 @@
                 الوضع السريع :
                 <SelectButton name="fastMode" :options="ArabicBooleans" optionLabel="label" optionValue="value" />
             </div>
-            <div v-if="$form.fastMode?.value" class="">
-                    سبب الغياب / الإبطاء الافتراضي :
+            <div v-show="$form.fastMode?.value" class="">
+                سبب الغياب / الإبطاء الافتراضي :
                 <InputText name="defaultReason" type="text" placeholder="سبب الغياب" fluid />
                 <Message v-if="$form.defaultReason?.invalid && $form.fastMode?.value" severity="error" size="small"
                     variant="simple">
@@ -38,9 +38,10 @@
                 </Message>
                 <div class="flex flex-col gap-1">
                     <div class="flex items-center gap-2">
-                    قبول العذر افتراضيا :
-                    <SelectButton name="reasonAcceptedByDefault" :options="sqliteBoolean" optionLabel="label"
-                        optionValue="value" /></div>
+                        قبول العذر افتراضيا :
+                        <SelectButton name="reasonAcceptedByDefault" :options="sqliteBoolean" optionLabel="label"
+                            optionValue="value" />
+                    </div>
                     <Message v-if="$form.reasonAcceptedByDefault?.invalid" severity="error" size="small"
                         variant="simple">
                         {{ $form.reasonAcceptedByDefault.error?.message }}
@@ -95,10 +96,6 @@ const schema = (z.object({
 const resolver = zodResolver(schema)
 const onFormSubmit = (event: FormSubmitEvent) => {
     if (!event.valid) return
-    if (event.values === undefined) {
-        toast.add({ severity: 'warn', summary: 'لم تقم بأي تغيير على الإعدادات', life: 3000 })
-        return;
-    }
     emit('submit', event.values as PlaygroundSettings)
 }
 
