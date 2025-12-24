@@ -118,7 +118,7 @@
             </DataTable>
         </div>
         <Dialog header="إعدادت" v-model:visible="showSettingsDialog" :style="{ width: '350px' }" :modal="true">
-            <PlaygroundSettingsForm :settings="playgroundSettings" />
+            <PlaygroundSettingsForm :settings="playgroundSettings" @submit="applyNewSettings" />
         </Dialog>
 
         <Dialog :header="eventDialogHeader" v-model:visible="showEventDialog" :style="{ width: '350px' }" :modal="true">
@@ -144,6 +144,7 @@ type EventInfo<T extends EventTypes> = T extends 'absence' ? AbsenceInfo : Laten
 const showEventDialog = ref(false);
 const eventDialogHeader = computed(() => `أدخل معلومات ${selectedEventType.value === 'lateness' ? 'التأخر' : 'الغياب'}`)
 const selectedEventType = ref<EventTypes>('lateness');
+
 const createEvent = <T extends EventTypes>(eventType: T, ids: number[], data?: EventInfo<T>) => {
     //check if data is absent and fast mode is on => create event with defaults
     if (playgroundSettings.value.fastMode) {
@@ -154,12 +155,12 @@ const createEvent = <T extends EventTypes>(eventType: T, ids: number[], data?: E
     else {
         selectedEventType.value = eventType
         showEventDialog.value = true
+        selectedStudentsIds.value = ids
     }
 }
 const handleEventSubmit = <T extends EventTypes>(data: EventInfo<T>) => {
     const eventType = selectedEventType.value as T
-    const ids = selectedStudents.value.map(student => student.id)
-    postEvent(eventType, ids, data)
+    postEvent(eventType, selectedStudentsIds.value, data)
     showEventDialog.value = false
 }
 const postEvent = <T extends EventTypes>(eventType: T, ids: number[], data: EventInfo<T>) => {
@@ -203,6 +204,11 @@ const playgroundSettings = ref<PlaygroundSettings>({
     defaultReason: 'غير محدد',
     reasonAcceptedByDefault: 0
 })
+const applyNewSettings = (newSettings: PlaygroundSettings) => {
+    playgroundSettings.value = newSettings
+    showSettingsDialog.value = false
+    toast.add({ severity: 'success', summary: 'تم تطبيق الإعدادات الجديدة بنجاح', life: 3000 })
+}
 // global search logic
 const globalSearchInput = ref('')
 watchDebounced(globalSearchInput, () => {
@@ -215,6 +221,7 @@ const displaySelectedStudentsDialog = ref(false);
 
 // select students logic
 const selectedStudents = ref<Student[]>([])
+const selectedStudentsIds = ref<number[]>([])
 const deleteFromSelectedStudents = (studentId: number) => {
     selectedStudents.value = selectedStudents.value.filter((student) => student.id !== studentId)
 }

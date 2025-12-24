@@ -35,7 +35,6 @@
 
         <Form v-else-if="props.eventType == 'lateness'" :initialValues="formatEventObject()" v-slot="$form"
             :resolver="resolver" @submit="onFormSubmit" class="flex flex-col gap-4 w-full sm:w-80">
-            {{ props.entityObject }}
             <!-- lateness Date -->
             <div class="flex flex-col gap-1">
                 <DatePicker name="date" placeholder="تاريخ التأخر" fluid showIcon />
