@@ -108,3 +108,11 @@ export type SupportedDateRanges =
     minDate : number,
     maxDate : number
   }>
+
+  export type PlaygroundSettings = {
+    defaultStartTime: number;
+    dynamicTime : boolean;        // if true, the start time will be set to the current time when registering the lateness
+    defaultLateBy: number;       // in minutes, optional if dynamicTime is false
+    fastMode : boolean;
+    defaultReason : string;
+  }

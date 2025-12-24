@@ -32,6 +32,10 @@ export const dateFilterOptions = [
   label: string;
   value: SupportedDateRanges;
 }[];
+export const ArabicBooleans = [
+  { label: "لا", value: false },
+  { label: "نعم", value: true },
+];
 export const sqliteBoolean = [
   { label: "لا", value: 0 },
   { label: "نعم", value: 1 },
