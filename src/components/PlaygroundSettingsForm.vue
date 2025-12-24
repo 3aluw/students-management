@@ -29,18 +29,31 @@
                 الوضع السريع :
                 <SelectButton name="fastMode" :options="ArabicBooleans" optionLabel="label" optionValue="value" />
             </div>
-            <InputText v-if="$form.fastMode?.value" name="defaultReason" type="text" placeholder="سبب الغياب" fluid />
-            <Message v-if="$form.defaultReason?.invalid && $form.fastMode?.value" severity="error" size="small"
-                variant="simple">
-                {{ $form.defaultReason.error?.message }}
-            </Message>
+            <div v-if="$form.fastMode?.value" class="">
+                    سبب الغياب / الإبطاء الافتراضي :
+                <InputText name="defaultReason" type="text" placeholder="سبب الغياب" fluid />
+                <Message v-if="$form.defaultReason?.invalid && $form.fastMode?.value" severity="error" size="small"
+                    variant="simple">
+                    {{ $form.defaultReason.error?.message }}
+                </Message>
+                <div class="flex flex-col gap-1">
+                    <div class="flex items-center gap-2">
+                    قبول العذر افتراضيا :
+                    <SelectButton name="reasonAcceptedByDefault" :options="sqliteBoolean" optionLabel="label"
+                        optionValue="value" /></div>
+                    <Message v-if="$form.reasonAcceptedByDefault?.invalid" severity="error" size="small"
+                        variant="simple">
+                        {{ $form.reasonAcceptedByDefault.error?.message }}
+                    </Message>
+                </div>
+            </div>
         </div>
-        <Button type="submit" label="إرسال" severity="secondary" />
+        <Button type="submit" label="تطبيق" severity="success" />
 
     </Form>
 </template>
 <script setup lang="ts">
-import { ArabicBooleans } from '~/data/static';
+import { ArabicBooleans, sqliteBoolean } from '~/data/static';
 import type { PlaygroundSettings } from '~/data/types'
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import type { FormSubmitEvent } from "@primevue/forms"
@@ -69,6 +82,7 @@ const schema = (z.object({
     dynamicTime: z.boolean(),
     fastMode: z.boolean(),
     defaultReason: z.string().min(5, { message: 'يجب إدخال سبب الغياب' }),
+    reasonAcceptedByDefault: z.literal([0, 1])
 }) satisfies z.ZodType<PlaygroundSettings>)
     .transform((data) => {
         return {
