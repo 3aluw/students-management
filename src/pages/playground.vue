@@ -3,6 +3,10 @@
         <div class="card">
             <Toolbar class="mb-6">
                 <template #start>
+                    <Button label="إعدادت" icon="pi pi-cog" iconPos="right" severity="secondary" class="mx-2"
+                        @click="showSettingsDialog = true" />
+                </template>
+                <template #end>
                     <IconField>
                         <InputIcon>
                             <i class="pi pi-search" />
@@ -22,7 +26,7 @@
                 </template>
                 <template #end>
                     <Button label="طلبة تم تحديدهم" icon="pi pi-check" iconPos="right" severity="secondary"
-                        @click="displaySelectedStudentsDialog = true" />
+                        @click="displaySelectedStudentsDialog = true" :badge="selectedStudents.length.toString()" />
                     <Dialog header="Dialog" v-model:visible="displaySelectedStudentsDialog"
                         :breakpoints="{ '960px': '75vw' }" :style="{ width: '40vw' }" :modal="true">
                         <DataView :value="selectedStudents" dataKey="id">
@@ -34,8 +38,8 @@
                                         <p>{{
                                             studentStore.classOptions.find((classObj) => classObj.value ===
                                                 student.class_id)?.label}}</p>
-                                        <Button @click="deleteFromSelectedStudents(student.id)"  icon="pi pi-times" severity="danger" variant="text" rounded
-                                            aria-label="delete" />
+                                        <Button @click="deleteFromSelectedStudents(student.id)" icon="pi pi-times"
+                                            severity="danger" variant="text" rounded aria-label="delete" />
                                     </div>
                                 </div>
                             </template>
@@ -46,7 +50,7 @@
                     </Dialog>
                 </template>
             </Toolbar>
-          {{ selectedStudents }}
+            {{ selectedStudents }}
 
             <DataTable :ref="dt" v-model:selection="selectedStudents" :value="studentsToShow" dataKey="id"
                 :paginator="true" :rows="10" :filters="filters" stripedRows
@@ -99,9 +103,9 @@
                 </template>
             </DataTable>
         </div>
-        <Dialog header="أدخل معلومات القسم" @hide="studentToEdit = undefined" v-model:visible="showStudentDialog"
+        <Dialog header="إعدادت"  v-model:visible="showSettingsDialog"
             :style="{ width: '350px' }" :modal="true">
-            <UtilsEntityForm entityType="student" :entityObject="studentToEdit" @submit="handleStudentSubmit" />
+            <PlaygroundSettingsForm  :settings="PlaygroundSettings"/>
         </Dialog>
         <UtilsConfirmDialog header="حذف الطلبة" :danger="true" v-model="useDeleteConfirm.showConfirm.value"
             @confirm="useDeleteConfirm.confirmAction" />
@@ -113,8 +117,8 @@
 <script setup lang="ts">
 import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
-import type { Student, DataTableSlot, NewStudent, BatchEditStudent } from '~/data/types'
-import { userFeedbackMessages, } from '~/data/static';
+import type { Student, DataTableSlot, PlaygroundSettings, BatchEditStudent } from '~/data/types'
+import { userFeedbackMessages, ArabicBooleans } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
 const studentStore = useStudentStore();
 const backend = useBackend()
@@ -130,7 +134,13 @@ const studentsToShow = computed(() => globalSearchInput.value.trim().length ? st
 const changeClass = (classId: number) => {
     studentStore.populateStudents(classId)
 }
-
+const PlaygroundSettings = ref<PlaygroundSettings>({
+    defaultStartTime: 480,
+    dynamicTime : false,
+    defaultLateBy : 10,
+    fastMode : false,
+    defaultReason : 'غير محدد',
+})
 // global search logic
 const globalSearchInput = ref('')
 watchDebounced(globalSearchInput, () => {
@@ -157,34 +167,8 @@ const deleteFromSelectedStudents = (studentId: number) => {
 const resetSelectedStudents = () => { selectedStudents.value = [] }
 
 // edit / create student logic
-const showStudentDialog = ref(false);
-const studentToEdit = ref<Student | undefined>(undefined)
-const EditStudent = async (studentObj: Student) => {
-    try {
-        await backend.updateStudents(studentObj)
-        await studentStore.populateStudents(studentToEdit.value?.class_id!)
-        showStudentDialog.value = false
-        toast.add({ severity: 'success', summary: toastMessages.updateSuccess, life: 3000 })
+const showSettingsDialog = ref(false);
 
-    } catch (error) {
-        toast.add({ severity: 'error', summary: toastMessages.updateFailed, life: 3000 })
-    }
-}
-const createNewStudent = async (newStudent: NewStudent) => {
-    try {
-        await backend.createStudent(newStudent)
-        await studentStore.populateStudents(newStudent.class_id)
-        showStudentDialog.value = false
-        toast.add({ severity: 'success', summary: toastMessages.addSuccess, life: 3000 })
-
-    } catch (error) {
-        toast.add({ severity: 'error', summary: toastMessages.addFailed, life: 3000 })
-
-    }
-}
-const handleStudentSubmit = (newStudent: NewStudent) => {
-    studentToEdit.value ? EditStudent({ ...newStudent, id: studentToEdit.value.id }) : createNewStudent(newStudent)
-}
 
 
 const deleteStudents = async (students: Student[]) => {
