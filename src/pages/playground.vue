@@ -52,7 +52,6 @@
                     </Dialog>
                 </template>
             </Toolbar>
-            {{ selectedStudents }}
 
             <DataTable :ref="dt" v-model:selection="selectedStudents" :value="studentsToShow" dataKey="id"
                 :paginator="true" :rows="10" :filters="filters" stripedRows
@@ -161,24 +160,37 @@ const createEvent = <T extends EventTypes>(eventType: T, ids: number[], data?: E
 const handleEventSubmit = <T extends EventTypes>(data: EventInfo<T>) => {
     const eventType = selectedEventType.value as T
     postEvent(eventType, selectedStudentsIds.value, data)
+    lastEventValues.value = {
+        reason: data.reason,
+        reason_accepted: data.reason_accepted
+    }
     showEventDialog.value = false
 }
-const postEvent = <T extends EventTypes>(eventType: T, ids: number[], data: EventInfo<T>) => {
+const postEvent = async<T extends EventTypes>(eventType: T, ids: number[], data: EventInfo<T>) => {
     const rowsToInsert = bindStudentIdToEventInfo(eventType, ids, data);
-    if (eventType === 'absence') {
-        backend.insertAbsences(rowsToInsert).then(() => {
-            toast.add({ severity: 'success', summary: absenceToastMessages.addSuccess, life: 3000 })
-        }).catch(() => {
-            toast.add({ severity: 'error', summary: absenceToastMessages.addFailed, life: 3000 })
-        })
-    }
-    else if (eventType === 'lateness') {
-          const latenessRows = rowsToInsert as NewLateness[];
-        backend.insertLateness(latenessRows).then(() => {
-            toast.add({ severity: 'success', summary: latenessToastMessages.addSuccess, life: 3000 })
-        }).catch(() => {
-            toast.add({ severity: 'error', summary: latenessToastMessages.addFailed, life: 3000 })
-        })
+    let toastMessage = '';
+    let severity: 'success' | 'error' = 'success';
+
+    try {
+        if (eventType === 'absence') {
+            await backend.insertAbsences(rowsToInsert);
+            toastMessage = absenceToastMessages.addSuccess;
+        } else if (eventType === 'lateness') {
+            await backend.insertLateness(rowsToInsert as NewLateness[]);
+            toastMessage = latenessToastMessages.addSuccess;
+        } else {
+            throw new Error(`Unsupported eventType: ${eventType}`);
+        }
+        resetSelectedStudents();
+    } catch (error) {
+        severity = 'error';
+        toastMessage =
+            eventType === 'absence'
+                ? absenceToastMessages.addFailed
+                : latenessToastMessages.addFailed;
+        console.error(error);
+    } finally {
+        toast.add({ severity, summary: toastMessage, life: 3000 });
     }
 }
 
@@ -204,21 +216,22 @@ const bindStudentIdToEventInfo = <T extends EventTypes>(eventType: T, ids: numbe
         return latenessToInsert as NewEvent<T>[];
     }
 }
-const lastEventValues = ref<Pick<EventInfo<'absence'> & EventInfo<'lateness'>, 'reason' | 'reason_accepted'>>({
+const lastEventValues = ref<Pick<EventInfo<'absence'> | EventInfo<'lateness'>, 'reason' | 'reason_accepted'>>({
     reason: '',
     reason_accepted: 0
 })
 const createDefaultEventData = <T extends EventTypes>(eventType: T): EventInfo<T> => {
+    const { fastMode,defaultReason, reasonAcceptedByDefault, dynamicTime, defaultStartTime, defaultLateBy  } = playgroundSettings.value
     let base = {
         date: new Date().setMinutes(0, 0, 0),
-        reason: playgroundSettings.value.defaultReason,
-        reason_accepted: playgroundSettings.value.reasonAcceptedByDefault
+        reason: !fastMode && lastEventValues.value.reason?.length ? lastEventValues.value.reason : defaultReason ,
+        reason_accepted: !fastMode && lastEventValues.value.reason?.length ? lastEventValues.value.reason_accepted : reasonAcceptedByDefault  
     } as EventInfo<T>
     if (eventType === 'lateness') {
         base = {
             ...base,
-            start_time: playgroundSettings.value.defaultStartTime,
-            late_by: playgroundSettings.value.dynamicTime ? minutesAfterMidnight(new Date()) - playgroundSettings.value.defaultStartTime : playgroundSettings.value.defaultLateBy
+            start_time: defaultStartTime,
+            late_by: dynamicTime ? minutesAfterMidnight(new Date()) - defaultStartTime : defaultLateBy
         }
     }
     return base as EventInfo<T>
