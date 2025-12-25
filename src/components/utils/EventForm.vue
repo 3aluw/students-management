@@ -113,7 +113,7 @@ type newEvent<T extends EventTypes> = T extends 'absence' ? NewAbsence : NewLate
 
 const props = defineProps<{
     eventType: T;
-    entityObject?: EventInfo<T>;
+    entityObject: EventInfo<T>;
 }>()
 
 const emit = defineEmits<{
