@@ -13,6 +13,8 @@ import type {
   EditAbsence,
   LocalLateness,
   Lateness,
+  NewAbsence,
+  NewLateness,
 } from "~/data/types";
 
 export default function () {
@@ -70,6 +72,12 @@ export default function () {
       }
     );
   };
+  const insertAbsences = (body: NewAbsence[]) => {
+    return $fetch("/api/absences", {
+      method: "POST",
+      body,
+    });
+  };
   const deleteAbsences = (body: Absence["id"][]) => {
     return $fetch(`/api/absences/`, {
       method: "DELETE",
@@ -89,6 +97,12 @@ export default function () {
         params,
       }
     );
+  };
+    const insertLateness = (body: NewLateness[]) => {
+    return $fetch("/api/lateness", {
+      method: "POST",
+      body,
+    });
   };
   const updateLateness = (body: BatchEditAbsence | EditAbsence) => {
     return $fetch("/api/lateness", {
@@ -113,9 +127,11 @@ export default function () {
     deleteStudents,
     updateStudents,
     getAbsences,
+    insertAbsences,
     deleteAbsences,
     updateAbsences,
     getLateness,
+    insertLateness,
     updateLateness,
     deleteLateness
   };

@@ -131,16 +131,16 @@
 <script setup lang="ts">
 import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
-import type { Student, DataTableSlot, PlaygroundSettings, EventTypes, AbsenceInfo, LatenessInfo } from '~/data/types'
+import type { Student, DataTableSlot, PlaygroundSettings, EventTypes, AbsenceInfo, LatenessInfo, NewLateness, NewAbsence } from '~/data/types'
 import { userFeedbackMessages } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
 const { minutesAfterMidnight } = useDataUtils();
 const studentStore = useStudentStore();
 const backend = useBackend()
 const toast = useToast();
-const { student: toastMessages } = userFeedbackMessages
+const { absence: absenceToastMessages, lateness: latenessToastMessages } = userFeedbackMessages
 type EventInfo<T extends EventTypes> = T extends 'absence' ? AbsenceInfo : LatenessInfo
-
+type NewEvent<T extends EventTypes> = T extends 'absence' ? NewAbsence : NewLateness
 const showEventDialog = ref(false);
 const eventDialogHeader = computed(() => `أدخل معلومات ${selectedEventType.value === 'lateness' ? 'التأخر' : 'الغياب'}`)
 const selectedEventType = ref<EventTypes>('lateness');
@@ -151,7 +151,7 @@ const createEvent = <T extends EventTypes>(eventType: T, ids: number[], data?: E
         data = createDefaultEventData(eventType)
         postEvent(eventType, ids, data)
     }
-    //if the data is absent and fast mode is off => open dialog to fill data
+    //if the fast mode is off => open dialog to fill data
     else {
         selectedEventType.value = eventType
         showEventDialog.value = true
@@ -164,28 +164,64 @@ const handleEventSubmit = <T extends EventTypes>(data: EventInfo<T>) => {
     showEventDialog.value = false
 }
 const postEvent = <T extends EventTypes>(eventType: T, ids: number[], data: EventInfo<T>) => {
-    console.log(eventType, ids, data);
+    const rowsToInsert = bindStudentIdToEventInfo(eventType, ids, data);
+    if (eventType === 'absence') {
+        backend.insertAbsences(rowsToInsert).then(() => {
+            toast.add({ severity: 'success', summary: absenceToastMessages.addSuccess, life: 3000 })
+        }).catch(() => {
+            toast.add({ severity: 'error', summary: absenceToastMessages.addFailed, life: 3000 })
+        })
+    }
+    else if (eventType === 'lateness') {
+          const latenessRows = rowsToInsert as NewLateness[];
+        backend.insertLateness(latenessRows).then(() => {
+            toast.add({ severity: 'success', summary: latenessToastMessages.addSuccess, life: 3000 })
+        }).catch(() => {
+            toast.add({ severity: 'error', summary: latenessToastMessages.addFailed, life: 3000 })
+        })
+    }
+}
+
+const bindStudentIdToEventInfo = <T extends EventTypes>(eventType: T, ids: number[], data: EventInfo<T>): NewEvent<T>[] => {
+    if (eventType === 'absence') {
+        const absencesToInsert = ids.map((student_id) => ({
+            student_id,
+            date: data.date,
+            reason: data.reason,
+            reason_accepted: data.reason_accepted
+        }))
+        return absencesToInsert as NewEvent<T>[];
+    }
+    else {
+        const latenessToInsert = ids.map((student_id) => ({
+            student_id,
+            date: data.date,
+            reason: data.reason,
+            reason_accepted: data.reason_accepted,
+            late_by: (data as LatenessInfo).late_by,
+            start_time: (data as LatenessInfo).start_time
+        }))
+        return latenessToInsert as NewEvent<T>[];
+    }
 }
 const lastEventValues = ref<Pick<EventInfo<'absence'> & EventInfo<'lateness'>, 'reason' | 'reason_accepted'>>({
     reason: '',
     reason_accepted: 0
 })
 const createDefaultEventData = <T extends EventTypes>(eventType: T): EventInfo<T> => {
+    let base = {
+        date: new Date().setMinutes(0, 0, 0),
+        reason: playgroundSettings.value.defaultReason,
+        reason_accepted: playgroundSettings.value.reasonAcceptedByDefault
+    } as EventInfo<T>
     if (eventType === 'lateness') {
-        return {
-            date: new Date().setMinutes(0, 0, 0),
+        base = {
+            ...base,
             start_time: playgroundSettings.value.defaultStartTime,
-            late_by: playgroundSettings.value.dynamicTime ? minutesAfterMidnight(new Date()) - playgroundSettings.value.defaultStartTime : playgroundSettings.value.defaultLateBy,
-            reason: playgroundSettings.value.defaultReason,
-            reason_accepted: playgroundSettings.value.reasonAcceptedByDefault
-        } as EventInfo<T>
-    } else {
-        return {
-            date: new Date().setMinutes(0, 0, 0),
-            reason: playgroundSettings.value.defaultReason,
-            reason_accepted: playgroundSettings.value.reasonAcceptedByDefault
-        } as EventInfo<T>
+            late_by: playgroundSettings.value.dynamicTime ? minutesAfterMidnight(new Date()) - playgroundSettings.value.defaultStartTime : playgroundSettings.value.defaultLateBy
+        }
     }
+    return base as EventInfo<T>
 }
 //table logic
 const dt = ref(); //dataTable Ref
