@@ -40,7 +40,7 @@ export default defineEventHandler(async (event) => {
           stmt.run(student_id, date, reason, reason_accepted);
         }
       });
-      const info = insertMany(reqBody)
+      insertMany(reqBody)
       return { success: true, };
     } catch (err) {
       throw createError({

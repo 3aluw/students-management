@@ -5,7 +5,7 @@ import useDBUtils from "../../../composables/useDBUtils";
 export default defineEventHandler(async (event) => {
   const { generateDBSetClause, generateDBInClause } = useDBUtils();
 
-  const reqBody = await readBody<NewLateness | EditLateness | BatchEditLateness>( event );
+  const reqBody = await readBody<NewLateness[] | EditLateness | BatchEditLateness>( event );
   // Batch Edit Absences
   if ("ids" in reqBody) {
     try {
@@ -26,25 +26,20 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const { student_id, date, reason, reason_accepted } = reqBody;
   // if no id : Create a new item
   if (!("id" in reqBody)) {
     try {
       const stmt = db.prepare(
-        "INSERT INTO student (class_id, first_name, last_name, father_name,grandfather_name, sex, phone_number, birth_date, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        "INSERT INTO lateness (student_id, date, start_time, late_by, reason, reason_accepted) VALUES (?, ?, ?, ?, ?, ?)"
       );
-      const info = stmt.run(
-        class_id,
-        first_name,
-        last_name,
-        father_name,
-        grandfather_name,
-        sex,
-        phone_number,
-        birth_date,
-        address
-      );
-      return { success: true, id: info.lastInsertRowid, info };
+     const insertMany = db.transaction((latenessArray) => {
+        for (const lateness of latenessArray) {
+          const { student_id, date, start_time, late_by, reason, reason_accepted } = lateness;
+          stmt.run(student_id, date, start_time, late_by, reason, reason_accepted);
+        }
+      });
+      insertMany(reqBody);
+      return { success: true };
     } catch (err) {
       throw createError({
         statusCode: 400,
