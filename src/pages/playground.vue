@@ -22,7 +22,7 @@
                         @click="createEvent('lateness', selectedStudents.map(student => student.id))"
                         :disabled="!selectedStudents || !selectedStudents.length" />
                     <Button label="غياب" icon="pi pi-ban" iconPos="right" severity="secondary" class="mx-2"
-                        @click="createEvent('lateness', selectedStudents.map(student => student.id))"
+                        @click="createEvent('absence', selectedStudents.map(student => student.id))"
                         :disabled="!selectedStudents || !selectedStudents.length" />
 
                 </template>
@@ -171,6 +171,7 @@ const handleEventSubmit = <T extends EventTypes>(data: EventInfo<T>) => {
 }
 const postEvent = async<T extends EventTypes>(eventType: T, ids: number[], data: EventInfo<T>) => {
     const rowsToInsert = bindStudentIdToEventInfo(eventType, ids, data);
+    console.log('rowsToInsert: ', rowsToInsert);
     let toastMessage = '';
     let severity: 'success' | 'error' = 'success';
     let skippedIds: number[] = []
@@ -228,6 +229,7 @@ const bindStudentIdToEventInfo = <T extends EventTypes>(eventType: T, ids: numbe
         const absencesToInsert = ids.map((student_id) => ({
             student_id,
             date: data.date,
+            start_time : data.start_time,
             reason: data.reason,
             reason_accepted: data.reason_accepted
         }))
@@ -250,13 +252,13 @@ const createDefaultEventData = <T extends EventTypes>(eventType: T): EventInfo<T
     const { fastMode, defaultReason, reasonAcceptedByDefault, dynamicTime, defaultStartTime, defaultLateBy } = playgroundSettings.value
     let base = {
         date: new Date().setMinutes(0, 0, 0),
+        start_time: defaultStartTime,
         reason: !fastMode && lastEventValues.value.reason?.length ? lastEventValues.value.reason : defaultReason,
         reason_accepted: !fastMode && lastEventValues.value.reason?.length ? lastEventValues.value.reason_accepted : reasonAcceptedByDefault
     } as EventInfo<T>
     if (eventType === 'lateness') {
         base = {
-            ...base,
-            start_time: defaultStartTime,
+            ...base,         
             late_by: dynamicTime ? minutesAfterMidnight(new Date()) - defaultStartTime : defaultLateBy
         }
     }

@@ -11,7 +11,12 @@
                     {{ $form.date.error?.message }}
                 </Message>
             </div>
-
+            <div class="flex flex-col gap-1">
+                <DatePicker name="start_time" placeholder="بداية الحصة" fluid timeOnly />
+                <Message v-if="$form.start_time?.invalid" severity="error" size="small" variant="simple">
+                    {{ $form.start_time.error?.message }}
+                </Message>
+            </div>
             <!-- Reason -->
             <div class="flex flex-col gap-1">
                 <InputText name="reason" type="text" placeholder="سبب الغياب" fluid />
@@ -85,25 +90,26 @@ import { sqliteBoolean, commonReasons } from '~/data/static';
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from 'primevue/usetoast';
-import type { NewAbsence, NewLateness, AbsenceInfo, LatenessInfo,EventTypes } from '~/data/types';
+import type { NewAbsence, NewLateness, AbsenceInfo, LatenessInfo, EventTypes } from '~/data/types';
 import type { FormSubmitEvent } from "@primevue/forms"
 const { getDatesForEventInfo, minutesAfterMidnight } = useDataUtils()
 const toast = useToast();
 
 const formatEventObject = () => {
-    if (props.entityObject && props.eventType == 'absence') {
+    const entityObj = props.entityObject
+    const { start_time, date } = entityObj
+    if (props.eventType == 'absence') {
         const entityObj = props.entityObject as AbsenceInfo
         return {
             ...entityObj,
-            ...getDatesForEventInfo({ date: entityObj.date })
+            ...getDatesForEventInfo({ date, start_time })
         }
     }
     else {
         const entityObj = props.entityObject as LatenessInfo
-        const { late_by, start_time, date } = entityObj
         return {
             ...entityObj,
-            ...getDatesForEventInfo({ date, late_by, start_time })
+            ...getDatesForEventInfo({ date, late_by: entityObj.late_by, start_time })
         }
     }
 }
@@ -123,11 +129,19 @@ const emit = defineEmits<{
 const resolver = computed(() => props.eventType == 'absence' ? zodResolver(absenceZodSchema) :
     zodResolver(latenessZodSchema)
 );
-const absenceZodSchema = z.object({
+const absenceZodSchema = (z.object({
     date: z.date().transform(d => d.getTime()),
+    start_time: z.date().transform(d => d.getTime()),
     reason: z.string().min(5, { message: 'يجب إدخال سبب الغياب' }),
     reason_accepted: z.literal([0, 1])
-}) satisfies z.ZodType<AbsenceInfo>
+}) satisfies z.ZodType<AbsenceInfo>)
+    .transform((data) => {
+        return {
+            ...data,
+            start_time: minutesAfterMidnight(data.start_time)
+        }
+    })
+
 
 
 const latenessZodSchema = (z.object({
