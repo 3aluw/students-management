@@ -76,7 +76,7 @@ export default function () {
     return $fetch("/api/absences", {
       method: "POST",
       body,
-    });
+    }) as Promise<{ success: boolean; insertedCount: number; skippedIds: number[] }>;
   };
   const deleteAbsences = (body: Absence["id"][]) => {
     return $fetch(`/api/absences/`, {
@@ -102,7 +102,7 @@ export default function () {
     return $fetch("/api/lateness", {
       method: "POST",
       body,
-    });
+    }) as Promise<{ success: boolean; insertedCount: number; skippedIds: number[] }>;
   };
   const updateLateness = (body: BatchEditAbsence | EditAbsence) => {
     return $fetch("/api/lateness", {
