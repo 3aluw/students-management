@@ -106,7 +106,9 @@ export const userFeedbackMessages = {
   },
   absence: {
     addSuccess: "تم تسجيل الغياب بنجاح",
+    partialAddSuccess: 'عدد الغيابات التي تم تسجيلها : ',
     addFailed: "حدث خطأ أثناء تسجيل الغياب",
+    partialAddFailed: 'لم يتم تسجيل الغياب ل:  ',
     fetchSuccess: "تم تحميل بيانات الغيابات بنجاح",
     fetchFailed: "حدث خطأ أثناء تحميل بيانات الغيابات",
     updateSuccess: "تم تحديث الغياب بنجاح",
@@ -116,7 +118,9 @@ export const userFeedbackMessages = {
   },
   lateness: {
     addSuccess: "تم تسجيل التأخر بنجاح",
+    partialAddSuccess: 'عدد التأخرات التي تم تسجيلها : ',
     addFailed: "حدث خطأ أثناء تسجيل التأخر",
+    partialAddFailed: 'لم يتم تسجيل التأخر ل : ',
     fetchSuccess: "تم تحميل بيانات التأخرات بنجاح",
     fetchFailed: "حدث خطأ أثناء تحميل بيانات التأخرات",
     updateSuccess: "تم تحديث التأخر بنجاح",

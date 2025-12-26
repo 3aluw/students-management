@@ -143,7 +143,10 @@ type NewEvent<T extends EventTypes> = T extends 'absence' ? NewAbsence : NewLate
 const showEventDialog = ref(false);
 const eventDialogHeader = computed(() => `أدخل معلومات ${selectedEventType.value === 'lateness' ? 'التأخر' : 'الغياب'}`)
 const selectedEventType = ref<EventTypes>('lateness');
-
+const lastEventValues = ref<Pick<EventInfo<'absence'> | EventInfo<'lateness'>, 'reason' | 'reason_accepted'>>({
+    reason: '',
+    reason_accepted: 0
+})
 const createEvent = <T extends EventTypes>(eventType: T, ids: number[], data?: EventInfo<T>) => {
     //check if data is absent and fast mode is on => create event with defaults
     if (playgroundSettings.value.fastMode) {
@@ -170,18 +173,20 @@ const postEvent = async<T extends EventTypes>(eventType: T, ids: number[], data:
     const rowsToInsert = bindStudentIdToEventInfo(eventType, ids, data);
     let toastMessage = '';
     let severity: 'success' | 'error' = 'success';
-
+    let skippedIds: number[] = []
+    let insertedCount = 0;
     try {
         if (eventType === 'absence') {
-            await backend.insertAbsences(rowsToInsert);
+            const result = await backend.insertAbsences(rowsToInsert);
+            skippedIds = result.skippedIds;
+            insertedCount = result.insertedCount;
             toastMessage = absenceToastMessages.addSuccess;
         } else if (eventType === 'lateness') {
-            await backend.insertLateness(rowsToInsert as NewLateness[]);
+            const result = await backend.insertLateness(rowsToInsert as NewLateness[]);
+            skippedIds = result.skippedIds;
+            insertedCount = result.insertedCount;
             toastMessage = latenessToastMessages.addSuccess;
-        } else {
-            throw new Error(`Unsupported eventType: ${eventType}`);
         }
-        resetSelectedStudents();
     } catch (error) {
         severity = 'error';
         toastMessage =
@@ -190,8 +195,32 @@ const postEvent = async<T extends EventTypes>(eventType: T, ids: number[], data:
                 : latenessToastMessages.addFailed;
         console.error(error);
     } finally {
-        toast.add({ severity, summary: toastMessage, life: 3000 });
+        if (severity === 'error') {
+            toast.add({ severity, summary: toastMessage, life: 3000 });
+        } else if (skippedIds.length === 0) {
+            resetSelectedStudents();
+            toast.add({ severity, summary: toastMessage, life: 3000 });
+        } else {
+            createPartialAddToastMessage(eventType, insertedCount, skippedIds);
+            resetSelectedStudents();
+        }
+
     }
+}
+const createPartialAddToastMessage = (eventType: EventTypes, insertedCount: number, skippedIds: number[]) => {
+    if (insertedCount) {
+        const summary = eventType === 'absence' ? absenceToastMessages.partialAddSuccess : latenessToastMessages.partialAddSuccess
+        toast.add({ severity: 'success', summary: `${summary} ${insertedCount}`, life: 3000 });
+    }
+    const summary = eventType === 'absence' ? absenceToastMessages.partialAddFailed : latenessToastMessages.partialAddFailed
+    const studentNames = skippedIds.map((id) => {
+        const student = selectedStudents.value.find((student) => student.id === id);
+        const className = studentStore.classOptions.find((classObj) => classObj.value ===
+            student?.class_id)?.label
+        return student ? `${student.first_name} ${student.last_name} من قسم :   ${className}` : undefined;
+
+    }).join('\n');
+    toast.add({ severity: 'error', summary: `${summary}`, detail: studentNames });
 }
 
 const bindStudentIdToEventInfo = <T extends EventTypes>(eventType: T, ids: number[], data: EventInfo<T>): NewEvent<T>[] => {
@@ -216,16 +245,13 @@ const bindStudentIdToEventInfo = <T extends EventTypes>(eventType: T, ids: numbe
         return latenessToInsert as NewEvent<T>[];
     }
 }
-const lastEventValues = ref<Pick<EventInfo<'absence'> | EventInfo<'lateness'>, 'reason' | 'reason_accepted'>>({
-    reason: '',
-    reason_accepted: 0
-})
+
 const createDefaultEventData = <T extends EventTypes>(eventType: T): EventInfo<T> => {
-    const { fastMode,defaultReason, reasonAcceptedByDefault, dynamicTime, defaultStartTime, defaultLateBy  } = playgroundSettings.value
+    const { fastMode, defaultReason, reasonAcceptedByDefault, dynamicTime, defaultStartTime, defaultLateBy } = playgroundSettings.value
     let base = {
         date: new Date().setMinutes(0, 0, 0),
-        reason: !fastMode && lastEventValues.value.reason?.length ? lastEventValues.value.reason : defaultReason ,
-        reason_accepted: !fastMode && lastEventValues.value.reason?.length ? lastEventValues.value.reason_accepted : reasonAcceptedByDefault  
+        reason: !fastMode && lastEventValues.value.reason?.length ? lastEventValues.value.reason : defaultReason,
+        reason_accepted: !fastMode && lastEventValues.value.reason?.length ? lastEventValues.value.reason_accepted : reasonAcceptedByDefault
     } as EventInfo<T>
     if (eventType === 'lateness') {
         base = {
@@ -275,7 +301,6 @@ const deleteFromSelectedStudents = (studentId: number) => {
     selectedStudents.value = selectedStudents.value.filter((student) => student.id !== studentId)
 }
 const resetSelectedStudents = () => { selectedStudents.value = [] }
-
 // playground settings
 const showSettingsDialog = ref(false);
 
