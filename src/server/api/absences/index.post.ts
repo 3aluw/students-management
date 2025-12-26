@@ -34,18 +34,31 @@ export default defineEventHandler(async (event) => {
       const stmt = db.prepare(
         "INSERT INTO absence (student_id, date, reason, reason_accepted) VALUES (?, ?, ?, ?)"
       );
-      const insertMany = db.transaction((absences) => {
-        for (const absence of absences) {
-          const { student_id, date, reason, reason_accepted } = absence;
-          stmt.run(student_id, date, reason, reason_accepted);
+      const insertMany = db.transaction((absenceArray: NewAbsence[]) => {
+        let insertedCount = 0;
+        let skippedIds: number[] = [];
+
+        for (const a of absenceArray) {
+          const info = stmt.run(
+            a.student_id,
+            a.date,
+            a.reason,
+            a.reason_accepted
+          );
+
+          if (info.changes === 0) skippedIds.push(a.student_id);
+          else insertedCount++;
         }
+        if (insertedCount == 0) throw new Error("لم يتم تسجيل أي تأخر");
+        return { insertedCount, skippedIds };
       });
-      insertMany(reqBody)
-      return { success: true, };
+
+      const result = insertMany(reqBody);
+      return { success: true, ...result };
     } catch (err) {
       throw createError({
         statusCode: 400,
-        statusMessage: (err as Error).message || "لم تتم إضافة الغياب",
+        statusMessage: (err as Error).message || "لم تتم إضافة أي غياب",
       });
     }
   } // if id : item exists So update it
