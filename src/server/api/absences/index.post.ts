@@ -32,7 +32,7 @@ export default defineEventHandler(async (event) => {
   if (!("id" in reqBody)) {
     try {
       const stmt = db.prepare(
-        "INSERT INTO absence (student_id, date, reason, reason_accepted) VALUES (?, ?, ?, ?)"
+        "INSERT INTO absence (student_id, date, start_time, reason, reason_accepted) VALUES (?, ?, ?, ?, ?)"
       );
       const insertMany = db.transaction((absenceArray: NewAbsence[]) => {
         let insertedCount = 0;
@@ -42,6 +42,7 @@ export default defineEventHandler(async (event) => {
           const info = stmt.run(
             a.student_id,
             a.date,
+            a.start_time,
             a.reason,
             a.reason_accepted
           );
