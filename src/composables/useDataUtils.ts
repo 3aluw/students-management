@@ -5,6 +5,7 @@ import type {
   SupportedDateRanges,
   LatenessInfo,
   AbsenceInfo,
+  PlaygroundSettings,
 } from "~/data/types";
 
 export default function () {
@@ -83,34 +84,50 @@ export default function () {
 
     return [start.getTime(), end.getTime()];
   };
+
+  function minutesAfterMidnight(date: number | Date) {
+    date = new Date(date);
+    return date.getHours() * 60 + date.getMinutes();
+  }
+  const getDatesForPlaygroundSettings = (settings: PlaygroundSettings) => {
+    const defaultStartTime = new Date();
+    defaultStartTime.setHours(0, 0, 0, 0);
+    defaultStartTime.setMinutes(settings.defaultStartTime);
+    const defaultLateBy = new Date(defaultStartTime);
+    defaultLateBy.setMinutes(
+      defaultLateBy.getMinutes() + settings.defaultLateBy
+    );
+    return {
+      defaultLateBy,
+      defaultStartTime,
+    };
+  };
   // A function that return dates for lateness info or absence info
   const getDatesForEventInfo = <
     T extends
       | Pick<LatenessInfo, "late_by" | "start_time" | "date">
-      | Pick<AbsenceInfo, "date">
+      | Pick<AbsenceInfo, "date" | 'start_time'>
   >(
     obj: T
   ) => {
+    const start_time = new Date(obj.date);
+    start_time.setHours(0, 0, 0, 0);
+    start_time.setMinutes(obj.start_time);
     // common base
     const base = {
       date: new Date(obj.date),
+      start_time,
     };
-
-    if ("late_by" in obj && "start_time" in obj) {
-      const start_time = new Date(obj.start_time);
+    if ("late_by" in obj) {
       const late_by = new Date(start_time);
       late_by.setMinutes(late_by.getMinutes() + obj.late_by);
       return {
         ...base,
         late_by,
-        start_time, 
       };
     }
-
     return base;
   };
-
-  const getMinutesDifference = (start: Date, end: Date) => {};
   //a function that transform 0/1 in DB results to real booleans
   const normalizeResultBooleans = <
     R extends Record<string, any>,
@@ -130,6 +147,8 @@ export default function () {
   return {
     getRequiredFieldMessage,
     getTimeRange,
+    minutesAfterMidnight,
+    getDatesForPlaygroundSettings,
     getDatesForEventInfo,
     normalizeResultBooleans,
   };

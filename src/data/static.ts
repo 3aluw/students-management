@@ -32,6 +32,10 @@ export const dateFilterOptions = [
   label: string;
   value: SupportedDateRanges;
 }[];
+export const ArabicBooleans = [
+  { label: "لا", value: false },
+  { label: "نعم", value: true },
+];
 export const sqliteBoolean = [
   { label: "لا", value: 0 },
   { label: "نعم", value: 1 },
@@ -75,8 +79,10 @@ export const commonReasons = [
   "تأخر الحافلة المدرسية",
   "فقدان المتعلّقات أو نسيانها",
   "مهام منزلية أو رعاية إخوة أصغر",
-  "مشكلة مفاجئة في الطريق"
-]
+  "مشكلة مفاجئة في الطريق",
+];
+
+export const studyTimes = [{ start: 480, end: 660 }];
 export const userFeedbackMessages = {
   student: {
     addSuccess: "تمت إضافة التلميذ بنجاح",
@@ -100,7 +106,9 @@ export const userFeedbackMessages = {
   },
   absence: {
     addSuccess: "تم تسجيل الغياب بنجاح",
+    partialAddSuccess: 'عدد الغيابات التي تم تسجيلها : ',
     addFailed: "حدث خطأ أثناء تسجيل الغياب",
+    partialAddFailed: 'لم يتم تسجيل الغياب ل:  ',
     fetchSuccess: "تم تحميل بيانات الغيابات بنجاح",
     fetchFailed: "حدث خطأ أثناء تحميل بيانات الغيابات",
     updateSuccess: "تم تحديث الغياب بنجاح",
@@ -108,9 +116,11 @@ export const userFeedbackMessages = {
     deleteSuccess: "تم حذف الغياب بنجاح",
     deleteFailed: "حدث خطأ أثناء حذف الغياب",
   },
-   lateness: {
+  lateness: {
     addSuccess: "تم تسجيل التأخر بنجاح",
+    partialAddSuccess: 'عدد التأخرات التي تم تسجيلها : ',
     addFailed: "حدث خطأ أثناء تسجيل التأخر",
+    partialAddFailed: 'لم يتم تسجيل التأخر ل : ',
     fetchSuccess: "تم تحميل بيانات التأخرات بنجاح",
     fetchFailed: "حدث خطأ أثناء تحميل بيانات التأخرات",
     updateSuccess: "تم تحديث التأخر بنجاح",

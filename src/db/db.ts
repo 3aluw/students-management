@@ -66,6 +66,7 @@ db.prepare(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     student_id INTEGER NOT NULL,
     date INTEGER NOT NULL,
+    start_time INTEGER NOT NULL,
     reason TEXT,
     reason_accepted BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (student_id) REFERENCES student(id),

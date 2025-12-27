@@ -11,7 +11,12 @@
                     {{ $form.date.error?.message }}
                 </Message>
             </div>
-
+            <div class="flex flex-col gap-1">
+                <DatePicker name="start_time" placeholder="بداية الحصة" fluid timeOnly />
+                <Message v-if="$form.start_time?.invalid" severity="error" size="small" variant="simple">
+                    {{ $form.start_time.error?.message }}
+                </Message>
+            </div>
             <!-- Reason -->
             <div class="flex flex-col gap-1">
                 <InputText name="reason" type="text" placeholder="سبب الغياب" fluid />
@@ -35,7 +40,6 @@
 
         <Form v-else-if="props.eventType == 'lateness'" :initialValues="formatEventObject()" v-slot="$form"
             :resolver="resolver" @submit="onFormSubmit" class="flex flex-col gap-4 w-full sm:w-80">
-            {{ props.entityObject }}
             <!-- lateness Date -->
             <div class="flex flex-col gap-1">
                 <DatePicker name="date" placeholder="تاريخ التأخر" fluid showIcon />
@@ -81,47 +85,41 @@
 
 </template>
 
-<script setup lang="ts" generic="T extends 'absence' | 'lateness'">
+<script setup lang="ts" generic="T extends EventTypes">
 import { sqliteBoolean, commonReasons } from '~/data/static';
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from 'primevue/usetoast';
-import type { NewAbsence, NewLateness, AbsenceInfo, LatenessInfo } from '~/data/types';
+import type { NewAbsence, NewLateness, AbsenceInfo, LatenessInfo, EventTypes } from '~/data/types';
 import type { FormSubmitEvent } from "@primevue/forms"
+const { getDatesForEventInfo, minutesAfterMidnight } = useDataUtils()
+const toast = useToast();
 
-const { getDatesForEventInfo } = useDataUtils()
-const filteredReasons = ref<string[]>([])
-function searchReasons(e: { query: string }) {
-    const { query } = e
-    filteredReasons.value = !query.length ? commonReasons : commonReasons.filter((reasons) => {
-        return reasons.startsWith(query)
-    })
-}
 const formatEventObject = () => {
-    if (props.entityObject && props.eventType == 'absence') {
+    const entityObj = props.entityObject
+    const { start_time, date } = entityObj
+    if (props.eventType == 'absence') {
         const entityObj = props.entityObject as AbsenceInfo
         return {
             ...entityObj,
-            ...getDatesForEventInfo({ date: entityObj.date })
+            ...getDatesForEventInfo({ date, start_time })
         }
     }
     else {
         const entityObj = props.entityObject as LatenessInfo
-        const { late_by, start_time, date } = entityObj
         return {
             ...entityObj,
-            ...getDatesForEventInfo({ date, late_by, start_time })
+            ...getDatesForEventInfo({ date, late_by: entityObj.late_by, start_time })
         }
     }
 }
-const toast = useToast();
 
-type EventInfo<T extends 'absence' | 'lateness'> = T extends 'absence' ? AbsenceInfo : LatenessInfo
-type newEvent<T extends 'absence' | 'lateness'> = T extends 'absence' ? NewAbsence : NewLateness
+type EventInfo<T extends EventTypes> = T extends 'absence' ? AbsenceInfo : LatenessInfo
+type newEvent<T extends EventTypes> = T extends 'absence' ? NewAbsence : NewLateness
 
 const props = defineProps<{
     eventType: T;
-    entityObject?: EventInfo<T>;
+    entityObject: EventInfo<T>;
 }>()
 
 const emit = defineEmits<{
@@ -131,18 +129,26 @@ const emit = defineEmits<{
 const resolver = computed(() => props.eventType == 'absence' ? zodResolver(absenceZodSchema) :
     zodResolver(latenessZodSchema)
 );
-const absenceZodSchema = z.object({
+const absenceZodSchema = (z.object({
     date: z.date().transform(d => d.getTime()),
+    start_time: z.date().transform(d => d.getTime()),
     reason: z.string().min(5, { message: 'يجب إدخال سبب الغياب' }),
     reason_accepted: z.literal([0, 1])
-}) satisfies z.ZodType<AbsenceInfo>
+}) satisfies z.ZodType<AbsenceInfo>)
+    .transform((data) => {
+        return {
+            ...data,
+            start_time: minutesAfterMidnight(data.start_time)
+        }
+    })
+
 
 
 const latenessZodSchema = (z.object({
     date: z.date().transform(d => d.getTime()),
     reason: z.string().min(5, { message: 'يجب إدخال سبب الغياب' }),
     reason_accepted: z.literal([0, 1]),
-    late_by: z.date().transform(d => d.getTime()),      // it will be used to enter the time of enter and later transformed to minutes after shift start
+    late_by: z.date().transform(d => d.getTime()),      // it will be used to insert the time of enter then transformed to minutes after shift start
     start_time: z.date().transform(d => d.getTime()),
 }) satisfies z.ZodType<LatenessInfo>)
     .refine(
@@ -152,7 +158,8 @@ const latenessZodSchema = (z.object({
     .transform((data) => {
         return {
             ...data,
-            late_by: Math.floor((data.late_by - data.start_time) / 60000)
+            late_by: minutesAfterMidnight(data.late_by) - minutesAfterMidnight(data.start_time),
+            start_time: minutesAfterMidnight(data.start_time)
         }
     })
 
@@ -164,4 +171,12 @@ const onFormSubmit = (event: FormSubmitEvent) => {
     emit('submit', event.values as EventInfo<T>)
 }
 
+/* Reasons Autocomplete filtering logic */
+const filteredReasons = ref<string[]>([])
+function searchReasons(e: { query: string }) {
+    const { query } = e
+    filteredReasons.value = !query.length ? commonReasons : commonReasons.filter((reasons) => {
+        return reasons.startsWith(query)
+    })
+}
 </script>

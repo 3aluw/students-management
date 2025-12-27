@@ -58,7 +58,7 @@
         </div>
         <Dialog header="أدخل معلومات الغياب" @hide="absenceToEdit = undefined" v-model:visible="showAbsenceDialog"
             :style="{ width: '350px' }" :modal="true">
-            <UtilsEventForm eventType="absence" :entityObject="absenceToEdit" @submit="handleAbsenceSubmit" />
+            <UtilsEventForm eventType="absence" :entityObject="absenceToEdit!" @submit="handleAbsenceSubmit" />
         </Dialog>
         <UtilsConfirmDialog header="حذف الغياب" :danger="true" v-model="useDeleteConfirm.showConfirm.value"
             @confirm="useDeleteConfirm.confirmAction" />
@@ -67,7 +67,7 @@
 <script setup lang="ts">
 
 import { useToast } from 'primevue/usetoast';
-import type { DataTableSlot, LocalAbsence, EventQueryFilters, SupportedDateRanges, AbsenceInfo, EditAbsence, BatchEditAbsence } from '~/data/types'
+import type { DataTableSlot, LocalAbsence, EventQueryFilters, AbsenceInfo, EditAbsence, BatchEditAbsence } from '~/data/types'
 import { userFeedbackMessages, dateFilterOptions } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
 import { useEventStore } from '~/store/eventStore';
@@ -125,13 +125,14 @@ const handleAbsenceSubmit = async (absenceInfo: AbsenceInfo) => {
 }
 
 const handleEditClick = () => {
-    showAbsenceDialog.value = true
     const absence = selectedAbsences.value[0] // pass the first selected absence
     absenceToEdit.value = {
         date: absence.date,
+        start_time: absence.start_time,
         reason: absence.reason,
         reason_accepted: absence.reason_accepted,
     }
+    showAbsenceDialog.value = true
 
 }
 //selection handlers

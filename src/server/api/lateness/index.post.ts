@@ -5,7 +5,9 @@ import useDBUtils from "../../../composables/useDBUtils";
 export default defineEventHandler(async (event) => {
   const { generateDBSetClause, generateDBInClause } = useDBUtils();
 
-  const reqBody = await readBody<NewLateness | EditLateness | BatchEditLateness>( event );
+  const reqBody = await readBody<
+    NewLateness[] | EditLateness | BatchEditLateness
+  >(event);
   // Batch Edit Absences
   if ("ids" in reqBody) {
     try {
@@ -26,29 +28,39 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const { student_id, date, reason, reason_accepted } = reqBody;
   // if no id : Create a new item
   if (!("id" in reqBody)) {
     try {
       const stmt = db.prepare(
-        "INSERT INTO student (class_id, first_name, last_name, father_name,grandfather_name, sex, phone_number, birth_date, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+        "INSERT OR IGNORE INTO lateness (student_id, date, start_time, late_by, reason, reason_accepted) VALUES (?, ?, ?, ?, ?, ?)"
       );
-      const info = stmt.run(
-        class_id,
-        first_name,
-        last_name,
-        father_name,
-        grandfather_name,
-        sex,
-        phone_number,
-        birth_date,
-        address
-      );
-      return { success: true, id: info.lastInsertRowid, info };
+      const insertMany = db.transaction((latenessArray: NewLateness[]) => {
+        let insertedCount = 0;
+        let skippedIds : number[] = [];
+
+        for (const l of latenessArray) {
+          const info = stmt.run(
+            l.student_id,
+            l.date,
+            l.start_time,
+            l.late_by,
+            l.reason,
+            l.reason_accepted
+          );
+
+          if (info.changes === 0) skippedIds.push(l.student_id);
+          else insertedCount++;
+        }
+      if( insertedCount == 0 ) throw new Error('لم يتم تسجيل أي تأخر')
+        return { insertedCount, skippedIds };
+      });
+
+      const result = insertMany(reqBody);
+      return { success: true, ...result };
     } catch (err) {
       throw createError({
         statusCode: 400,
-        statusMessage: (err as Error).message || "لم تتم إضافة الطالب",
+        statusMessage: (err as Error).message || "لم تتم إضافة أي تأخر",
       });
     }
   } // if id : item exists So update it
@@ -65,3 +77,27 @@ export default defineEventHandler(async (event) => {
     }
   }
 });
+
+/*START HERE
+
+const insertMany = db.transaction((latenessArray) => {
+  const inserted = [];
+  const skipped = [];
+
+  for (const lateness of latenessArray) {
+    const { student_id, date, start_time, late_by, reason, reason_accepted } = lateness;
+
+    const info = stmt.run(student_id, date, start_time, late_by, reason, reason_accepted);
+
+    if (info.changes === 0) {
+      // Row was skipped (duplicate)
+      skipped.push(lateness);
+    } else {
+      // Row was inserted
+      inserted.push(lateness);
+    }
+  }
+
+  return { inserted, skipped };
+});
+ */

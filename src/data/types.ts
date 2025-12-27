@@ -44,7 +44,7 @@ export interface Lateness {
   id: number; // PRIMARY KEY AUTOINCREMENT
   student_id: number; // FOREIGN KEY -> student.id
   date: number; // INT (timestamp)
-  start_time:  number; // unspecified type in schema, use string or number depending on storage
+  start_time:  number; // session start time (minutes since midnight)
   late_by: number; // INT NOT NULL (minutes, presumably)
   reason: string | null; // TEXT (nullable)
   reason_accepted: 1 | 0; // BOOLEAN DEFAULT FALSE
@@ -57,6 +57,7 @@ export interface Absence {
   id: number; // PRIMARY KEY AUTOINCREMENT
   student_id: number; // FOREIGN KEY -> student.id
   date: number; // INT (timestamp)
+  start_time:  number; // session start time (minutes since midnight)
   reason: string | null; // TEXT (nullable)
   reason_accepted: 1 | 0; // BOOLEAN DEFAULT FALSE
 }
@@ -91,6 +92,7 @@ export type LocalLateness = Lateness & {
   class_id: number;
 } & Omit<Class, "id">;
 
+export type EventTypes = "lateness" | "absence";
 export type Gender = "M" | "F";
 export type SchoolLevel = "primary" | "middle" | "high";
 
@@ -108,3 +110,12 @@ export type SupportedDateRanges =
     minDate : number,
     maxDate : number
   }>
+
+  export type PlaygroundSettings = {
+    defaultStartTime: number;
+    dynamicTime : boolean;        // if true, the start time will be set to the current time when registering the lateness
+    defaultLateBy: number;       // in minutes, optional if dynamicTime is false
+    fastMode : boolean;
+    defaultReason : string;
+    reasonAcceptedByDefault : 0 | 1;
+  }

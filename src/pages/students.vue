@@ -21,7 +21,7 @@
                         :disabled="!selectedStudents || !selectedStudents.length" />
                     <Button label="تعديل" icon="pi pi-pencil" iconPos="right" severity="secondary" class="mx-2"
                         @click="" v-if="selectedStudents.length == 1" />
-                    <Button v-if="selectedStudents.length" label="نقل إلى" icon="pi pi-undo" @click="toggle"
+                    <Button v-if="selectedStudents.length" label="نقل إلى" icon="pi pi-undo" @click="toggleTransferStudentsMenu"
                         aria-haspopup="true" aria-controls="overlay_menu" iconPos="right" severity="secondary"
                         class="mx-2" />
                     <Menu ref="transferStudentsMenu" id="overlay_menu" :model="filteredClassOptions" :popup="true">
@@ -119,6 +119,7 @@ const filters = ref({
 });
 const studentsToShow = computed(() => globalSearchInput.value.trim().length ? studentStore.searchedStudents : studentStore.students)
 const changeClass = (classId: number) => {
+    selectedStudents.value = []
     studentStore.populateStudents(classId)
 }
 
@@ -130,7 +131,7 @@ watchDebounced(globalSearchInput, () => {
 
 //transfer student Menu logic
 const transferStudentsMenu = ref(); // transfer students menu Ref
-const toggle = (event: Event) => {
+const toggleTransferStudentsMenu = (event: Event) => {
     transferStudentsMenu.value.toggle(event);
 };
 const filteredClassOptions = computed(() => studentStore.classOptions.filter((classObject) => classObject.value !== studentStore.selectedClassId))
