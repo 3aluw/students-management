@@ -1,3 +1,4 @@
+import type { TreeNode } from "primevue/treenode";
 import { ArabicStudentProperties, ArabicClassProperties } from "~/data/static";
 import type {
   Student,
@@ -6,6 +7,7 @@ import type {
   LatenessInfo,
   AbsenceInfo,
   PlaygroundSettings,
+  SchoolSeason,
 } from "~/data/types";
 
 export default function () {
@@ -106,7 +108,7 @@ export default function () {
   const getDatesForEventInfo = <
     T extends
       | Pick<LatenessInfo, "late_by" | "start_time" | "date">
-      | Pick<AbsenceInfo, "date" | 'start_time'>
+      | Pick<AbsenceInfo, "date" | "start_time">
   >(
     obj: T
   ) => {
@@ -144,6 +146,26 @@ export default function () {
 
     return results;
   };
+
+  const mapSeasonsToTree = (seasons: SchoolSeason[]): TreeNode[] => {
+    return seasons.map((season) => ({
+      key: `season-${season.id}`,
+      data: {
+        name: season.name,
+        num: 5,
+        type: "season",
+      },
+      children: season.terms.map((term, index) => ({
+        key: `term-${season.id}-${index}`,
+        data: {
+          name: term.name,
+          startDate: term.startDate,
+          endDate: term.endDate,
+          type: "term",
+        },
+      })),
+    }));
+  };
   return {
     getRequiredFieldMessage,
     getTimeRange,
@@ -151,5 +173,6 @@ export default function () {
     getDatesForPlaygroundSettings,
     getDatesForEventInfo,
     normalizeResultBooleans,
+    mapSeasonsToTree,
   };
 }

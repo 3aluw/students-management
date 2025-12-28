@@ -19,6 +19,7 @@ const model = ref([
             { label: 'إحصائيات', icon: 'pi pi-fw pi-chart-bar', to: '/stats' },
             { label: 'الطلبة', icon: 'pi pi-fw pi-graduation-cap', to: '/students' },
             { label: 'الأقسام', icon: 'pi pi-fw pi-building-columns', to: '/classes' },
+            { label: 'المواسم الدراسية', icon: 'pi pi-fw pi-calendar', to: '/terms' },
 
         ]
     },
