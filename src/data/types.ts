@@ -62,6 +62,22 @@ export interface Absence {
   reason_accepted: 1 | 0; // BOOLEAN DEFAULT FALSE
 }
 
+
+
+
+
+export interface SchoolSeason {
+  id: number;
+  name: string;
+  terms: SchoolTerm[];
+}
+
+ interface SchoolTerm {
+  name: string;
+  startDate: number;
+  endDate: number;
+}
+
 export type AllEntitiesUnion = Student | Class | Absence | Lateness;
 
 export type NewStudent = NewEntity<Student>;

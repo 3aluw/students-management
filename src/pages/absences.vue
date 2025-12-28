@@ -68,7 +68,7 @@
 
 import { useToast } from 'primevue/usetoast';
 import type { DataTableSlot, LocalAbsence, EventQueryFilters, AbsenceInfo, EditAbsence, BatchEditAbsence } from '~/data/types'
-import { userFeedbackMessages, dateFilterOptions } from '~/data/static';
+import { userFeedbackMessages } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
 import { useEventStore } from '~/store/eventStore';
 import type { DataTablePageEvent } from 'primevue';
