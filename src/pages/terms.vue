@@ -1,13 +1,18 @@
 <template>
-  <div className="card">
-    <div class="font-semibold text-xl mb-4">إدارة المواسم الدراسية</div>
+  <div class="card">
+    <div class="flex items-center gap-4 mb-4">
+      <div class="font-semibold text-xl ">إدارة المواسم الدراسية</div>
+      <Button label="موسم دراسي جديد" icon="pi pi-plus" iconPos="right" severity="secondary" class="mx-2"
+        @click="showNewSeasonDialog = true" />
+    </div>
+
     <TreeTable :value="nodes">
       <Column field="name" header="السنة الدراسية" expander />
 
       <Column header="البداية">
         <template #body="{ node }">
           <span v-if="node.data.type === 'term'">
-            {{ useDateFormat( new Date(node.data.startDate), 'YYYY-MM-DD', { locales: 'ar-SA' }) }}
+            {{ useDateFormat(new Date(node.data.startDate), 'YYYY-MM-DD', { locales: 'ar-SA' }) }}
           </span>
         </template>
       </Column>
@@ -15,19 +20,19 @@
       <Column header="النهاية">
         <template #body="{ node }">
           <span v-if="node.data.type === 'term'">
-            {{ useDateFormat( new Date(node.data.endDate), 'YYYY-MM-DD', { locales: 'ar-SA' }) }}
+            {{ useDateFormat(new Date(node.data.endDate), 'YYYY-MM-DD', { locales: 'ar-SA' }) }}
           </span>
         </template>
       </Column>
     </TreeTable>
-
+    <EditSchoolSeasonForm :season="schoolSeasons[0]" :archived="false" />
   </div>
 </template>
 <script setup lang="ts">
 import type { SchoolSeason } from '~/data/types';
-import type { TreeNode } from 'primevue/treenode';
 import useDataUtils from '../composables/useDataUtils';
 const { mapSeasonsToTree } = useDataUtils()
+const showNewSeasonDialog = ref(false);
 const schoolSeasons = ref<SchoolSeason[]>([
   {
     id: 1,

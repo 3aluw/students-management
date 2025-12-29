@@ -84,6 +84,7 @@ export type NewStudent = NewEntity<Student>;
 export type NewClass = NewEntity<Class>;
 export type NewLateness = NewEntity<Lateness>;
 export type NewAbsence = NewEntity<Absence>;
+export type NewSchoolSeason = NewEntity<SchoolSeason>;
 
 export type EditStudent = PartialExceptId<Student>;
 export type EditClass = PartialExceptId<Class>;
