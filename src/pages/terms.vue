@@ -7,8 +7,21 @@
     </div>
 
     <TreeTable :value="nodes">
-      <Column field="name" header="السنة الدراسية" expander />
 
+
+      <Column header="السنة الدراسية" expander>
+        <template #body="{ node }">
+          <span v-if="node.data.type === 'term'">
+            {{ node.data.name }}
+          </span>
+          <strong v-else>
+            {{ node.data.name }} <span>
+              <Badge :value="node.data.status"
+                :severity="node.data.status === 'حالي' ? 'success' : node.data.status === 'مستقبل' ? 'info' : 'secondary'">
+              </Badge>
+            </span></strong>
+        </template>
+      </Column>
       <Column header="البداية">
         <template #body="{ node }">
           <span v-if="node.data.type === 'term'">
@@ -24,15 +37,26 @@
           </span>
         </template>
       </Column>
+      <Column>
+        <template #body="{ node }">
+          <Button v-if="node.data.type === 'season'" rounded outlined icon="pi pi-pencil" severity="secondary"
+            size="small" @click="handleEditSeasonClick(schoolSeasons.find(s => s.id === node.data.id)!)" />
+        </template>
+      </Column>
     </TreeTable>
-    <EditSchoolSeasonForm :season="schoolSeasons[0]" :archived="false" />
+    <Dialog header="أدخل معلومات القسم" @hide="seasonToEdit = undefined" v-model:visible="showEditSeasonDialog"
+      :style="{ width: '350px' }" :modal="true">
+      <EditSchoolSeasonForm v-if="seasonToEdit" :season="seasonToEdit" :archived="false" />
+    </Dialog>
   </div>
 </template>
 <script setup lang="ts">
-import type { SchoolSeason } from '~/data/types';
+import type { DataTableSlot, SchoolSeason } from '~/data/types';
 import useDataUtils from '../composables/useDataUtils';
 const { mapSeasonsToTree } = useDataUtils()
 const showNewSeasonDialog = ref(false);
+const showEditSeasonDialog = ref(false);
+const seasonToEdit = ref<SchoolSeason | undefined>(undefined);
 const schoolSeasons = ref<SchoolSeason[]>([
   {
     id: 1,
@@ -84,5 +108,9 @@ const schoolSeasons = ref<SchoolSeason[]>([
   },
 ])
 const nodes = computed(() => mapSeasonsToTree(schoolSeasons.value));
+const handleEditSeasonClick = (season: SchoolSeason) => {
+  seasonToEdit.value = season;
+  showEditSeasonDialog.value = true;
+};
 </script>
 <style scoped></style>

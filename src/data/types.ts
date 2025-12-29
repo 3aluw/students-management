@@ -72,7 +72,7 @@ export interface SchoolSeason {
   terms: SchoolTerm[];
 }
 
- interface SchoolTerm {
+ export interface SchoolTerm {
   name: string;
   startDate: number;
   endDate: number;
