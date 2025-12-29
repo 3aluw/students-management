@@ -2,8 +2,8 @@
     <div class="card flex flex-col gap-4">
         <Toast />
 
-        <Form :initialValues="season" :resolver="resolver" class="flex flex-col gap-4" @submit="onSubmit" v-slot="$form"
-            :key="formKey">
+        <Form :initialValues="formatSeason()" :resolver="resolver" class="flex flex-col gap-4" @submit="onSubmit"
+            v-slot="$form" :key="formKey">
             Data in form: {{ $form }}
             <!-- Season name -->
             <div class="flex flex-col gap-1">
@@ -13,24 +13,28 @@
                 </Message>
             </div>
 
-            <!-- Terms -->
+            <!-- Terms Loop-->
             <div v-for="(term, index) in season.terms" :key="index" class="border p-3 rounded flex flex-col gap-2">
                 <strong>الفصل {{ index + 1 }}</strong>
 
-                <InputText :name="`terms[${index}].name`" v-model="season.terms[index].name" placeholder="اسم الفصل" fluid />
-                <Message v-if="Array.isArray($form.terms) && $form.terms?.[index]?.name?.invalid" severity="error" size="small" variant="simple">
+                <InputText :name="`terms[${index}].name`" v-model="season.terms[index].name" placeholder="اسم الفصل"
+                    fluid />
+                <Message v-if="Array.isArray($form.terms) && $form.terms?.[index]?.name?.invalid" severity="error"
+                    size="small" variant="simple">
                     {{ $form.terms[index].name.error.message }}
                 </Message>
-
-                <InputNumber :name="`terms[${index}].startDate`" v-model="season.terms[index].startDate"
+                <!-- Start Date -->
+                <DatePicker :name="`terms[${index}].startDate`" v-model="season.terms[index].startDate"
                     placeholder="تاريخ البداية (timestamp)" fluid />
-                <Message v-if="Array.isArray($form.terms) && $form.terms?.[index]?.startDate?.invalid" severity="error" size="small" variant="simple">
+                <Message v-if="Array.isArray($form.terms) && $form.terms?.[index]?.startDate?.invalid" severity="error"
+                    size="small" variant="simple">
                     {{ $form.terms[index].startDate.error.message }}
                 </Message>
-
-                <InputNumber :name="`terms[${index}].endDate`" v-model="season.terms[index].endDate"
+                <!-- End Date -->
+                <DatePicker :name="`terms[${index}].endDate`" v-model="season.terms[index].endDate"
                     placeholder="تاريخ النهاية (timestamp)" fluid />
-                <Message v-if="Array.isArray($form.terms) && $form.terms?.[index]?.endDate?.invalid" severity="error" size="small" variant="simple">
+                <Message v-if="Array.isArray($form.terms) && $form.terms?.[index]?.endDate?.invalid" severity="error"
+                    size="small" variant="simple">
                     {{ $form.terms[index].endDate.error.message }}
                 </Message>
 
@@ -46,41 +50,71 @@
 </template>
 
 <script setup lang="ts">
-import type { NewSchoolSeason, SchoolSeason } from '~/data/types';
+import type { NewSchoolSeason, SchoolSeason, SchoolTerm } from '~/data/types';
 import { yupResolver } from '@primevue/forms/resolvers/yup';
 import * as yup from 'yup';
 import type { FormSubmitEvent } from '@primevue/forms';
+const { formatDatesForTerm } = useDataUtils();
 const props = defineProps<{
     archived: boolean,
     season: SchoolSeason
 }>()
-const form = ref(null)
+/* Converts timestamps to dates to be usable by PrimeVue datePicker */
+const formatSeason = (season: SchoolSeason = props.season) => {
+    return {
+        name: season.name,
+        terms: season.terms.map(term => formatDatesForTerm(term))
+    }
+}
+/* Convert dates back to timestamps */
+const toTimestamp = (value: unknown, originalValue: unknown) => {
+    if (originalValue instanceof Date) {
+        return originalValue.getTime();
+    }
+    return value;
+};
 
-const yupSchema :  yup.ObjectSchema<Omit<SchoolSeason, 'id'>>  = 
+const yupSchema: yup.ObjectSchema<Omit<SchoolSeason, 'id'>> =
     yup.object().shape({
         name: yup.string().required('اسم السنة الدراسية مطلوب').min(4, 'اسم السنة الدراسية يجب أن يكون على الأقل 4 أحرف'),
         terms: yup.array(
             yup.object({
                 name: yup.string().required('اسم الفصل مطلوب').min(4, 'اسم الفصل يجب أن يكون على الأقل 4 أحرف'),
-                startDate: yup.number().required('تاريخ البداية مطلوب').min(10, 'تاريخ البداية يجب أن يكون رقمًا صحيحًا'),
-                endDate: yup.number().required('تاريخ النهاية مطلوب').min(10, 'تاريخ النهاية يجب أن يكون رقمًا صحيحًا'),
+                startDate: yup.number().required().transform(toTimestamp),
+                endDate: yup.number().required().transform(toTimestamp).test(
+                    'is-greater',
+                    'تاريخ النهاية يجب أن يكون بعد تاريخ البداية',
+                    function (value) {
+                        const { startDate } = this.parent;
+                        return value > startDate;
+                    }
+                ).test(
+                    'more-than-three-days',
+                    'مدة الفصل الدراسي لا تقل عن ثلاثة أيام',
+                    function (value) {
+                         const { startDate } = this.parent;
+                        return value - startDate >= 259200000; // 3 days in milliseconds
+                    }
+                ),
             })
-        ).required().min(1, 'يجب أن تحتوي السنة الدراسية على فصل دراسي على الأقل'),
-    }) 
+        ).test('terms-not-collapsing','يجب ألا تتداخل الفصول الدراسية مع بعضها',(value)=>{
+            return  !value ? true : !hasCollapsingTerms(value) 
+        }).required().min(1, 'يجب أن تحتوي السنة الدراسية على فصل دراسي على الأقل'),
+    })
 
 const toast = useToast();
 const formKey = ref(1);
 const errors = ref({});
 
-const season = ref<NewSchoolSeason>(props.season);
+const season = ref(formatSeason());
 
 const resolver = yupResolver(yupSchema);
 
 const addTerm = () => {
     season.value.terms.push({
         name: '',
-        startDate: 0,
-        endDate: 0,
+        startDate: new Date(),
+        endDate: new Date(),
     });
     formKey.value++;
 };
@@ -91,8 +125,11 @@ const removeTerm = (index: number) => {
 };
 
 const onSubmit = (validationObject: FormSubmitEvent) => {
-  console.log(validationObject);
-  errors.value = validationObject.errors;
+    console.log(validationObject);
+    errors.value = validationObject.errors;
 };
+/* INTERNAL: checks if there are collapsing terms */
+  const hasCollapsingTerms = (terms: SchoolTerm[]) =>
+    terms.some((term, i, arr) => i > 0 && term.startDate < arr[i - 1].endDate);
 
 </script>
