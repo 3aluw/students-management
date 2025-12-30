@@ -1,10 +1,12 @@
 <template>
     <div class="card flex flex-col gap-4">
         <Toast />
-
         <Form :initialValues="formatSeason()" :resolver="resolver" class="flex flex-col gap-4" @submit="onSubmit"
             v-slot="$form" :key="formKey">
             <!-- Season name -->
+            <div class="flex flex-col gap-1">
+                <InputText name="id" placeholder="اسم السنة الدراسية" hidden fluid />
+            </div>
             <div class="flex flex-col gap-1">
                 <InputText name="name" v-model="season.name" placeholder="اسم السنة الدراسية" fluid />
                 <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
@@ -58,9 +60,13 @@ const props = defineProps<{
     archived: boolean,
     season: SchoolSeason
 }>()
+const emit = defineEmits<{
+    (e: 'update:season', season: SchoolSeason): void;
+}>()
 /* Converts timestamps to dates to be usable by PrimeVue datePicker */
 const formatSeason = (season: SchoolSeason = props.season) => {
     return {
+        id : season.id,
         name: season.name,
         terms: season.terms.map(term => formatDatesForTerm(term))
     }
@@ -124,8 +130,8 @@ const removeTerm = (index: number) => {
 };
 
 const onSubmit = (validationObject: FormSubmitEvent) => {
-    console.log(validationObject);
     errors.value = validationObject.errors;
+    emit('update:season',validationObject.values as SchoolSeason)
 };
 
 const disableDatePicker = (type: 'start' | 'end', termIndex: number) => {

@@ -46,19 +46,21 @@
     </TreeTable>
     <Dialog header="أدخل معلومات القسم" @hide="editSeasonProps = undefined" v-model:visible="showEditSeasonDialog"
       :style="{ width: '350px' }" :modal="true">
-      <EditSchoolSeasonForm v-if="editSeasonProps" :season="editSeasonProps?.season" :archived="editSeasonProps?.archived" />
+      <EditSchoolSeasonForm v-if="editSeasonProps" :season="editSeasonProps?.season"
+        :archived="editSeasonProps?.archived" @update:season="handleSeasonEditSubmit" />
     </Dialog>
   </div>
 </template>
 <script setup lang="ts">
-import type { DataTableSlot, SchoolSeason } from '~/data/types';
+import type { SchoolSeason } from '~/data/types';
 import useDataUtils from '../composables/useDataUtils';
 import type { TreeNode } from 'primevue/treenode';
-const { mapSeasonsToTree } = useDataUtils()
+const { mapSeasonsToTree, getCollapsingSeasonIds } = useDataUtils()
 type EditSeasonProps = {
-    archived: boolean,
-    season: SchoolSeason
+  archived: boolean,
+  season: SchoolSeason
 }
+const toast = useToast();
 const showNewSeasonDialog = ref(false);
 const showEditSeasonDialog = ref(false);
 const editSeasonProps = ref<EditSeasonProps | undefined>(undefined);
@@ -102,7 +104,7 @@ const schoolSeasons = ref<SchoolSeason[]>([
     terms: [
       {
         name: "Fall Term",
-        startDate: 1754006400000, // Aug 1, 2025
+        startDate: 1751414399000, // Aug 1, 2025
         endDate: 1767225599000,   // Dec 31, 2025
       },
       {
@@ -115,11 +117,31 @@ const schoolSeasons = ref<SchoolSeason[]>([
 ])
 const nodes = computed(() => mapSeasonsToTree(schoolSeasons.value));
 
-const handleEditSeasonClick = (node : TreeNode) => {
+const handleEditSeasonClick = (node: TreeNode) => {
   const archived = node.data.status === 'منتهي';
   const season = schoolSeasons.value.find(s => s.id === node.data.id)!
   editSeasonProps.value = { season, archived };
   showEditSeasonDialog.value = true;
 };
+const getSeasonWithNeighborsById = (season: SchoolSeason) => {
+  const seasonId = season.id;
+  const index = schoolSeasons.value.findIndex(s => s.id === seasonId);
+  return [
+    schoolSeasons.value[index - 1],
+    season,
+    schoolSeasons.value[index + 1],
+  ];
+}
+const handleSeasonEditSubmit = (updatedSeason: SchoolSeason) => {
+  const seasonsToCheck = getSeasonWithNeighborsById(updatedSeason).filter(season => season !== undefined);
+  const collapsingSeasonIds = getCollapsingSeasonIds(seasonsToCheck)
+  console.log(seasonsToCheck, collapsingSeasonIds);
+  if (collapsingSeasonIds) {
+    const otherSeasonName = seasonsToCheck.find((season) => collapsingSeasonIds.includes(season.id) && season.id !== updatedSeason.id)?.name;
+    toast.add({ severity: 'error', summary: 'خطأ في التواريخ', detail: `التواريخ التي أدخلتها تتداخل مع الموسم الدراسي "${otherSeasonName}"، يرجى تعديل التواريخ.`, life: 7000 });
+    return;
+  }
+
+}
 </script>
 <style scoped></style>

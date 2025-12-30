@@ -172,7 +172,7 @@ export default function () {
         data: {
           id: season.id,
           name: season.name,
-          status : seasonStatus,
+          status: seasonStatus,
           type: "season",
         },
         children: season.terms.map((term, index) => ({
@@ -195,15 +195,13 @@ export default function () {
       endDate: season.terms[season.terms.length - 1].endDate,
     };
   };
-  const getCollapsingSeasonIndexes = (seasons: SchoolSeason[]) => {
+  const getCollapsingSeasonIds = (seasons: SchoolSeason[]) => {
     const seasonDates = seasons.map(getSeasonStartAndEndDates);
-
     for (let i = 1; i < seasonDates.length; i++) {
       if (seasonDates[i].startDate < seasonDates[i - 1].endDate) {
-        return [i - 1, i];
+        return [seasons[i - 1].id, seasons[i].id];
       }
     }
-
     return undefined;
   };
   return {
@@ -215,5 +213,6 @@ export default function () {
     formatDatesForTerm,
     normalizeResultBooleans,
     mapSeasonsToTree,
+    getCollapsingSeasonIds,
   };
 }
