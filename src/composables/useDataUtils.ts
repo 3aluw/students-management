@@ -206,6 +206,9 @@ export default function () {
     }
     return undefined;
   };
+  const hasCollapsingTerms = (terms: SchoolTerm[]) =>
+    terms.some((term, i, arr) => i > 0 && term.startDate < arr[i - 1].endDate);
+
   return {
     getRequiredFieldMessage,
     getTimeRange,
@@ -216,5 +219,6 @@ export default function () {
     normalizeResultBooleans,
     mapSeasonsToTree,
     getCollapsingSeasonIds,
+    hasCollapsingTerms
   };
 }

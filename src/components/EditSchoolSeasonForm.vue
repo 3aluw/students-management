@@ -68,7 +68,7 @@ import type { SchoolSeason, SchoolTerm } from '~/data/types';
 import { yupResolver } from '@primevue/forms/resolvers/yup';
 import * as yup from 'yup';
 import type { FormSubmitEvent } from '@primevue/forms';
-const { formatDatesForTerm, getRequiredFieldMessage } = useDataUtils();
+const { formatDatesForTerm, getRequiredFieldMessage, hasCollapsingTerms } = useDataUtils();
 const props = defineProps<{
     archived: boolean,
     season: SchoolSeason
@@ -152,8 +152,5 @@ const disableDatePicker = (type: 'start' | 'end', termIndex: number) => {
         : type === 'end' && termIndex === props.season.terms.length - 1 ? true
             : false;
 }
-/* INTERNAL: checks if there are collapsing terms */
-const hasCollapsingTerms = (terms: SchoolTerm[]) =>
-    terms.some((term, i, arr) => i > 0 && term.startDate < arr[i - 1].endDate);
 
 </script>
