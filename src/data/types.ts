@@ -62,17 +62,35 @@ export interface Absence {
   reason_accepted: 1 | 0; // BOOLEAN DEFAULT FALSE
 }
 
+
+
+
+
+export interface SchoolSeason {
+  id: number;
+  name: string;
+  terms: SchoolTerm[];
+}
+
+ export interface SchoolTerm {
+  name: string;
+  startDate: number;
+  endDate: number;
+}
+
 export type AllEntitiesUnion = Student | Class | Absence | Lateness;
 
 export type NewStudent = NewEntity<Student>;
 export type NewClass = NewEntity<Class>;
 export type NewLateness = NewEntity<Lateness>;
 export type NewAbsence = NewEntity<Absence>;
+export type NewSchoolSeason = NewEntity<SchoolSeason>;
 
 export type EditStudent = PartialExceptId<Student>;
 export type EditClass = PartialExceptId<Class>;
 export type EditLateness = PartialExceptId<Lateness>;
 export type EditAbsence = PartialExceptId<Absence>;
+export type EditSchoolSeason = PartialExceptId<SchoolSeason>;
 
 export type BatchEditStudent = BatchEdit<Student>;
 export type BatchEditAbsence = BatchEdit<Absence>;

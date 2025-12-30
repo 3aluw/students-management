@@ -75,6 +75,17 @@ db.prepare(
 `
 ).run();
 
+ db.prepare(
+  `
+CREATE TABLE IF NOT EXISTS season (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  terms TEXT NOT NULL -- JSON array of SchoolTerm objects
+   CHECK (json_valid(terms)) 
+);
+`
+).run();
+ 
 
 /* db.prepare(
     `INSERT INTO student (

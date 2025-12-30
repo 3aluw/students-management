@@ -44,7 +44,7 @@
                 :paginator="true" :rows="10" :filters="filters" stripedRows
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 :rowsPerPageOptions="[5, 10, 25]"
-                currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products"
+                currentPageReportTemplate="يتم عرض من {first} إلى {last} من مجموع الطلبة: {totalRecords}"
                 :globalFilterFields="['first_name', 'last_name']">
                 <template #header>
                     <div class="flex flex-wrap gap-2 items-center justify-between">

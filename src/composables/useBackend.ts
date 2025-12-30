@@ -15,6 +15,8 @@ import type {
   Lateness,
   NewAbsence,
   NewLateness,
+  SchoolSeason,
+  EditSchoolSeason,
 } from "~/data/types";
 
 export default function () {
@@ -73,10 +75,14 @@ export default function () {
     );
   };
   const insertAbsences = (body: NewAbsence[]) => {
-    return $fetch("/api/absences", {
+    return $fetch<{
+      success: boolean;
+      insertedCount: number;
+      skippedIds: number[];
+    }>("/api/absences", {
       method: "POST",
       body,
-    }) as Promise<{ success: boolean; insertedCount: number; skippedIds: number[] }>;
+    });
   };
   const deleteAbsences = (body: Absence["id"][]) => {
     return $fetch(`/api/absences/`, {
@@ -98,11 +104,15 @@ export default function () {
       }
     );
   };
-    const insertLateness = (body: NewLateness[]) => {
-    return $fetch("/api/lateness", {
+  const insertLateness = (body: NewLateness[]) => {
+    return $fetch<{
+      success: boolean;
+      insertedCount: number;
+      skippedIds: number[];
+    }>("/api/lateness", {
       method: "POST",
       body,
-    }) as Promise<{ success: boolean; insertedCount: number; skippedIds: number[] }>;
+    });
   };
   const updateLateness = (body: BatchEditAbsence | EditAbsence) => {
     return $fetch("/api/lateness", {
@@ -113,6 +123,16 @@ export default function () {
   const deleteLateness = (body: Lateness["id"][]) => {
     return $fetch(`/api/lateness/`, {
       method: "DELETE",
+      body,
+    });
+  };
+
+  const getSeasons = () => {
+    return $fetch<SchoolSeason[]>("/api/season");
+  };
+  const updateSeasons = (body: EditSchoolSeason) => {
+    return $fetch("/api/season", {
+      method: "POST",
       body,
     });
   };
@@ -133,6 +153,8 @@ export default function () {
     getLateness,
     insertLateness,
     updateLateness,
-    deleteLateness
+    deleteLateness,
+    getSeasons,
+    updateSeasons,
   };
 }

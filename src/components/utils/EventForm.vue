@@ -129,28 +129,28 @@ const emit = defineEmits<{
 const resolver = computed(() => props.eventType == 'absence' ? zodResolver(absenceZodSchema) :
     zodResolver(latenessZodSchema)
 );
-const absenceZodSchema = (z.object({
+const absenceZodSchema = z.object({
     date: z.date().transform(d => d.getTime()),
     start_time: z.date().transform(d => d.getTime()),
     reason: z.string().min(5, { message: 'يجب إدخال سبب الغياب' }),
     reason_accepted: z.literal([0, 1])
-}) satisfies z.ZodType<AbsenceInfo>)
+})
     .transform((data) => {
         return {
             ...data,
             start_time: minutesAfterMidnight(data.start_time)
         }
-    })
+    }) satisfies z.ZodType<AbsenceInfo>
 
 
 
-const latenessZodSchema = (z.object({
+const latenessZodSchema = z.object({
     date: z.date().transform(d => d.getTime()),
     reason: z.string().min(5, { message: 'يجب إدخال سبب الغياب' }),
     reason_accepted: z.literal([0, 1]),
     late_by: z.date().transform(d => d.getTime()),      // it will be used to insert the time of enter then transformed to minutes after shift start
     start_time: z.date().transform(d => d.getTime()),
-}) satisfies z.ZodType<LatenessInfo>)
+}) 
     .refine(
         (data) => data.late_by > data.start_time,
         { message: "وقت الدخول يجب أن يكون بعد بداية الحصة", path: ["late_by"] }
@@ -161,7 +161,7 @@ const latenessZodSchema = (z.object({
             late_by: minutesAfterMidnight(data.late_by) - minutesAfterMidnight(data.start_time),
             start_time: minutesAfterMidnight(data.start_time)
         }
-    })
+    }) satisfies z.ZodType<LatenessInfo>
 
 
 

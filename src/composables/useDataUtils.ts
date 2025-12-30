@@ -1,3 +1,4 @@
+import type { TreeNode } from "primevue/treenode";
 import { ArabicStudentProperties, ArabicClassProperties } from "~/data/static";
 import type {
   Student,
@@ -6,9 +7,12 @@ import type {
   LatenessInfo,
   AbsenceInfo,
   PlaygroundSettings,
+  SchoolSeason,
+  SchoolTerm,
 } from "~/data/types";
 
 export default function () {
+  /*Internal */
   const formatRequiredFieldMessage = (
     arabicText: string,
     type: "text" | "choice" = "text"
@@ -20,7 +24,7 @@ export default function () {
       : "هذا الحقل مطلوب";
 
   const getRequiredFieldMessage = (
-    fieldName: keyof typeof ArabicStudentProperties | keyof Class,
+    fieldName: keyof Student | keyof Class | string,
     type: "text" | "choice" = "text"
   ) => {
     return fieldName in ArabicStudentProperties
@@ -33,7 +37,7 @@ export default function () {
           ArabicClassProperties[fieldName as keyof Class],
           type
         )
-      : "هذا الحقل مطلوب";
+      : `يجب إدخال ${fieldName} `;
   };
   const getTimeRange = (range: SupportedDateRanges) => {
     const now = new Date();
@@ -106,7 +110,7 @@ export default function () {
   const getDatesForEventInfo = <
     T extends
       | Pick<LatenessInfo, "late_by" | "start_time" | "date">
-      | Pick<AbsenceInfo, "date" | 'start_time'>
+      | Pick<AbsenceInfo, "date" | "start_time">
   >(
     obj: T
   ) => {
@@ -128,6 +132,14 @@ export default function () {
     }
     return base;
   };
+  const formatDatesForTerm = (term: Partial<SchoolTerm>) => {
+    return {
+      name: term.name,
+      startDate: term.startDate ? new Date(term.startDate) : undefined,
+      endDate: term.endDate ? new Date(term.endDate) : undefined,
+    };
+  };
+
   //a function that transform 0/1 in DB results to real booleans
   const normalizeResultBooleans = <
     R extends Record<string, any>,
@@ -144,12 +156,69 @@ export default function () {
 
     return results;
   };
+
+  const mapSeasonsToTree = (seasons: SchoolSeason[]): TreeNode[] | [] => {
+    if (seasons.length === 0) return [];
+    return seasons.map((season) => {
+      const seasonDates = getSeasonStartAndEndDates(season);
+      const now = Date.now();
+      const seasonStatus =
+        now < seasonDates.startDate
+          ? "مستقبل"
+          : now > seasonDates.endDate
+          ? "منتهي"
+          : "حالي";
+
+      return {
+        key: `season-${season.id}`,
+        data: {
+          id: season.id,
+          name: season.name,
+          status: seasonStatus,
+          type: "season",
+        },
+        children: season.terms.map((term, index) => ({
+          key: `term-${season.id}-${index}`,
+          data: {
+            name: term.name,
+            startDate: term.startDate,
+            endDate: term.endDate,
+            type: "term",
+          },
+        })),
+      };
+    });
+  };
+
+  const getSeasonStartAndEndDates = (season: SchoolSeason) => {
+    return {
+      name: season.name,
+      startDate: season.terms[0].startDate,
+      endDate: season.terms[season.terms.length - 1].endDate,
+    };
+  };
+  const getCollapsingSeasonIds = (seasons: SchoolSeason[]) => {
+    const seasonDates = seasons.map(getSeasonStartAndEndDates);
+    for (let i = 1; i < seasonDates.length; i++) {
+      if (seasonDates[i].startDate < seasonDates[i - 1].endDate) {
+        return [seasons[i - 1].id, seasons[i].id];
+      }
+    }
+    return undefined;
+  };
+  const hasCollapsingTerms = (terms: SchoolTerm[]) =>
+    terms.some((term, i, arr) => i > 0 && term.startDate < arr[i - 1].endDate);
+
   return {
     getRequiredFieldMessage,
     getTimeRange,
     minutesAfterMidnight,
     getDatesForPlaygroundSettings,
     getDatesForEventInfo,
+    formatDatesForTerm,
     normalizeResultBooleans,
+    mapSeasonsToTree,
+    getCollapsingSeasonIds,
+    hasCollapsingTerms
   };
 }
