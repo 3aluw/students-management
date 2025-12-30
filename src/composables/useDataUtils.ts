@@ -156,7 +156,8 @@ export default function () {
     return results;
   };
 
-  const mapSeasonsToTree = (seasons: SchoolSeason[]): TreeNode[] => {
+  const mapSeasonsToTree = (seasons: SchoolSeason[]): TreeNode[] | [] => {
+    if (seasons.length === 0) return [];
     return seasons.map((season) => {
       const seasonDates = getSeasonStartAndEndDates(season);
       const now = Date.now();
