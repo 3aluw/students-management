@@ -39,10 +39,14 @@
                     {{ $form.terms[index].endDate.error.message }}
                 </Message>
 
+
                 <Button v-if="!props.archived" type="button" severity="danger" label="حذف الفصل"
                     @click="removeTerm(index)" />
             </div>
-
+            <FormField name="terms" v-slot="{ error }">
+                <Message v-if="error" severity="error" size="small" variant="simple">
+                    {{ error.message }}</Message>
+            </FormField>
             <Button v-if="!props.archived" type="button" severity="info" label="إضافة فصل" @click="addTerm" />
 
             <Button type="submit" severity="secondary" label="حفظ" />
@@ -51,11 +55,11 @@
 </template>
 
 <script setup lang="ts">
-import type {  SchoolSeason, SchoolTerm } from '~/data/types';
+import type { SchoolSeason, SchoolTerm } from '~/data/types';
 import { yupResolver } from '@primevue/forms/resolvers/yup';
 import * as yup from 'yup';
 import type { FormSubmitEvent } from '@primevue/forms';
-const { formatDatesForTerm } = useDataUtils();
+const { formatDatesForTerm, getRequiredFieldMessage } = useDataUtils();
 const props = defineProps<{
     archived: boolean,
     season: SchoolSeason
@@ -66,7 +70,7 @@ const emit = defineEmits<{
 /* Converts timestamps to dates to be usable by PrimeVue datePicker */
 const formatSeason = (season: SchoolSeason = props.season) => {
     return {
-        id : season.id,
+        id: season.id,
         name: season.name,
         terms: season.terms.map(term => formatDatesForTerm(term))
     }
@@ -81,12 +85,12 @@ const toTimestamp = (value: unknown, originalValue: unknown) => {
 
 const yupSchema: yup.ObjectSchema<Omit<SchoolSeason, 'id'>> =
     yup.object().shape({
-        name: yup.string().required('اسم السنة الدراسية مطلوب').min(4, 'اسم السنة الدراسية يجب أن يكون على الأقل 4 أحرف'),
+        name: yup.string().required(getRequiredFieldMessage('اسم السنة الدراسية')).min(4, 'اسم السنة الدراسية يجب أن يكون على الأقل 4 أحرف'),
         terms: yup.array(
             yup.object({
-                name: yup.string().required('اسم الفصل مطلوب').min(4, 'اسم الفصل يجب أن يكون على الأقل 4 أحرف'),
-                startDate: yup.number().required().transform(toTimestamp),
-                endDate: yup.number().required().transform(toTimestamp).test(
+                name: yup.string().required(getRequiredFieldMessage('اسم الفصل')).min(4, 'اسم الفصل يجب أن يكون على الأقل 4 أحرف'),
+                startDate: yup.number().required(getRequiredFieldMessage('تاريخ البداية')).transform(toTimestamp),
+                endDate: yup.number().required(getRequiredFieldMessage('تاريخ النهاية')).transform(toTimestamp).test(
                     'is-greater',
                     'تاريخ النهاية يجب أن يكون بعد تاريخ البداية',
                     function (value) {
@@ -118,8 +122,8 @@ const resolver = yupResolver(yupSchema);
 const addTerm = () => {
     season.value.terms.push({
         name: '',
-        startDate: new Date(),
-        endDate: new Date(),
+        startDate: undefined,
+        endDate: undefined,
     });
     formKey.value++;
 };
@@ -130,8 +134,8 @@ const removeTerm = (index: number) => {
 };
 
 const onSubmit = (validationObject: FormSubmitEvent) => {
-    errors.value = validationObject.errors;
-    emit('update:season',validationObject.values as SchoolSeason)
+    if(!validationObject.valid) return;
+    emit('update:season', validationObject.values as SchoolSeason)
 };
 
 const disableDatePicker = (type: 'start' | 'end', termIndex: number) => {

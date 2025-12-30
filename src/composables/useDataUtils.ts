@@ -12,6 +12,7 @@ import type {
 } from "~/data/types";
 
 export default function () {
+  /*Internal */
   const formatRequiredFieldMessage = (
     arabicText: string,
     type: "text" | "choice" = "text"
@@ -23,7 +24,7 @@ export default function () {
       : "هذا الحقل مطلوب";
 
   const getRequiredFieldMessage = (
-    fieldName: keyof typeof ArabicStudentProperties | keyof Class,
+    fieldName: keyof Student | keyof Class | string,
     type: "text" | "choice" = "text"
   ) => {
     return fieldName in ArabicStudentProperties
@@ -36,7 +37,7 @@ export default function () {
           ArabicClassProperties[fieldName as keyof Class],
           type
         )
-      : "هذا الحقل مطلوب";
+      : `يجب إدخال ${fieldName} `;
   };
   const getTimeRange = (range: SupportedDateRanges) => {
     const now = new Date();
@@ -131,11 +132,11 @@ export default function () {
     }
     return base;
   };
-  const formatDatesForTerm = (term: SchoolTerm) => {
+  const formatDatesForTerm = (term: Partial<SchoolTerm>) => {
     return {
       name: term.name,
-      startDate: new Date(term.startDate),
-      endDate: new Date(term.endDate),
+      startDate: term.startDate ? new Date(term.startDate) : undefined,
+      endDate: term.endDate ? new Date(term.endDate) : undefined,
     };
   };
 
