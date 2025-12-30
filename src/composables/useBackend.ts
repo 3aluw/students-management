@@ -16,6 +16,7 @@ import type {
   NewAbsence,
   NewLateness,
   SchoolSeason,
+  EditSchoolSeason,
 } from "~/data/types";
 
 export default function () {
@@ -129,6 +130,12 @@ export default function () {
   const getSeasons = () => {
     return $fetch<SchoolSeason[]>("/api/season");
   };
+  const updateSeasons = (body: EditSchoolSeason) => {
+    return $fetch("/api/season", {
+      method: "POST",
+      body,
+    });
+  };
   return {
     createClass,
     updateClass,
@@ -148,5 +155,6 @@ export default function () {
     updateLateness,
     deleteLateness,
     getSeasons,
+    updateSeasons,
   };
 }
