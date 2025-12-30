@@ -90,6 +90,7 @@ export type EditStudent = PartialExceptId<Student>;
 export type EditClass = PartialExceptId<Class>;
 export type EditLateness = PartialExceptId<Lateness>;
 export type EditAbsence = PartialExceptId<Absence>;
+export type EditSchoolSeason = PartialExceptId<SchoolSeason>;
 
 export type BatchEditStudent = BatchEdit<Student>;
 export type BatchEditAbsence = BatchEdit<Absence>;

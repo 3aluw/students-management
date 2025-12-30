@@ -1,39 +1,48 @@
 <template>
     <div class="card flex flex-col gap-4">
-        <Toast />
         <Form :initialValues="formatSeason()" :resolver="resolver" class="flex flex-col gap-4" @submit="onSubmit"
             v-slot="$form" :key="formKey">
             <!-- Season name -->
             <div class="flex flex-col gap-1">
-                <InputText name="id" placeholder="اسم السنة الدراسية" hidden fluid />
+                <InputText name="id" hidden fluid />
             </div>
             <div class="flex flex-col gap-1">
-                <InputText name="name" v-model="season.name" placeholder="اسم السنة الدراسية" fluid />
+                <FloatLabel variant="on">
+                    <InputText name="name" v-model="season.name" fluid />
+                    <label>اسم السنة الدراسية</label>
+                </FloatLabel>
                 <Message v-if="$form.name?.invalid" severity="error" size="small" variant="simple">
                     {{ $form.name.error.message }}
                 </Message>
             </div>
 
             <!-- Terms Loop-->
-            <div v-for="(term, index) in season.terms" :key="index" class="border p-3 rounded flex flex-col gap-2">
+            <div v-for="(term, index) in season.terms" :key="index" class="border p-3 rounded flex flex-col gap-4">
                 <strong>الفصل {{ index + 1 }}</strong>
-
-                <InputText :name="`terms[${index}].name`" v-model="season.terms[index].name" placeholder="اسم الفصل"
-                    fluid />
+                <FloatLabel variant="on">
+                    <InputText :name="`terms[${index}].name`" v-model="season.terms[index].name" fluid />
+                    <label>اسم الفصل</label>
+                </FloatLabel>
                 <Message v-if="Array.isArray($form.terms) && $form.terms?.[index]?.name?.invalid" severity="error"
                     size="small" variant="simple">
                     {{ $form.terms[index].name.error.message }}
                 </Message>
                 <!-- Start Date -->
-                <DatePicker :name="`terms[${index}].startDate`" v-model="season.terms[index].startDate"
-                    :disabled="disableDatePicker('start', index)" placeholder="تاريخ البداية " fluid />
+                <FloatLabel variant="on">
+                    <DatePicker :name="`terms[${index}].startDate`" v-model="season.terms[index].startDate"
+                        :disabled="disableDatePicker('start', index)" fluid />
+                    <label>تاريخ البداية</label>
+                </FloatLabel>
                 <Message v-if="Array.isArray($form.terms) && $form.terms?.[index]?.startDate?.invalid" severity="error"
                     size="small" variant="simple">
                     {{ $form.terms[index].startDate.error.message }}
                 </Message>
                 <!-- End Date -->
-                <DatePicker :name="`terms[${index}].endDate`" v-model="season.terms[index].endDate"
-                    :disabled="disableDatePicker('end', index)" placeholder="تاريخ النهاية" fluid />
+                <FloatLabel variant="on">
+                    <DatePicker :name="`terms[${index}].endDate`" v-model="season.terms[index].endDate"
+                        :disabled="disableDatePicker('end', index)" fluid />
+                    <label>تاريخ النهاية</label>
+                </FloatLabel>
                 <Message v-if="Array.isArray($form.terms) && $form.terms?.[index]?.endDate?.invalid" severity="error"
                     size="small" variant="simple">
                     {{ $form.terms[index].endDate.error.message }}
@@ -111,9 +120,8 @@ const yupSchema: yup.ObjectSchema<Omit<SchoolSeason, 'id'>> =
         }).required().min(1, 'يجب أن تحتوي السنة الدراسية على فصل دراسي على الأقل'),
     })
 
-const toast = useToast();
+
 const formKey = ref(1);
-const errors = ref({});
 
 const season = ref(formatSeason());
 
@@ -134,7 +142,7 @@ const removeTerm = (index: number) => {
 };
 
 const onSubmit = (validationObject: FormSubmitEvent) => {
-    if(!validationObject.valid) return;
+    if (!validationObject.valid) return;
     emit('update:season', validationObject.values as SchoolSeason)
 };
 

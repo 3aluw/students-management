@@ -51,14 +51,16 @@
 </template>
 <script setup lang="ts">
 import type { SchoolSeason } from '~/data/types';
-import useDataUtils from '../composables/useDataUtils';
 import type { TreeNode } from 'primevue/treenode';
 import { useClientStore } from '~/store/clientStore';
-const { mapSeasonsToTree, getCollapsingSeasonIds } = useDataUtils()
+const { mapSeasonsToTree, getCollapsingSeasonIds } = useDataUtils();
+
 type EditSeasonProps = {
   archived: boolean,
   season: SchoolSeason
 }
+
+const backend = useBackend();
 const toast = useToast();
 const clientStore = useClientStore();
 
@@ -92,7 +94,17 @@ const handleSeasonEditSubmit = (updatedSeason: SchoolSeason) => {
     toast.add({ severity: 'error', summary: 'خطأ في التواريخ', detail: `التواريخ التي أدخلتها تتداخل مع الموسم الدراسي "${otherSeasonName}"، يرجى تعديل التواريخ.`, life: 7000 });
     return;
   }
+  try{
+    backend.updateSeasons(updatedSeason).then(() => {
+      toast.add({ severity: 'success', summary: 'تم الحفظ', detail: 'تم تحديث الموسم الدراسي بنجاح.' });
+      clientStore.populateSeasons();
+      showEditSeasonDialog.value = false;
+    });
+  }
+  catch (error) {
+    toast.add({ severity: 'error', summary: 'خطأ في الحفظ', detail: 'حدث خطأ أثناء تحديث الموسم الدراسي.' });
 
 }
+}
+
 </script>
-<style scoped></style>
