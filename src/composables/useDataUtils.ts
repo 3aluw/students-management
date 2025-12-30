@@ -8,6 +8,7 @@ import type {
   AbsenceInfo,
   PlaygroundSettings,
   SchoolSeason,
+  SchoolTerm,
 } from "~/data/types";
 
 export default function () {
@@ -130,6 +131,14 @@ export default function () {
     }
     return base;
   };
+  const formatDatesForTerm = (term: SchoolTerm) => {
+    return {
+      name: term.name,
+      startDate: new Date(term.startDate),
+      endDate: new Date(term.endDate),
+    };
+  };
+
   //a function that transform 0/1 in DB results to real booleans
   const normalizeResultBooleans = <
     R extends Record<string, any>,
@@ -148,23 +157,54 @@ export default function () {
   };
 
   const mapSeasonsToTree = (seasons: SchoolSeason[]): TreeNode[] => {
-    return seasons.map((season) => ({
-      key: `season-${season.id}`,
-      data: {
-        name: season.name,
-        num: 5,
-        type: "season",
-      },
-      children: season.terms.map((term, index) => ({
-        key: `term-${season.id}-${index}`,
+    return seasons.map((season) => {
+      const seasonDates = getSeasonStartAndEndDates(season);
+      const now = Date.now();
+      const seasonStatus =
+        now < seasonDates.startDate
+          ? "مستقبل"
+          : now > seasonDates.endDate
+          ? "منتهي"
+          : "حالي";
+
+      return {
+        key: `season-${season.id}`,
         data: {
-          name: term.name,
-          startDate: term.startDate,
-          endDate: term.endDate,
-          type: "term",
+          id: season.id,
+          name: season.name,
+          status : seasonStatus,
+          type: "season",
         },
-      })),
-    }));
+        children: season.terms.map((term, index) => ({
+          key: `term-${season.id}-${index}`,
+          data: {
+            name: term.name,
+            startDate: term.startDate,
+            endDate: term.endDate,
+            type: "term",
+          },
+        })),
+      };
+    });
+  };
+
+  const getSeasonStartAndEndDates = (season: SchoolSeason) => {
+    return {
+      name: season.name,
+      startDate: season.terms[0].startDate,
+      endDate: season.terms[season.terms.length - 1].endDate,
+    };
+  };
+  const getCollapsingSeasonIndexes = (seasons: SchoolSeason[]) => {
+    const seasonDates = seasons.map(getSeasonStartAndEndDates);
+
+    for (let i = 1; i < seasonDates.length; i++) {
+      if (seasonDates[i].startDate < seasonDates[i - 1].endDate) {
+        return [i - 1, i];
+      }
+    }
+
+    return undefined;
   };
   return {
     getRequiredFieldMessage,
@@ -172,6 +212,7 @@ export default function () {
     minutesAfterMidnight,
     getDatesForPlaygroundSettings,
     getDatesForEventInfo,
+    formatDatesForTerm,
     normalizeResultBooleans,
     mapSeasonsToTree,
   };

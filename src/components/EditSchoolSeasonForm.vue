@@ -4,7 +4,6 @@
 
         <Form :initialValues="formatSeason()" :resolver="resolver" class="flex flex-col gap-4" @submit="onSubmit"
             v-slot="$form" :key="formKey">
-            Data in form: {{ $form }}
             <!-- Season name -->
             <div class="flex flex-col gap-1">
                 <InputText name="name" v-model="season.name" placeholder="اسم السنة الدراسية" fluid />
@@ -25,32 +24,32 @@
                 </Message>
                 <!-- Start Date -->
                 <DatePicker :name="`terms[${index}].startDate`" v-model="season.terms[index].startDate"
-                    placeholder="تاريخ البداية (timestamp)" fluid />
+                    :disabled="disableDatePicker('start', index)" placeholder="تاريخ البداية " fluid />
                 <Message v-if="Array.isArray($form.terms) && $form.terms?.[index]?.startDate?.invalid" severity="error"
                     size="small" variant="simple">
                     {{ $form.terms[index].startDate.error.message }}
                 </Message>
                 <!-- End Date -->
                 <DatePicker :name="`terms[${index}].endDate`" v-model="season.terms[index].endDate"
-                    placeholder="تاريخ النهاية (timestamp)" fluid />
+                    :disabled="disableDatePicker('end', index)" placeholder="تاريخ النهاية" fluid />
                 <Message v-if="Array.isArray($form.terms) && $form.terms?.[index]?.endDate?.invalid" severity="error"
                     size="small" variant="simple">
                     {{ $form.terms[index].endDate.error.message }}
                 </Message>
 
-                <Button type="button" severity="danger" label="حذف الفصل" @click="removeTerm(index)" />
+                <Button v-if="!props.archived" type="button" severity="danger" label="حذف الفصل"
+                    @click="removeTerm(index)" />
             </div>
 
-            <Button type="button" severity="info" label="إضافة فصل" @click="addTerm" />
+            <Button v-if="!props.archived" type="button" severity="info" label="إضافة فصل" @click="addTerm" />
 
             <Button type="submit" severity="secondary" label="حفظ" />
         </Form>
-        errors: {{ errors }}
     </div>
 </template>
 
 <script setup lang="ts">
-import type { NewSchoolSeason, SchoolSeason, SchoolTerm } from '~/data/types';
+import type {  SchoolSeason, SchoolTerm } from '~/data/types';
 import { yupResolver } from '@primevue/forms/resolvers/yup';
 import * as yup from 'yup';
 import type { FormSubmitEvent } from '@primevue/forms';
@@ -92,13 +91,13 @@ const yupSchema: yup.ObjectSchema<Omit<SchoolSeason, 'id'>> =
                     'more-than-three-days',
                     'مدة الفصل الدراسي لا تقل عن ثلاثة أيام',
                     function (value) {
-                         const { startDate } = this.parent;
+                        const { startDate } = this.parent;
                         return value - startDate >= 259200000; // 3 days in milliseconds
                     }
                 ),
             })
-        ).test('terms-not-collapsing','يجب ألا تتداخل الفصول الدراسية مع بعضها',(value)=>{
-            return  !value ? true : !hasCollapsingTerms(value) 
+        ).test('terms-not-collapsing', 'يجب ألا تتداخل الفصول الدراسية مع بعضها', (value) => {
+            return !value ? true : !hasCollapsingTerms(value)
         }).required().min(1, 'يجب أن تحتوي السنة الدراسية على فصل دراسي على الأقل'),
     })
 
@@ -128,8 +127,15 @@ const onSubmit = (validationObject: FormSubmitEvent) => {
     console.log(validationObject);
     errors.value = validationObject.errors;
 };
+
+const disableDatePicker = (type: 'start' | 'end', termIndex: number) => {
+    if (!props.archived) return false;
+    return type === 'start' && termIndex === 0 ? true
+        : type === 'end' && termIndex === props.season.terms.length - 1 ? true
+            : false;
+}
 /* INTERNAL: checks if there are collapsing terms */
-  const hasCollapsingTerms = (terms: SchoolTerm[]) =>
+const hasCollapsingTerms = (terms: SchoolTerm[]) =>
     terms.some((term, i, arr) => i > 0 && term.startDate < arr[i - 1].endDate);
 
 </script>

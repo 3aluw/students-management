@@ -40,23 +40,29 @@
       <Column>
         <template #body="{ node }">
           <Button v-if="node.data.type === 'season'" rounded outlined icon="pi pi-pencil" severity="secondary"
-            size="small" @click="handleEditSeasonClick(schoolSeasons.find(s => s.id === node.data.id)!)" />
+            size="small" @click="handleEditSeasonClick(node)" />
         </template>
       </Column>
     </TreeTable>
-    <Dialog header="أدخل معلومات القسم" @hide="seasonToEdit = undefined" v-model:visible="showEditSeasonDialog"
+    <Dialog header="أدخل معلومات القسم" @hide="editSeasonProps = undefined" v-model:visible="showEditSeasonDialog"
       :style="{ width: '350px' }" :modal="true">
-      <EditSchoolSeasonForm v-if="seasonToEdit" :season="seasonToEdit" :archived="false" />
+      <EditSchoolSeasonForm v-if="editSeasonProps" :season="editSeasonProps?.season" :archived="editSeasonProps?.archived" />
     </Dialog>
   </div>
 </template>
 <script setup lang="ts">
 import type { DataTableSlot, SchoolSeason } from '~/data/types';
 import useDataUtils from '../composables/useDataUtils';
+import type { TreeNode } from 'primevue/treenode';
 const { mapSeasonsToTree } = useDataUtils()
+type EditSeasonProps = {
+    archived: boolean,
+    season: SchoolSeason
+}
 const showNewSeasonDialog = ref(false);
 const showEditSeasonDialog = ref(false);
-const seasonToEdit = ref<SchoolSeason | undefined>(undefined);
+const editSeasonProps = ref<EditSeasonProps | undefined>(undefined);
+
 const schoolSeasons = ref<SchoolSeason[]>([
   {
     id: 1,
@@ -108,8 +114,11 @@ const schoolSeasons = ref<SchoolSeason[]>([
   },
 ])
 const nodes = computed(() => mapSeasonsToTree(schoolSeasons.value));
-const handleEditSeasonClick = (season: SchoolSeason) => {
-  seasonToEdit.value = season;
+
+const handleEditSeasonClick = (node : TreeNode) => {
+  const archived = node.data.status === 'منتهي';
+  const season = schoolSeasons.value.find(s => s.id === node.data.id)!
+  editSeasonProps.value = { season, archived };
   showEditSeasonDialog.value = true;
 };
 </script>
