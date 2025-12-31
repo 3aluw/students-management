@@ -1,5 +1,5 @@
 <template>
-    <div class="card flex flex-col gap-4">
+    <div class="flex flex-col gap-4" :class="{ card: !isSeasonNew }">
         <Form ref="form" :initialValues="formatSeason()" :resolver="resolver" class="flex flex-col gap-4" @submit="onSubmit"
             v-slot="$form" :key="formKey">
             <!-- Season name -->
@@ -55,17 +55,18 @@
                             {{ $form.terms[index].endDate.error.message }}
                         </Message>
                     </div>
-                    <Button v-if="!archived" type="button" severity="danger" label="حذف الفصل"
+                    <Button v-if="!isSeasonArchived" type="button" severity="danger" label="حذف الفصل"
                         @click="removeTerm(index)" />
                 </div>
             </div>
+            <div class="flex flex-col">
             <FormField name="terms" v-slot="{ error }">
                 <Message v-if="error" severity="error" size="small" variant="simple">
                     {{ error.message }}</Message>
             </FormField>
-            <Button v-if="!archived" type="button" severity="info" label="إضافة فصل" @click="addTerm" />
-
-            <Button type="submit" severity="secondary" label="حفظ" />
+            <Button class="my-1" v-if="!isSeasonArchived" type="button" :severity="isSeasonNew ? 'secondary' : 'info'" label="إضافة فصل" @click="addTerm" />
+            <Button class="my-1" v-if="!isSeasonNew" type="submit" severity="success" label="حفظ" />
+            </div>
         </Form>
     </div>
 </template>
@@ -77,13 +78,14 @@ import * as yup from 'yup';
 import type { FormInstance, FormSubmitEvent } from '@primevue/forms';
 const { formatDatesForTerm, getRequiredFieldMessage, hasCollapsingTerms } = useDataUtils();
 const props = defineProps<{
-    status : SeasonStatus,
+    status : SeasonStatus | 'new',
     season: SchoolSeason | NewSchoolSeason
 }>()
 const emit = defineEmits<{
     (e: 'update:season', season: SchoolSeason): void;
 }>()
-const archived = computed(()=> props.status === 'past')
+const isSeasonArchived = computed(()=> props.status === 'past')
+const isSeasonNew = computed(()=> props.status === 'new')
 const form = ref<FormInstance | null>(null)
 /* Converts timestamps to dates to be usable by PrimeVue datePicker */
 const formatSeason = (season: SchoolSeason | NewSchoolSeason = props.season) => {
@@ -154,7 +156,7 @@ const onSubmit = (validationObject: FormSubmitEvent) => {
 };
 
 const disableDatePicker = (type: 'start' | 'end', termIndex: number) => {
-    if (!archived.value) return false;
+    if (!isSeasonArchived.value) return false;
     return type === 'start' && termIndex === 0 ? true
         : type === 'end' && termIndex === props.season.terms.length - 1 ? true
             : false;
