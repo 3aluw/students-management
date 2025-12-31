@@ -42,8 +42,8 @@
         </template>
       </Column>
     </TreeTable>
-    <Dialog header="أدخل معلومات القسم" @hide="editSeasonProps = undefined" v-model:visible="showEditSeasonDialog"
-      :style="{ width: '350px' }" :modal="true">
+    <Dialog header="حدد تفاصيل السنة الدراسية" @hide="editSeasonProps = undefined" v-model:visible="showEditSeasonDialog"
+      :modal="true">
       <EditSchoolSeasonForm v-if="editSeasonProps" :season="editSeasonProps?.season"
         :archived="editSeasonProps?.archived" @update:season="handleSeasonEditSubmit" />
     </Dialog>

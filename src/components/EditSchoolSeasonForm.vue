@@ -27,30 +27,30 @@
                     size="small" variant="simple">
                     {{ $form.terms[index].name.error.message }}
                 </Message>
-                <!-- Start Date -->
-                <FloatLabel variant="on">
-                    <DatePicker :name="`terms[${index}].startDate`" v-model="season.terms[index].startDate"
-                        :disabled="disableDatePicker('start', index)" fluid />
-                    <label>تاريخ البداية</label>
-                </FloatLabel>
-                <Message v-if="Array.isArray($form.terms) && $form.terms?.[index]?.startDate?.invalid" severity="error"
-                    size="small" variant="simple">
-                    {{ $form.terms[index].startDate.error.message }}
-                </Message>
-                <!-- End Date -->
-                <FloatLabel variant="on">
-                    <DatePicker :name="`terms[${index}].endDate`" v-model="season.terms[index].endDate"
-                        :disabled="disableDatePicker('end', index)" fluid />
-                    <label>تاريخ النهاية</label>
-                </FloatLabel>
-                <Message v-if="Array.isArray($form.terms) && $form.terms?.[index]?.endDate?.invalid" severity="error"
-                    size="small" variant="simple">
-                    {{ $form.terms[index].endDate.error.message }}
-                </Message>
-
-
-                <Button v-if="!props.archived" type="button" severity="danger" label="حذف الفصل"
-                    @click="removeTerm(index)" />
+                <div class="flex gap-4 flex-wrap">
+                    <!-- Start Date -->
+                    <FloatLabel variant="on">
+                        <DatePicker :name="`terms[${index}].startDate`" v-model="season.terms[index].startDate"
+                            :disabled="disableDatePicker('start', index)" fluid />
+                        <label>تاريخ البداية</label>
+                    </FloatLabel>
+                    <Message v-if="Array.isArray($form.terms) && $form.terms?.[index]?.startDate?.invalid"
+                        severity="error" size="small" variant="simple">
+                        {{ $form.terms[index].startDate.error.message }}
+                    </Message>
+                    <!-- End Date -->
+                    <FloatLabel variant="on">
+                        <DatePicker :name="`terms[${index}].endDate`" v-model="season.terms[index].endDate"
+                            :disabled="disableDatePicker('end', index)" fluid />
+                        <label>تاريخ النهاية</label>
+                    </FloatLabel>
+                    <Message v-if="Array.isArray($form.terms) && $form.terms?.[index]?.endDate?.invalid"
+                        severity="error" size="small" variant="simple">
+                        {{ $form.terms[index].endDate.error.message }}
+                    </Message>
+                    <Button v-if="!props.archived" type="button" severity="danger" label="حذف الفصل"
+                        @click="removeTerm(index)" />
+                </div>
             </div>
             <FormField name="terms" v-slot="{ error }">
                 <Message v-if="error" severity="error" size="small" variant="simple">
@@ -64,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-import type { SchoolSeason, SchoolTerm } from '~/data/types';
+import type { SchoolSeason } from '~/data/types';
 import { yupResolver } from '@primevue/forms/resolvers/yup';
 import * as yup from 'yup';
 import type { FormSubmitEvent } from '@primevue/forms';
@@ -120,9 +120,7 @@ const yupSchema: yup.ObjectSchema<Omit<SchoolSeason, 'id'>> =
         }).required().min(1, 'يجب أن تحتوي السنة الدراسية على فصل دراسي على الأقل'),
     })
 
-
 const formKey = ref(1);
-
 const season = ref(formatSeason());
 
 const resolver = yupResolver(yupSchema);
