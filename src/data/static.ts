@@ -4,6 +4,7 @@ import type {
   Student,
   SchoolLevel,
   SupportedDateRanges,
+  SeasonStatus,
 } from "./types";
 
 export const genderOptions = [
@@ -62,6 +63,11 @@ export const ArabicSchoolLevels: Record<SchoolLevel, string> = {
   primary: "ابتدائي",
   middle: "متوسط",
   high: "ثانوي",
+};
+export const ArabicSeasonStatus: Record<SeasonStatus, string> = {
+  past: "منتهي",
+  current: "حالي",
+  future: "مستقبل",
 };
 export const commonReasons = [
   "المرض",

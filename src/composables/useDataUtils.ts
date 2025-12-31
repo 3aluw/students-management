@@ -9,6 +9,7 @@ import type {
   PlaygroundSettings,
   SchoolSeason,
   SchoolTerm,
+  SeasonStatus,
 } from "~/data/types";
 
 export default function () {
@@ -162,12 +163,12 @@ export default function () {
     return seasons.map((season) => {
       const seasonDates = getSeasonStartAndEndDates(season);
       const now = Date.now();
-      const seasonStatus =
+      const seasonStatus : SeasonStatus =
         now < seasonDates.startDate
-          ? "مستقبل"
+          ? "future"
           : now > seasonDates.endDate
-          ? "منتهي"
-          : "حالي";
+          ? "past"
+          : "current";
 
       return {
         key: `season-${season.id}`,

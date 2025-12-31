@@ -113,7 +113,7 @@ export type LocalLateness = Lateness & {
 export type EventTypes = "lateness" | "absence";
 export type Gender = "M" | "F";
 export type SchoolLevel = "primary" | "middle" | "high";
-
+export type SeasonStatus = 'past' | 'current' | 'future'
 export type SupportedDateRanges =
   | "today"
   | "yesterday"
