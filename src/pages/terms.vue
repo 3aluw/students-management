@@ -2,11 +2,12 @@
   <div class="card">
     <div class="flex items-center gap-4 mb-4">
       <div class="font-semibold text-xl ">إدارة المواسم الدراسية</div>
-      <Button label="موسم دراسي جديد" icon="pi pi-plus" iconPos="right" severity="secondary" class="mx-2"
-        @click="showNewSeasonDialog = true" />
+      <!-- add season button: shows only If there is no future season -->
+      <Button v-if="!nodes.some((seasonNode) => seasonNode.data.status === 'future')" label="موسم دراسي جديد"
+        icon="pi pi-plus" iconPos="right" severity="secondary" class="mx-2" @click="showNewSeasonDialog = true" />
     </div>
 
-    <TreeTable :value="nodes">
+    <TreeTable :value="nodes" >
       <Column header="السنة الدراسية" expander>
         <template #body="{ node }">
           <span v-if="node.data.type === 'term'">
@@ -14,8 +15,7 @@
           </span>
           <strong v-else>
             {{ node.data.name }} <span>
-              <Badge :value="node.data.status"
-                :severity="node.data.status === 'حالي' ? 'success' : node.data.status === 'مستقبل' ? 'info' : 'secondary'">
+              <Badge v-bind="formatSeasonBadgeProps(node.data.status)">
               </Badge>
             </span></strong>
         </template>
@@ -42,21 +42,26 @@
         </template>
       </Column>
     </TreeTable>
-    <Dialog header="حدد تفاصيل السنة الدراسية" @hide="editSeasonProps = undefined" v-model:visible="showEditSeasonDialog"
-      :modal="true">
+    <Dialog header="حدد تفاصيل الموسم الدراسي" @hide="editSeasonProps = undefined"
+      v-model:visible="showEditSeasonDialog" :modal="true">
       <EditSchoolSeasonForm v-if="editSeasonProps" :season="editSeasonProps?.season"
-        :archived="editSeasonProps?.archived" @update:season="handleSeasonEditSubmit" />
+        :status="editSeasonProps?.status" @update:season="handleSeasonEditSubmit" />
+    </Dialog>
+
+    <Dialog header="موسم دراسي جديد" v-model:visible="showNewSeasonDialog" :modal="true">
+      <NewSchoolSeasonForm :isLastSeasonCurrent="true"/>
     </Dialog>
   </div>
 </template>
 <script setup lang="ts">
-import type { SchoolSeason } from '~/data/types';
+import type { SchoolSeason, SeasonStatus } from '~/data/types';
 import type { TreeNode } from 'primevue/treenode';
 import { useClientStore } from '~/store/clientStore';
+import { ArabicSeasonStatus } from '~/data/static';
 const { mapSeasonsToTree, getCollapsingSeasonIds } = useDataUtils();
 
 type EditSeasonProps = {
-  archived: boolean,
+  status: SeasonStatus,
   season: SchoolSeason
 }
 
@@ -68,12 +73,18 @@ const showNewSeasonDialog = ref(false);
 const showEditSeasonDialog = ref(false);
 const editSeasonProps = ref<EditSeasonProps | undefined>(undefined);
 
+  const formatSeasonBadgeProps = (status: SeasonStatus) =>{
+  const value = ArabicSeasonStatus[status]
+  const severity = status === 'current' ? 'success' : status === 'future' ? 'info' : 'secondary'
+  return {value, severity}
+  }
+
 const nodes = computed(() => mapSeasonsToTree(clientStore.seasons));
 
 const handleEditSeasonClick = (node: TreeNode) => {
-  const archived = node.data.status === 'منتهي';
+  const status = node.data.status;
   const season = clientStore.seasons.find(s => s.id === node.data.id)!
-  editSeasonProps.value = { season, archived };
+  editSeasonProps.value = { season, status };
   showEditSeasonDialog.value = true;
 };
 const getSeasonWithNeighborsById = (season: SchoolSeason) => {
@@ -94,7 +105,7 @@ const handleSeasonEditSubmit = (updatedSeason: SchoolSeason) => {
     toast.add({ severity: 'error', summary: 'خطأ في التواريخ', detail: `التواريخ التي أدخلتها تتداخل مع الموسم الدراسي "${otherSeasonName}"، يرجى تعديل التواريخ.`, life: 7000 });
     return;
   }
-  try{
+  try {
     backend.updateSeasons(updatedSeason).then(() => {
       toast.add({ severity: 'success', summary: 'تم الحفظ', detail: 'تم تحديث الموسم الدراسي بنجاح.' });
       clientStore.populateSeasons();
@@ -104,7 +115,7 @@ const handleSeasonEditSubmit = (updatedSeason: SchoolSeason) => {
   catch (error) {
     toast.add({ severity: 'error', summary: 'خطأ في الحفظ', detail: 'حدث خطأ أثناء تحديث الموسم الدراسي.' });
 
-}
+  }
 }
 
 </script>
