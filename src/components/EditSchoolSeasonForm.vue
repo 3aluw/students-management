@@ -1,6 +1,6 @@
 <template>
     <div class="card flex flex-col gap-4">
-        <Form :initialValues="formatSeason()" :resolver="resolver" class="flex flex-col gap-4" @submit="onSubmit"
+        <Form ref="form" :initialValues="formatSeason()" :resolver="resolver" class="flex flex-col gap-4" @submit="onSubmit"
             v-slot="$form" :key="formKey">
             <!-- Season name -->
             <div class="flex flex-col gap-1">
@@ -71,25 +71,27 @@
 </template>
 
 <script setup lang="ts">
-import type { SchoolSeason } from '~/data/types';
+import type { NewSchoolSeason, SchoolSeason, SeasonStatus } from '~/data/types';
 import { yupResolver } from '@primevue/forms/resolvers/yup';
 import * as yup from 'yup';
-import type { FormSubmitEvent } from '@primevue/forms';
+import type { FormInstance, FormSubmitEvent } from '@primevue/forms';
 const { formatDatesForTerm, getRequiredFieldMessage, hasCollapsingTerms } = useDataUtils();
 const props = defineProps<{
-    archived: boolean,
-    season: SchoolSeason
+    status : SeasonStatus,
+    season: SchoolSeason | NewSchoolSeason
 }>()
 const emit = defineEmits<{
     (e: 'update:season', season: SchoolSeason): void;
 }>()
+const archived = computed(()=> props.status === 'past')
+const form = ref<FormInstance | null>(null)
 /* Converts timestamps to dates to be usable by PrimeVue datePicker */
-const formatSeason = (season: SchoolSeason = props.season) => {
-    return {
-        id: season.id,
+const formatSeason = (season: SchoolSeason | NewSchoolSeason = props.season) => {
+    const base = {
         name: season.name,
         terms: season.terms.map(term => formatDatesForTerm(term))
     }
+    return !("id" in season) ? base : { ...base, id: season.id }
 }
 /* Convert dates back to timestamps */
 const toTimestamp = (value: unknown, originalValue: unknown) => {
@@ -152,7 +154,7 @@ const onSubmit = (validationObject: FormSubmitEvent) => {
 };
 
 const disableDatePicker = (type: 'start' | 'end', termIndex: number) => {
-    if (!props.archived) return false;
+    if (!archived.value) return false;
     return type === 'start' && termIndex === 0 ? true
         : type === 'end' && termIndex === props.season.terms.length - 1 ? true
             : false;
