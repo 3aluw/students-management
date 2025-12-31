@@ -19,36 +19,43 @@
             <!-- Terms Loop-->
             <div v-for="(term, index) in season.terms" :key="index" class="border p-3 rounded flex flex-col gap-4">
                 <strong>الفصل {{ index + 1 }}</strong>
-                <FloatLabel variant="on">
-                    <InputText :name="`terms[${index}].name`" v-model="season.terms[index].name" fluid />
-                    <label>اسم الفصل</label>
-                </FloatLabel>
-                <Message v-if="Array.isArray($form.terms) && $form.terms?.[index]?.name?.invalid" severity="error"
-                    size="small" variant="simple">
-                    {{ $form.terms[index].name.error.message }}
-                </Message>
+                <div class="flex flex-col">
+                    <FloatLabel variant="on">
+                        <InputText :name="`terms[${index}].name`" v-model="season.terms[index].name" fluid />
+                        <label>اسم الفصل</label>
+                    </FloatLabel>
+                    <Message v-if="Array.isArray($form.terms) && $form.terms?.[index]?.name?.invalid" severity="error"
+                        size="small" variant="simple">
+                        {{ $form.terms[index].name.error.message }}
+                    </Message>
+                </div>
                 <div class="flex gap-4 flex-wrap">
                     <!-- Start Date -->
-                    <FloatLabel variant="on">
-                        <DatePicker :name="`terms[${index}].startDate`" v-model="season.terms[index].startDate"
-                            :disabled="disableDatePicker('start', index)" fluid />
-                        <label>تاريخ البداية</label>
-                    </FloatLabel>
-                    <Message v-if="Array.isArray($form.terms) && $form.terms?.[index]?.startDate?.invalid"
-                        severity="error" size="small" variant="simple">
-                        {{ $form.terms[index].startDate.error.message }}
-                    </Message>
+                    <div class="flex flex-col">
+
+                        <FloatLabel variant="on">
+                            <DatePicker :name="`terms[${index}].startDate`" v-model="season.terms[index].startDate"
+                                :disabled="disableDatePicker('start', index)" fluid />
+                            <label>تاريخ البداية</label>
+                        </FloatLabel>
+                        <Message v-if="Array.isArray($form.terms) && $form.terms?.[index]?.startDate?.invalid"
+                            severity="error" size="small" variant="simple">
+                            {{ $form.terms[index].startDate.error.message }}
+                        </Message>
+                    </div>
                     <!-- End Date -->
-                    <FloatLabel variant="on">
-                        <DatePicker :name="`terms[${index}].endDate`" v-model="season.terms[index].endDate"
-                            :disabled="disableDatePicker('end', index)" fluid />
-                        <label>تاريخ النهاية</label>
-                    </FloatLabel>
-                    <Message v-if="Array.isArray($form.terms) && $form.terms?.[index]?.endDate?.invalid"
-                        severity="error" size="small" variant="simple">
-                        {{ $form.terms[index].endDate.error.message }}
-                    </Message>
-                    <Button v-if="!props.archived" type="button" severity="danger" label="حذف الفصل"
+                    <div class="flex flex-col">
+                        <FloatLabel variant="on">
+                            <DatePicker :name="`terms[${index}].endDate`" v-model="season.terms[index].endDate"
+                                :disabled="disableDatePicker('end', index)" fluid />
+                            <label>تاريخ النهاية</label>
+                        </FloatLabel>
+                        <Message v-if="Array.isArray($form.terms) && $form.terms?.[index]?.endDate?.invalid"
+                            severity="error" size="small" variant="simple">
+                            {{ $form.terms[index].endDate.error.message }}
+                        </Message>
+                    </div>
+                    <Button v-if="!archived" type="button" severity="danger" label="حذف الفصل"
                         @click="removeTerm(index)" />
                 </div>
             </div>
@@ -56,7 +63,7 @@
                 <Message v-if="error" severity="error" size="small" variant="simple">
                     {{ error.message }}</Message>
             </FormField>
-            <Button v-if="!props.archived" type="button" severity="info" label="إضافة فصل" @click="addTerm" />
+            <Button v-if="!archived" type="button" severity="info" label="إضافة فصل" @click="addTerm" />
 
             <Button type="submit" severity="secondary" label="حفظ" />
         </Form>
