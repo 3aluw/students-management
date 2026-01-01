@@ -81,14 +81,25 @@ const formatSeasonBadgeProps = (status: SeasonStatus) => {
 const nodes = computed(() => mapSeasonsToTree(clientStore.seasons));
 
 /* New season logic */
-
 const isLastSeasonCurrent = computed(() => {
   const now = new Date().getTime()
   const lastSeason = clientStore.seasons.at(-1)
-  const leastSeasonFormattedDates = lastSeason ? getSeasonStartAndEndDates(lastSeason) : undefined 
+  const leastSeasonFormattedDates = lastSeason ? getSeasonStartAndEndDates(lastSeason) : undefined
   return !leastSeasonFormattedDates || (leastSeasonFormattedDates.endDate > now && leastSeasonFormattedDates.startDate < now)
 })
 
+const terminateSeason = (season: SchoolSeason) => {
+  if (!season) return;
+  let { terms } = season
+  const now = new Date().getTime();
+  terms = terms.filter((term) => term.startDate < now)
+  const lastTerm = terms.at(-1)
+  if (lastTerm) {
+    lastTerm.endDate = new Date().setHours(24, 0, 0, 0)
+
+  }
+  return terms;
+}
 
 /* Edit season logic */
 const handleEditSeasonClick = (node: TreeNode) => {
@@ -123,7 +134,6 @@ const handleSeasonEditSubmit = (updatedSeason: SchoolSeason) => {
   }
   catch (error) {
     toast.add({ severity: 'error', summary: 'خطأ في الحفظ', detail: 'حدث خطأ أثناء تحديث الموسم الدراسي.' });
-
   }
 }
 
