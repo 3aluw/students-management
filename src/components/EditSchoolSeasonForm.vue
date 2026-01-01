@@ -83,7 +83,8 @@ const props = defineProps<{
     season: SchoolSeason | NewSchoolSeason
 }>()
 const emit = defineEmits<{
-    (e: 'create:season', season: NewSchoolSeason): void;
+    (e: 'create:season', valid: true, season: NewSchoolSeason): void;
+    (e: 'create:season', valid: false): void;
     (e: 'update:season', season: SchoolSeason): void;
 }>()
 const isSeasonArchived = computed(() => props.status === 'past')
@@ -154,12 +155,15 @@ const removeTerm = (index: number) => {
 
 
 const onSubmit = (validationObject: FormSubmitEvent) => {
-    if (!validationObject.valid) return;
-      if (isSeasonNew.value) {
-        emit('create:season', validationObject.values as NewSchoolSeason);
-    } else {
-        emit('update:season', validationObject.values as SchoolSeason);
+    const valid = validationObject.valid
+    if (isSeasonNew.value) {
+        valid ?
+            emit('create:season', valid, validationObject.values as NewSchoolSeason) :
+            emit('create:season', valid)
+        return
     }
+    if (!valid) return
+    emit('update:season', validationObject.values as SchoolSeason);
 };
 
 const submitForm = () => {
