@@ -10,9 +10,9 @@
                 <!-- Step 1 : add season data -->
                 <StepPanel v-slot="{ activateCallback }" value="1">
                     <div class="flex flex-col gap-4">
-                        <div v-show="props.isLastSeasonCurrent">
+                        <div v-show="props.isLastSeasonCurrent" >
                             <p class="text-lg font-bold">الموسم الدراسي الحالي مازال مستمرا</p>
-                            <div class="flex items-center">
+                            <div class="flex items-center" v-tooltip="terminateCurrentSeasonTooltipText">
                                 <Checkbox id="terminateCurrentSeasonCheckbox" v-model="terminateCurrentSeason" binary />
                                 <label for="terminateCurrentSeasonCheckbox" class="mr-2">
                                     <p>هل ترغب في إنهاء الموسم الدراسي الحالي قبل إضافة موسم دراسي جديد؟</p>
@@ -64,6 +64,7 @@ const emit = defineEmits<{
 
 /*Step 1 logic */
 const terminateCurrentSeason = ref(false)
+const terminateCurrentSeasonTooltipText = computed(() => `تحديد اليوم(${useDateFormat(new Date(), 'YYYY-MM-DD', { locales: 'ar-SA' }).value}) كآخر يوم للموسم الحالي `)
 const newSeasonData = ref<NewSchoolSeason | null>(null)
 const newSeason: NewSchoolSeason = {   // passed as a prop to the edit season form
     name: "",
