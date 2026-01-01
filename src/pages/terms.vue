@@ -7,7 +7,7 @@
         icon="pi pi-plus" iconPos="right" severity="secondary" class="mx-2" @click="showNewSeasonDialog = true" />
     </div>
 
-    <TreeTable :value="nodes" >
+    <TreeTable :value="nodes">
       <Column header="السنة الدراسية" expander>
         <template #body="{ node }">
           <span v-if="node.data.type === 'term'">
@@ -44,12 +44,12 @@
     </TreeTable>
     <Dialog header="حدد تفاصيل الموسم الدراسي" @hide="editSeasonProps = undefined"
       v-model:visible="showEditSeasonDialog" :modal="true">
-      <EditSchoolSeasonForm v-if="editSeasonProps" :season="editSeasonProps?.season"
-        :status="editSeasonProps?.status" @update:season="handleSeasonEditSubmit" />
+      <EditSchoolSeasonForm v-if="editSeasonProps" :season="editSeasonProps?.season" :status="editSeasonProps?.status"
+        @update:season="handleSeasonEditSubmit" />
     </Dialog>
 
-    <Dialog header="موسم دراسي جديد" v-model:visible="showNewSeasonDialog" :modal="true">
-      <NewSchoolSeasonForm :isLastSeasonCurrent="true"/>
+    <Dialog class="max-w-128" header="موسم دراسي جديد" v-model:visible="showNewSeasonDialog" :modal="true">
+      <NewSchoolSeasonForm :isLastSeasonCurrent />
     </Dialog>
   </div>
 </template>
@@ -58,7 +58,7 @@ import type { SchoolSeason, SeasonStatus } from '~/data/types';
 import type { TreeNode } from 'primevue/treenode';
 import { useClientStore } from '~/store/clientStore';
 import { ArabicSeasonStatus } from '~/data/static';
-const { mapSeasonsToTree, getCollapsingSeasonIds } = useDataUtils();
+const { mapSeasonsToTree, getCollapsingSeasonIds, getSeasonStartAndEndDates } = useDataUtils();
 
 type EditSeasonProps = {
   status: SeasonStatus,
@@ -72,15 +72,25 @@ const clientStore = useClientStore();
 const showNewSeasonDialog = ref(false);
 const showEditSeasonDialog = ref(false);
 const editSeasonProps = ref<EditSeasonProps | undefined>(undefined);
-
-  const formatSeasonBadgeProps = (status: SeasonStatus) =>{
+/* Season table logic */
+const formatSeasonBadgeProps = (status: SeasonStatus) => {
   const value = ArabicSeasonStatus[status]
   const severity = status === 'current' ? 'success' : status === 'future' ? 'info' : 'secondary'
-  return {value, severity}
-  }
-
+  return { value, severity }
+}
 const nodes = computed(() => mapSeasonsToTree(clientStore.seasons));
 
+/* New season logic */
+
+const isLastSeasonCurrent = computed(() => {
+  const now = new Date().getTime()
+  const lastSeason = clientStore.seasons.at(-1)
+  const leastSeasonFormattedDates = lastSeason ? getSeasonStartAndEndDates(lastSeason) : undefined 
+  return !leastSeasonFormattedDates || (leastSeasonFormattedDates.endDate > now && leastSeasonFormattedDates.startDate < now)
+})
+
+
+/* Edit season logic */
 const handleEditSeasonClick = (node: TreeNode) => {
   const status = node.data.status;
   const season = clientStore.seasons.find(s => s.id === node.data.id)!
@@ -99,7 +109,6 @@ const getSeasonWithNeighborsById = (season: SchoolSeason) => {
 const handleSeasonEditSubmit = (updatedSeason: SchoolSeason) => {
   const seasonsToCheck = getSeasonWithNeighborsById(updatedSeason).filter(season => season !== undefined);
   const collapsingSeasonIds = getCollapsingSeasonIds(seasonsToCheck)
-  console.log(seasonsToCheck, collapsingSeasonIds);
   if (collapsingSeasonIds) {
     const otherSeasonName = seasonsToCheck.find((season) => collapsingSeasonIds.includes(season.id) && season.id !== updatedSeason.id)?.name;
     toast.add({ severity: 'error', summary: 'خطأ في التواريخ', detail: `التواريخ التي أدخلتها تتداخل مع الموسم الدراسي "${otherSeasonName}"، يرجى تعديل التواريخ.`, life: 7000 });

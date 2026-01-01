@@ -219,7 +219,9 @@ export default function () {
     formatDatesForTerm,
     normalizeResultBooleans,
     mapSeasonsToTree,
+    getSeasonStartAndEndDates,
     getCollapsingSeasonIds,
-    hasCollapsingTerms
+    hasCollapsingTerms,
+
   };
 }
