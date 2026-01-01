@@ -51,7 +51,7 @@
 </template>
 <script setup lang="ts">
 import type { NewSchoolSeason } from '~/data/types';
-
+/*A props used to suggest current season termination to the user */
 const props = defineProps<{
     isLastSeasonCurrent: boolean;
 }>();
@@ -61,12 +61,11 @@ const emit = defineEmits<{
     (e: 'promote-students'): void;
 }>()
 
-const terminateCurrentSeason = ref(false)
-const promoteStudents = ref(false)
-/*Step 1 logic */
 
+/*Step 1 logic */
+const terminateCurrentSeason = ref(false)
 const newSeasonData = ref<NewSchoolSeason | null>(null)
-const newSeason: NewSchoolSeason = {
+const newSeason: NewSchoolSeason = {   // passed as a prop to the edit season form
     name: "",
     terms: [{
         name: "",
@@ -75,29 +74,29 @@ const newSeason: NewSchoolSeason = {
     }]
 }
 let resolveSeason: ((v: NewSchoolSeason | undefined) => void) | null = null
-const seasonFormRef = ref<null | { submitForm: () => void }>(null)
+const seasonFormRef = ref<null | { submitForm: () => void }>(null)  // A ref to edit season form; used to call the exposed function : submitForm
 
-const getSeasonData = () =>
+const getSeasonData = () =>    // returns a Promise that will be resolved later by handleNewSeasonValues
     new Promise<NewSchoolSeason | undefined>((resolve) => {
         resolveSeason = resolve
         seasonFormRef.value?.submitForm()
     })
-const handleStepOneNextClick = async (formActivateCallback: (value: string | number) => void) => {
+
+
+const handleNewSeasonValues = (...args: [valid: false] | [valid: true, season: NewSchoolSeason]) => { //emit will run this function; and it will resolve the promise
+    if (args.length === 1 && args[0] === false) { // in case of invalid form
+        resolveSeason?.(undefined)
+    } else { //in case of valid form
+        const [valid, season,] = args; // valid: true, season: NewSchoolSeason, 
+        resolveSeason?.(season)
+    }
+}
+const handleStepOneNextClick = async (formActivateCallback: (value: string | number) => void) => { //runs when the user clicks next btn; if the form is valid proceed to 2nd step 
     const season = await getSeasonData()
-    if(!season) return;
+    if (!season) return;
     newSeasonData.value = season;
     formActivateCallback('2')
 }
-
-// the emit runs this function
-const handleNewSeasonValues = (...args:[valid: false] | [valid: true, season: NewSchoolSeason]) => {
-   if (args.length === 1 && args[0] === false) {
-    const [valid] = args; // valid is false
-    resolveSeason?.(undefined)
-  } else {
-    const [valid, season, ] = args; // season: NewSchoolSeason, valid: true
-    resolveSeason?.(season)
-  }
-}
-
+/*Step 2 logic */
+const promoteStudents = ref(false)
 </script>
