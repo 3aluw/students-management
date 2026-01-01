@@ -10,7 +10,7 @@
                 <!-- Step 1 : add season data -->
                 <StepPanel v-slot="{ activateCallback }" value="1">
                     <div class="flex flex-col gap-4">
-                        <div v-show="props.isLastSeasonCurrent" >
+                        <div v-show="props.isLastSeasonCurrent">
                             <p class="text-lg font-bold">الموسم الدراسي الحالي مازال مستمرا</p>
                             <div class="flex items-center" v-tooltip="terminateCurrentSeasonTooltipText">
                                 <Checkbox id="terminateCurrentSeasonCheckbox" v-model="terminateCurrentSeason" binary />
@@ -50,15 +50,18 @@
     </div>
 </template>
 <script setup lang="ts">
-import type { NewSchoolSeason } from '~/data/types';
+import type { NewSchoolSeason, promoteStudentsMap } from '~/data/types';
 /*A props used to suggest current season termination to the user */
 const props = defineProps<{
     isLastSeasonCurrent: boolean;
 }>();
+type CreateSeasonWorkflowPayload = {
+    terminateSeason: boolean
+    addNewSeason: NewSchoolSeason
+    promoteStudents: promoteStudentsMap | undefined
+}
 const emit = defineEmits<{
-    (e: 'terminate-season'): void;
-    (e: 'add-new-season'): void;
-    (e: 'promote-students'): void;
+    'create-season-workflow': (payload: CreateSeasonWorkflowPayload) => void
 }>()
 
 
