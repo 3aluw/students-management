@@ -1,7 +1,7 @@
 <template>
 
     <div class="card flex justify-center">
-        <Stepper value="1" linear class="basis-[50rem]">
+        <Stepper value="2" linear class="w-4/5 sm:w-[40rem] ">
             <StepList>
                 <Step value="1">بيانات الموسم</Step>
                 <Step value="2">الطلاب</Step>
@@ -35,10 +35,17 @@
 
                 <!-- Step 2 : If chosen to promote students, show a form to students' classes and their new grades -->
                 <StepPanel v-slot="{ activateCallback }" value="2">
-                    <div class="flex flex-col h-48">
-                        <div
-                            class="border-2 border-dashed border-surface-200 dark:border-surface-700 rounded bg-surface-50 dark:bg-surface-950 flex-auto flex justify-center items-center font-medium">
-                            Content III</div>
+                    <div class="flex flex-col">
+                        <div>
+                            <p class="text-lg font-bold">نقل التلاميذ بصفة آلية</p>
+                            <div class="flex items-center">
+                                <Checkbox id="terminateCurrentSeasonCheckbox" v-model="terminateCurrentSeason" binary />
+                                <label for="terminateCurrentSeasonCheckbox" class="mr-2">
+                                    <p>هل ترغب في نقل التلاميذ إلى القسم التالي؟</p>
+                                </label>
+                            </div>
+                        </div>
+                        <StudentsPromotionForm />
                     </div>
                     <div class="pt-6">
                         <Button label="العودة" severity="secondary" iconPos="right" icon="pi pi-arrow-right"
