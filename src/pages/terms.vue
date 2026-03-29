@@ -82,10 +82,9 @@ const nodes = computed(() => mapSeasonsToTree(clientStore.seasons));
 
 /* New season logic */
 const isLastSeasonCurrent = computed(() => {
-  const now = new Date().getTime()
-  const lastSeason = clientStore.seasons.at(-1)
-  const leastSeasonFormattedDates = lastSeason ? getSeasonStartAndEndDates(lastSeason) : undefined
-  return !leastSeasonFormattedDates || (leastSeasonFormattedDates.endDate > now && leastSeasonFormattedDates.startDate < now)
+const lastNode = nodes.value.at(-1);
+const isLastSeasonCurrent = lastNode?.data.status === "current";
+return isLastSeasonCurrent
 })
 
 const terminateSeason = (season: SchoolSeason) => {
