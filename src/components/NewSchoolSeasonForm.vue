@@ -1,7 +1,8 @@
 <template>
 
     <div class="card flex justify-center">
-        <Stepper value="2" linear class="w-4/5 sm:w-[40rem] ">
+
+        <Stepper value="2" linear class="w-4/5 sm:w-[40rem]">
             <StepList>
                 <Step value="1">بيانات الموسم</Step>
                 <Step value="2">الطلاب</Step>
@@ -11,12 +12,13 @@
                 <StepPanel v-slot="{ activateCallback }" value="1">
                     <div class="flex flex-col gap-4">
                         <div v-show="props.isLastSeasonCurrent">
-                            <p class="text-lg font-bold">الموسم الدراسي الحالي مازال مستمرا</p>
                             <div class="flex items-center" v-tooltip="terminateCurrentSeasonTooltipText">
-                                <Checkbox id="terminateCurrentSeasonCheckbox" v-model="terminateCurrentSeason" binary />
-                                <label for="terminateCurrentSeasonCheckbox" class="mr-2">
-                                    <p>هل ترغب في إنهاء الموسم الدراسي الحالي قبل إضافة موسم دراسي جديد؟</p>
+                                <label for="terminateCurrentSeasonCheckbox">
+                                    <p class="text-lg font-bold">إنهاء الموسم الدراسي الحالي</p>
                                 </label>
+                                <ToggleSwitch class="mx-4" id="terminateCurrentSeasonCheckbox"
+                                    v-model="seasonTerminationActive" binary />
+
                             </div>
                         </div>
                         <div>
@@ -37,15 +39,17 @@
                 <StepPanel v-slot="{ activateCallback }" value="2">
                     <div class="flex flex-col">
                         <div>
-                            <p class="text-lg font-bold">نقل التلاميذ بصفة آلية</p>
-                            <div class="flex items-center">
-                                <Checkbox id="terminateCurrentSeasonCheckbox" v-model="terminateCurrentSeason" binary />
-                                <label for="terminateCurrentSeasonCheckbox" class="mr-2">
-                                    <p>هل ترغب في نقل التلاميذ إلى القسم التالي؟</p>
+                            <div class="flex items-center" v-tooltip="'سيسمح لك بمعالجة الراسبين لاحقا'">
+                                <label for="terminateCurrentSeasonCheckbox" class="mr">
+                                    <p class="text-lg font-bold">نقل الطلبة بصفة آلية</p>
                                 </label>
+                                <ToggleSwitch class="mx-4" id="terminateCurrentSeasonCheckbox"
+                                    v-model="studentPromotionActive" binary />
                             </div>
                         </div>
-                        <StudentsPromotionForm />
+                        <div :class="{'students-promotion-form' : !studentPromotionActive}">
+                        <StudentsPromotionForm  />
+                        </div>
                     </div>
                     <div class="pt-6">
                         <Button label="العودة" severity="secondary" iconPos="right" icon="pi pi-arrow-right"
@@ -73,8 +77,8 @@ const emit = defineEmits<{
 
 
 /*Step 1 logic */
-const terminateCurrentSeason = ref(false)
-const terminateCurrentSeasonTooltipText = computed(() => `تحديد اليوم(${useDateFormat(new Date(), 'YYYY-MM-DD', { locales: 'ar-SA' }).value}) كآخر يوم للموسم الحالي `)
+const seasonTerminationActive = ref(false)
+const terminateCurrentSeasonTooltipText = computed(() => `تحديد اليوم (${useDateFormat(new Date(), 'YYYY-MM-DD', { locales: 'ar-SA' }).value}) كآخر يوم للموسم الحالي `)
 const newSeasonData = ref<NewSchoolSeason | null>(null)
 const newSeason: NewSchoolSeason = {   // passed as a prop to the edit season form
     name: "",
@@ -109,5 +113,13 @@ const handleStepOneNextClick = async (formActivateCallback: (value: string | num
     formActivateCallback('2')
 }
 /*Step 2 logic */
-const promoteStudents = ref(false)
+const studentPromotionActive = ref(false)  // whether the user wants to promote students or not; used in the final emitted payload
 </script>
+
+<style scoped>
+.students-promotion-form {
+    pointer-events: none;
+    filter: blur(0.5px);
+    opacity: 0.7;
+}
+</style>
