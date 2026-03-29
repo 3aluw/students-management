@@ -135,3 +135,7 @@ export const userFeedbackMessages = {
     deleteFailed: "حدث خطأ أثناء حذف التأخر",
   },
 };
+export const toGraduateClass: Pick<Class, 'section' | 'id'> = {
+  id : -1,
+  section: 'المتخرجون'
+}
