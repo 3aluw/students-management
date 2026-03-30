@@ -1,6 +1,6 @@
 <template>
     <div>
-        <div class="card">
+
 
             <slot name="toolbar">
                 <!-- Toolbar button goes here -->
@@ -15,7 +15,7 @@
                 <template #header>
                     <div class="flex flex-wrap gap-2 items-center justify-between">
                         <div class="flex gap-4">
-                            <h4 class="m-0">قائمة الطلبة</h4>
+                            <h4 class="m-0">{{ props.settings.tableTitle || 'قائمة الطلبة' }}</h4>
                             <Select name="class_id" :options="studentStore.classOptions" optionLabel="label"
                                 optionValue="value" placeholder="اختر الصف" @update:modelValue="changeClass"
                                 v-model="studentStore.selectedClassId" v-show="!props.globalSearchValue.length" />
@@ -44,9 +44,9 @@
                         <p>{{ slotProps.data.father_name + " بن " + slotProps.data.grandfather_name }}</p>
                     </template>
                 </Column>
-                <Column field="phone_number" header="رقم الهاتف" style="min-width: 5rem"></Column>
-                <Column field="address" header="العنوان" style="min-width: 16rem"></Column>
-                <Column header="القسم" v-show="props.globalSearchValue.length">
+                <Column v-if="!props.settings.columnsToHide?.includes('phone_number')" field="phone_number" header="رقم الهاتف" style="min-width: 5rem"></Column>
+                <Column v-if="!props.settings.columnsToHide?.includes('address')"field="address" header="العنوان" style="min-width: 16rem"></Column>
+                <Column v-if="!props.settings.columnsToHide?.includes('class')" header="القسم" v-show="props.globalSearchValue.length">
                     <template #body="slotProps: DataTableSlot<Student>">
                         <p>{{studentStore.classOptions.find((classObj) => classObj.value ===
                             slotProps.data.class_id)?.label}}</p>
@@ -57,24 +57,24 @@
                 </template>
             </DataTable>
         </div>
-    </div>
 </template>
 <script setup lang="ts">
 import { FilterMatchMode } from '@primevue/core/api';
-import { useToast } from 'primevue/usetoast';
-import type { Student, DataTableSlot, NewStudent, BatchEditStudent } from '~/data/types'
-import { userFeedbackMessages, } from '~/data/static';
+import type { Student, DataTableSlot, } from '~/data/types'
 import { useStudentStore } from '~/store/studentStore';
 const studentStore = useStudentStore();
 
 type tableSettings = {
     clearSelectionOnClassChange: boolean
+    tableTitle?: string
+    columnsToHide?: ('phone_number' | 'address' | 'class')[]
 }
 const props = defineProps<{
     settings: tableSettings
     globalSearchValue: string
 }>()
 const selectedStudents = defineModel<Student[]> ()
+
 //table logic
 const dt = ref(); //dataTable Ref
 const filters = ref({
