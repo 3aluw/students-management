@@ -5,7 +5,7 @@
         <Stepper value="2" linear class="w-4/5 sm:w-[40rem]">
             <StepList>
                 <Step value="1">بيانات الموسم</Step>
-                <Step value="2">الطلاب</Step>
+                <Step value="2" v-if="seasonTerminationActive">الطلاب</Step>
             </StepList>
             <StepPanels>
                 <!-- Step 1 : add season data -->
@@ -30,13 +30,12 @@
                     <div class="flex pt-12 justify-between">
                         <Button label="العودة" severity="secondary" iconPos="right" icon="pi pi-arrow-right"
                             @click="activateCallback('1')" />
-                        <Button label="التالي" icon="pi pi-arrow-left"
-                            @click="handleStepOneNextClick(activateCallback)" />
+                        <Button label="التالي" icon="pi pi-arrow-left" @click="nextStepClick(1, activateCallback)" />
                     </div>
                 </StepPanel>
 
                 <!-- Step 2 : If chosen to promote students, show a form to students' classes and their new grades -->
-                <StepPanel v-slot="{ activateCallback }" value="2">
+                <StepPanel v-slot="{ activateCallback }" value="2" v-if="seasonTerminationActive">
                     <div class="flex flex-col">
                         <div>
                             <div class="flex items-center" v-tooltip="'سيسمح لك بمعالجة الراسبين لاحقا'">
@@ -47,13 +46,14 @@
                                     v-model="studentPromotionActive" binary />
                             </div>
                         </div>
-                        <div :class="{'students-promotion-form' : !studentPromotionActive}">
-                        <StudentsPromotionForm  />
+                        <div :class="{ 'students-promotion-form': !studentPromotionActive }">
+                            <StudentsPromotionForm ref="studentPromotionFormRef" />
                         </div>
                     </div>
-                    <div class="pt-6">
+                    <div class="flex pt-6 justify-between">
                         <Button label="العودة" severity="secondary" iconPos="right" icon="pi pi-arrow-right"
                             @click="activateCallback('1')" />
+                        <Button label="التالي" icon="pi pi-arrow-left" @click="nextStepClick(2, activateCallback)" />
                     </div>
                 </StepPanel>
             </StepPanels>
@@ -61,15 +61,20 @@
     </div>
 </template>
 <script setup lang="ts">
-import type { NewSchoolSeason, promoteStudentsMap } from '~/data/types';
-/*A props used to suggest current season termination to the user */
+import type { NewSchoolSeason, PromoteStudentsMap } from '~/data/types';
+/*A prop used to suggest current season termination to the user */
 const props = defineProps<{
     isLastSeasonCurrent: boolean;
 }>();
+
+const newSeasonData = ref<NewSchoolSeason | null>(null)
+const studentsPromotionObject = ref<PromoteStudentsMap | null>(null)
+
+
 type CreateSeasonWorkflowPayload = {
     terminateSeason: boolean
     addNewSeason: NewSchoolSeason
-    promoteStudents: promoteStudentsMap | undefined
+    promoteStudents: PromoteStudentsMap | undefined
 }
 const emit = defineEmits<{
     'create-season-workflow': (payload: CreateSeasonWorkflowPayload) => void
@@ -77,9 +82,9 @@ const emit = defineEmits<{
 
 
 /*Step 1 logic */
-const seasonTerminationActive = ref(false)
+const seasonTerminationActive = ref(true)
 const terminateCurrentSeasonTooltipText = computed(() => `تحديد اليوم (${useDateFormat(new Date(), 'YYYY-MM-DD', { locales: 'ar-SA' }).value}) كآخر يوم للموسم الحالي `)
-const newSeasonData = ref<NewSchoolSeason | null>(null)
+
 const newSeason: NewSchoolSeason = {   // passed as a prop to the edit season form
     name: "",
     terms: [{
@@ -88,6 +93,7 @@ const newSeason: NewSchoolSeason = {   // passed as a prop to the edit season fo
         endDate: new Date().getTime(),
     }]
 }
+// on Next press in step 1, it will submit the form in the edit season form component using the exposed function submitForm.
 let resolveSeason: ((v: NewSchoolSeason | undefined) => void) | null = null
 const seasonFormRef = ref<null | { submitForm: () => void }>(null)  // A ref to edit season form; used to call the exposed function : submitForm
 
@@ -97,7 +103,6 @@ const getSeasonData = () =>    // returns a Promise that will be resolved later 
         seasonFormRef.value?.submitForm()
     })
 
-
 const handleNewSeasonValues = (...args: [valid: false] | [valid: true, season: NewSchoolSeason]) => { //emit will run this function; and it will resolve the promise
     if (args.length === 1 && args[0] === false) { // in case of invalid form
         resolveSeason?.(undefined)
@@ -106,14 +111,24 @@ const handleNewSeasonValues = (...args: [valid: false] | [valid: true, season: N
         resolveSeason?.(season)
     }
 }
-const handleStepOneNextClick = async (formActivateCallback: (value: string | number) => void) => { //runs when the user clicks next btn; if the form is valid proceed to 2nd step 
-    const season = await getSeasonData()
-    if (!season) return;
-    newSeasonData.value = season;
-    formActivateCallback('2')
+
+const nextStepClick = async (step: number, formActivateCallback: (value: string | number) => void) => {
+    if (step === 1) {
+        const season = await getSeasonData()
+        if (!season) return;
+        newSeasonData.value = season;
+    }
+    if (step === 2) {
+        if (studentPromotionActive.value && allowStudentPromotion.value) {
+            studentsPromotionObject.value = studentPromotionFormRef.value?.promotionMapObject!
+        }
+    }
+    formActivateCallback((step + 1).toString())
 }
 /*Step 2 logic */
+const allowStudentPromotion = computed(() => seasonTerminationActive.value || !props.isLastSeasonCurrent)
 const studentPromotionActive = ref(false)  // whether the user wants to promote students or not; used in the final emitted payload
+const studentPromotionFormRef = ref<null | { promotionMapObject: Record<number, number> }>(null) // a ref to the students promotion component (used to get teh exposed data)
 </script>
 
 <style scoped>
