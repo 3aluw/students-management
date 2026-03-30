@@ -64,6 +64,7 @@ import type { Student, DataTableSlot, } from '~/data/types'
 import { useStudentStore } from '~/store/studentStore';
 const studentStore = useStudentStore();
 
+// ========== TABLE SETTINGS PASSED FROM PARENT ==========
 type tableSettings = {
     clearSelectionOnClassChange: boolean
     tableTitle?: string
@@ -73,27 +74,32 @@ const props = defineProps<{
     settings: tableSettings
     globalSearchValue: string
 }>()
+
+// ========== selectedStudents MODEL SHARED TO PARENT ==========
 const selectedStudents = defineModel<Student[]> ()
 
-//table logic
+// ========== TABLE REFERENCES & SEARCH FUNCTIONALITY==========
 const dt = ref(); //dataTable Ref
 const filters = ref({
     global: { value: null, matchMode: FilterMatchMode.CONTAINS }
 });
+
+// ========== TABLE DATA  ==========
+// SHOW STUDENTS BASED ON GLOBAL SEARCH 
 const studentsToShow = computed(() => props.globalSearchValue.trim().length ? studentStore.searchedStudents : studentStore.students)
+
+// CHANGE CLASS HANDLING
 const changeClass = (classId: number) => {
     if (props.settings.clearSelectionOnClassChange) selectedStudents.value = []
     studentStore.populateStudents(classId)
 }
-
 // global search logic
 watchDebounced(() => props.globalSearchValue, () => {
     studentStore.populateSearchedStudents(props.globalSearchValue)
 }, { debounce: 500, maxWait: 2000 },)
 
 
-
-// select students logic
+// reset selected students
 const resetSelectedStudents = () => { selectedStudents.value = [] }
 
 </script>
