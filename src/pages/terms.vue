@@ -42,6 +42,7 @@
         </template>
       </Column>
     </TreeTable>
+
     <Dialog header="حدد تفاصيل الموسم الدراسي" @hide="editSeasonProps = undefined"
       v-model:visible="showEditSeasonDialog" :modal="true">
       <EditSchoolSeasonForm v-if="editSeasonProps" :season="editSeasonProps?.season" :status="editSeasonProps?.status"
@@ -82,9 +83,9 @@ const nodes = computed(() => mapSeasonsToTree(clientStore.seasons));
 
 /* New season logic */
 const isLastSeasonCurrent = computed(() => {
-const lastNode = nodes.value.at(-1);
-const isLastSeasonCurrent = lastNode?.data.status === "current";
-return isLastSeasonCurrent
+  const lastNode = nodes.value.at(-1);
+  const isLastSeasonCurrent = lastNode?.data.status === "current";
+  return isLastSeasonCurrent
 })
 
 const terminateSeason = (season: SchoolSeason) => {

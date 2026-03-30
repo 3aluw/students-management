@@ -5,20 +5,20 @@
         <Stepper value="2" linear class="w-4/5 sm:w-[40rem]">
             <StepList>
                 <Step value="1">بيانات الموسم</Step>
-                <Step value="2" v-if="seasonTerminationActive">الطلاب</Step>
+                <Step value="2" v-if="seasonTerminationActive">الانتقال</Step>
+                <Step value="3" v-if="seasonTerminationActive && studentPromotionActive">الرسوب</Step>
             </StepList>
             <StepPanels>
                 <!-- Step 1 : add season data -->
                 <StepPanel v-slot="{ activateCallback }" value="1">
                     <div class="flex flex-col gap-4">
-                        <div v-show="props.isLastSeasonCurrent">
+                        <div class="my-2" v-show="props.isLastSeasonCurrent">
                             <div class="flex items-center" v-tooltip="terminateCurrentSeasonTooltipText">
                                 <label for="terminateCurrentSeasonCheckbox">
                                     <p class="text-lg font-bold">إنهاء الموسم الدراسي الحالي</p>
                                 </label>
                                 <ToggleSwitch class="mx-4" id="terminateCurrentSeasonCheckbox"
                                     v-model="seasonTerminationActive" binary />
-
                             </div>
                         </div>
                         <div>
@@ -57,6 +57,11 @@
                     </div>
                 </StepPanel>
             </StepPanels>
+
+            <!-- Step 3 : If the promotions map is there, pick students that won't get promoted (Repeaters)  -->
+            <StepPanel v-slot="{ activateCallback }" value="2" v-if="seasonTerminationActive">
+
+            </StepPanel>
         </Stepper>
     </div>
 </template>
