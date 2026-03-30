@@ -35,10 +35,13 @@
 <script setup lang="ts">
 import { useStudentStore } from '~/store/studentStore';
 import type { Student } from '~/data/types';
+const studentStore = useStudentStore();
+
+// ========== selectedStudents MODEL SHARED TO PARENT ==========
+const selectedStudents = defineModel<Student[]>()
+
 
 const displaySelectedStudentsDialog = ref(false);
-const studentStore = useStudentStore();
-const selectedStudents = defineModel<Student[]>()
 const deleteFromSelectedStudents = (studentId: number) => {
     if (!selectedStudents.value) return;
     selectedStudents.value = selectedStudents.value.filter((student) => student.id !== studentId)

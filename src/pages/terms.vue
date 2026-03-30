@@ -73,15 +73,21 @@ const clientStore = useClientStore();
 const showNewSeasonDialog = ref(false);
 const showEditSeasonDialog = ref(false);
 const editSeasonProps = ref<EditSeasonProps | undefined>(undefined);
-/* Season table logic */
+
+// ========== SEASONS TABLE LOGIC ==========
+
+// format season status badges
 const formatSeasonBadgeProps = (status: SeasonStatus) => {
   const value = ArabicSeasonStatus[status]
   const severity = status === 'current' ? 'success' : status === 'future' ? 'info' : 'secondary'
   return { value, severity }
 }
+// create node to populate on tree table
 const nodes = computed(() => mapSeasonsToTree(clientStore.seasons));
 
-/* New season logic */
+
+// ========== NEW SEASON LOGIC ==========
+
 const isLastSeasonCurrent = computed(() => {
   const lastNode = nodes.value.at(-1);
   const isLastSeasonCurrent = lastNode?.data.status === "current";
@@ -96,18 +102,19 @@ const terminateSeason = (season: SchoolSeason) => {
   const lastTerm = terms.at(-1)
   if (lastTerm) {
     lastTerm.endDate = new Date().setHours(24, 0, 0, 0)
-
   }
   return terms;
 }
 
-/* Edit season logic */
+// ========== EDIT SEASON LOGIC ==========
+//populate season props then open editing dialog
 const handleEditSeasonClick = (node: TreeNode) => {
   const status = node.data.status;
   const season = clientStore.seasons.find(s => s.id === node.data.id)!
   editSeasonProps.value = { season, status };
   showEditSeasonDialog.value = true;
 };
+// get past and future season to check for date collisions when editing a season
 const getSeasonWithNeighborsById = (season: SchoolSeason) => {
   const seasonId = season.id;
   const index = clientStore.seasons.findIndex(s => s.id === seasonId);

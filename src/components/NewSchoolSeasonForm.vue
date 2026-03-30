@@ -79,21 +79,26 @@ const props = defineProps<{
     isLastSeasonCurrent: boolean;
 }>();
 
+// ========== MAIN FORM REACTIVE REFERENCES ==========
 const newSeasonData = ref<NewSchoolSeason | null>(null)
 const studentsPromotionObject = ref<PromoteStudentsMap | null>(null)
+const repeaters = ref<Student[]>([])
 
-
-type CreateSeasonWorkflowPayload = {
-    terminateSeason: boolean
-    addNewSeason: NewSchoolSeason
+// ==========FORM EMIT==========
+type NewSeasonPayload = {
+    terminateCurrentSeason: boolean
+    newSeason: NewSchoolSeason
     promoteStudents: PromoteStudentsMap | undefined
+    repeaters: Student[] | undefined
 }
-const emit = defineEmits<{
-    'create-season-workflow': (payload: CreateSeasonWorkflowPayload) => void
+
+const emit= defineEmits<{
+    (e: 'create-season',payload: NewSeasonPayload) : void
 }>()
 
 
-/*Step 1 logic */
+// ========== FORM STEPS LOGIC ==========
+// Step 1 logic 
 const seasonTerminationActive = ref(true)
 const terminateCurrentSeasonTooltipText = computed(() => `تحديد اليوم (${useDateFormat(new Date(), 'YYYY-MM-DD', { locales: 'ar-SA' }).value}) كآخر يوم للموسم الحالي `)
 
@@ -123,21 +128,19 @@ const handleNewSeasonValues = (...args: [valid: false] | [valid: true, season: N
         resolveSeason?.(season)
     }
 }
-/*Step 2 logic */
+// Step 2 logic 
 const allowStudentPromotion = computed(() => seasonTerminationActive.value || !props.isLastSeasonCurrent)
 const studentPromotionActive = ref(false)  // whether the user wants to promote students or not; used in the final emitted payload
 const studentPromotionFormRef = ref<null | { promotionMapObject: Record<number, number> }>(null) // a ref to the students promotion component (used to get teh exposed data)
 
-/* Step 3 logic*/
-const repeaters = ref<Student[]>([])
-
+// ========== NEXT CLICK HANDLING ==========
 const nextStepClick = async (step: number, formActivateCallback: (value: string | number) => void) => {
     if (step === 1) {
         const season = await getSeasonData()
         if (!season) return;
         newSeasonData.value = season;
     }
-    if (step === 2) {
+    else if (step === 2) {
         if (studentPromotionActive.value && allowStudentPromotion.value) {
             studentsPromotionObject.value = studentPromotionFormRef.value?.promotionMapObject!
         }
