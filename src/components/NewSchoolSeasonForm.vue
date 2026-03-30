@@ -2,11 +2,11 @@
 
     <div class="card flex justify-center">
 
-        <Stepper value="2" linear class="w-4/5 sm:w-[40rem]">
+        <Stepper value="1" linear class="w-4/5 sm:w-[40rem]">
             <StepList>
                 <Step value="1">بيانات الموسم</Step>
-                <Step value="2" v-if="seasonTerminationActive">الانتقال</Step>
-                <Step value="3" v-if="seasonTerminationActive && studentPromotionActive">الرسوب</Step>
+                <Step value="2" v-show="seasonTerminationActive">الانتقال</Step>
+                <Step value="3" v-show="seasonTerminationActive && studentPromotionActive">الرسوب</Step>
             </StepList>
             <StepPanels>
                 <!-- Step 1 : add season data -->
@@ -59,14 +59,21 @@
             </StepPanels>
 
             <!-- Step 3 : If the promotions map is there, pick students that won't get promoted (Repeaters)  -->
-            <StepPanel v-slot="{ activateCallback }" value="2" v-if="seasonTerminationActive">
-
+            <StepPanel v-slot="{ activateCallback }" value="3" v-if="seasonTerminationActive && studentPromotionActive">
+                <div class="flex flex-col">
+                    <RepeatersTablePick v-model="repeaters" />
+                </div>
+                <div class="flex pt-6 justify-between">
+                    <Button label="العودة" severity="secondary" iconPos="right" icon="pi pi-arrow-right"
+                        @click="activateCallback('2')" />
+                    <Button label="إنهاء" icon="pi pi-arrow-left" @click="nextStepClick(3, activateCallback)" />
+                </div>
             </StepPanel>
         </Stepper>
     </div>
 </template>
 <script setup lang="ts">
-import type { NewSchoolSeason, PromoteStudentsMap } from '~/data/types';
+import type { NewSchoolSeason, PromoteStudentsMap, Student } from '~/data/types';
 /*A prop used to suggest current season termination to the user */
 const props = defineProps<{
     isLastSeasonCurrent: boolean;
@@ -116,6 +123,13 @@ const handleNewSeasonValues = (...args: [valid: false] | [valid: true, season: N
         resolveSeason?.(season)
     }
 }
+/*Step 2 logic */
+const allowStudentPromotion = computed(() => seasonTerminationActive.value || !props.isLastSeasonCurrent)
+const studentPromotionActive = ref(false)  // whether the user wants to promote students or not; used in the final emitted payload
+const studentPromotionFormRef = ref<null | { promotionMapObject: Record<number, number> }>(null) // a ref to the students promotion component (used to get teh exposed data)
+
+/* Step 3 logic*/
+const repeaters = ref<Student[]>([])
 
 const nextStepClick = async (step: number, formActivateCallback: (value: string | number) => void) => {
     if (step === 1) {
@@ -130,10 +144,6 @@ const nextStepClick = async (step: number, formActivateCallback: (value: string 
     }
     formActivateCallback((step + 1).toString())
 }
-/*Step 2 logic */
-const allowStudentPromotion = computed(() => seasonTerminationActive.value || !props.isLastSeasonCurrent)
-const studentPromotionActive = ref(false)  // whether the user wants to promote students or not; used in the final emitted payload
-const studentPromotionFormRef = ref<null | { promotionMapObject: Record<number, number> }>(null) // a ref to the students promotion component (used to get teh exposed data)
 </script>
 
 <style scoped>
