@@ -1,7 +1,7 @@
 <template>
     <div class="card flex flex-col items-center gap-5">
         <Toast />
-        <Form v-if="props.entityType == 'student'" :initialValues="props.entityObject" v-slot="$form" :resolver="resolver" @submit="onFormSubmit"
+        <Form v-if="props.entityType == 'student'" :initialValues="formattedStudentObject" v-slot="$form" :resolver="resolver" @submit="onFormSubmit"
             class="flex flex-col gap-4 w-full sm:w-80"> 
             <!-- First Name -->
             <div class="flex flex-col gap-1">
@@ -135,6 +135,13 @@ const props = defineProps<{
     entityType: T;
     entityObject?: Entity<T>
 }>()
+
+const formattedStudentObject = computed(() => {
+    if (props.entityType === 'student') {
+        const studentObj = props.entityObject as Student
+        return { ...studentObj, birth_date: new Date(studentObj.birth_date) }
+    }
+})
 
 const emit= defineEmits<{
     (e: 'submit', obj:  newEntity<T>): void;

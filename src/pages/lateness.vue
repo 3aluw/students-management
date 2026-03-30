@@ -58,7 +58,7 @@
         </div>
         <Dialog header="أدخل معلومات التأخر" @hide="latenessToEdit = undefined" v-model:visible="showLatenessDialog"
             :style="{ width: '350px' }" :modal="true">
-            <UtilsEventForm eventType="lateness" :entityObject="latenessToEdit" @submit="handleLatenessSubmit" />
+            <UtilsEventForm eventType="lateness" :entityObject="latenessToEdit!" @submit="handleLatenessSubmit" />
         </Dialog>
         <UtilsConfirmDialog header="حذف الغياب" :danger="true" v-model="useDeleteConfirm.showConfirm.value"
             @confirm="useDeleteConfirm.confirmAction" />
@@ -125,6 +125,7 @@ const handleLatenessSubmit = async (latenessInfo: LatenessInfo) => {
 
 const handleEditClick = () => {
     const lateness = selectedLateness.value[0] // pass the first selected lateness
+    if (!lateness) return;
     latenessToEdit.value = {
         date: lateness.date,
         reason: lateness.reason,
