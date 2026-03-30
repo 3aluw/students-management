@@ -142,6 +142,14 @@ const nextStepClick = async (step: number, formActivateCallback: (value: string 
             studentsPromotionObject.value = studentPromotionFormRef.value?.promotionMapObject!
         }
     }
+    else if (step === 3) {
+        emit('create-season', {
+            terminateCurrentSeason: seasonTerminationActive.value,
+            newSeason: newSeasonData.value!,
+            promoteStudents: studentsPromotionObject.value!,
+            repeaters: repeaters.value.length > 0 ? repeaters.value : undefined
+        })
+    }
     formActivateCallback((step + 1).toString())
 }
 </script>
