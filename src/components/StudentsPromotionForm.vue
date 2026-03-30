@@ -5,21 +5,22 @@
   </div>
   <div class="flex gap-8 my-2 items-center " v-for="classObj in studentStore.classOptions">
     <span class="whitespace-nowrap w-1/3">{{ classObj.label }}</span>
-    <Select  :options="classesWithGraduationClass" optionLabel="label" optionValue="value"
+    <Select :options="classesWithGraduationClass" optionLabel="label" optionValue="value"
       v-model="promotionMapObject[classObj.value]" placeholder="اختر الصف" fluid />
   </div>
 
 </template>
 <script setup lang="ts">
-import type { Class } from '~/data/types';
+import type { Class, PromoteStudentsMap } from '~/data/types';
 import { useStudentStore } from '~/store/studentStore';
 import { toGraduateClass } from '~/data/static';
 const studentStore = useStudentStore()
 
-
 const classesWithGraduationClass = computed(() => {
   return [...studentStore.classOptions, { id: toGraduateClass.id, label: toGraduateClass.section, value: toGraduateClass.id }];
 });
+
+
 
 
 const createPromotionMap = (classes: Class[]) => {
@@ -32,7 +33,7 @@ const createPromotionMap = (classes: Class[]) => {
     classesByGrade.get(c.grade)!.push(c);
   }
 
-  const promotionObject: Record<number, number> = {};
+  const promotionObject: PromoteStudentsMap = {};
   //iterate over each class and find a class in the next grade to promote to
   for (const currentClass of classes) {
     let promoteToClassId: number;
@@ -57,5 +58,6 @@ const createPromotionMap = (classes: Class[]) => {
 };
 
 const promotionMapObject = createPromotionMap(studentStore.classes);
+defineExpose({ promotionMapObject })
 
 </script>

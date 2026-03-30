@@ -134,6 +134,4 @@ export type PlaygroundSettings = {
   reasonAcceptedByDefault: 0 | 1;
 };
 
-export type promoteStudentsMap = {
-  [ket: number]: number;
-};
+export type PromoteStudentsMap = Record<number, number>
