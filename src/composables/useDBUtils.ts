@@ -1,12 +1,14 @@
 import type { EventQueryFilters } from "~/data/types";
 
 export default function () {
+
   const generateDBSetClause = <T extends Object>(object: T) => {
     // fields is an object like { name: 'Alice', age: 30, status: 'active' }
     const keys = Object.keys(object) as (keyof object)[];
     // Create "col1 = ?, col2 = ?, ..." for the SQL
     return keys.map((key) => `${key} = ?`).join(", ");
   };
+  
   const generateDBInClause = (num: number) => Array(num).fill("?").join(",");
 
   const buildWhereQuery = <T extends EventQueryFilters>(
