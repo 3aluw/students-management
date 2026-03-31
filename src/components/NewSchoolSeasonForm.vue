@@ -73,7 +73,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import type { NewSchoolSeason, PromoteStudentsMap, Student } from '~/data/types';
+import type { NewSchoolSeason, NewSeasonPayload, PromoteStudentsMap, Student } from '~/data/types';
 /*A prop used to suggest current season termination to the user */
 const props = defineProps<{
     isLastSeasonCurrent: boolean;
@@ -85,12 +85,6 @@ const studentsPromotionObject = ref<PromoteStudentsMap | null>(null)
 const repeaters = ref<Student[]>([])
 
 // ==========FORM EMIT==========
-type NewSeasonPayload = {
-    terminateCurrentSeason: boolean
-    newSeason: NewSchoolSeason
-    promoteStudents: PromoteStudentsMap | undefined
-    repeaters: Student[] | undefined
-}
 
 const emit= defineEmits<{
     (e: 'create-season',payload: NewSeasonPayload) : void

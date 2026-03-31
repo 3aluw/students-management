@@ -50,12 +50,12 @@
     </Dialog>
 
     <Dialog class="max-w-128" header="موسم دراسي جديد" v-model:visible="showNewSeasonDialog" :modal="true">
-      <NewSchoolSeasonForm :isLastSeasonCurrent />
+      <NewSchoolSeasonForm :isLastSeasonCurrent @create-season="handleSeasonCreation" />
     </Dialog>
   </div>
 </template>
 <script setup lang="ts">
-import type { SchoolSeason, SeasonStatus } from '~/data/types';
+import type { NewSeasonPayload, SchoolSeason, SeasonStatus } from '~/data/types';
 import type { TreeNode } from 'primevue/treenode';
 import { useClientStore } from '~/store/clientStore';
 import { ArabicSeasonStatus } from '~/data/static';
@@ -87,12 +87,12 @@ const nodes = computed(() => mapSeasonsToTree(clientStore.seasons));
 
 
 // ========== NEW SEASON LOGIC ==========
-
-const isLastSeasonCurrent = computed(() => {
+const lastSeasonStatus = computed(() => {
   const lastNode = nodes.value.at(-1);
-  const isLastSeasonCurrent = lastNode?.data.status === "current";
-  return isLastSeasonCurrent
+  const lastSeasonStatus = lastNode?.data.status;
+  return lastSeasonStatus
 })
+const isLastSeasonCurrent = computed(() => lastSeasonStatus.value === 'current')
 
 const terminateSeason = (season: SchoolSeason) => {
   if (!season) return;
@@ -105,7 +105,14 @@ const terminateSeason = (season: SchoolSeason) => {
   }
   return terms;
 }
+const handleSeasonCreation = (payload: NewSeasonPayload) => {
+  if (lastSeasonStatus.value == 'future') {
+    toast.add({ severity: 'error', summary: 'خطأ في إنشاء الموسم الدراسي', detail: 'لا يمكنك إنشاء موسم دراسي جديد طالما أن هناك موسم مستقبلي موجود. يرجى حذفه قبل إنشاء موسم جديد.', life: 7000 });
+    return;
+  }
+  const { terminateCurrentSeason, newSeason, promoteStudents, repeaters } = payload
 
+}
 // ========== EDIT SEASON LOGIC ==========
 //populate season props then open editing dialog
 const handleEditSeasonClick = (node: TreeNode) => {
