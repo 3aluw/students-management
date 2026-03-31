@@ -27,6 +27,7 @@ export interface Class {
 export interface Student {
   id: number; // PRIMARY KEY AUTOINCREMENT
   class_id: number; // FOREIGN KEY -> class.id (nullable)
+  status : StudentStatus; // CHECK (status IN ('active', 'graduated', 'dropped', 'transferred')) DEFAULTS TO active
   first_name: string; // TEXT NOT NULL
   last_name: string; // TEXT NOT NULL
   father_name: string; // TEXT NOT NULL
@@ -109,6 +110,7 @@ export type LocalLateness = Lateness & {
 export type EventTypes = "lateness" | "absence";
 export type Gender = "M" | "F";
 export type SchoolLevel = "primary" | "middle" | "high";
+export type StudentStatus = 'active' | 'graduated' | 'dropped' | 'transferred'
 export type SeasonStatus = "past" | "current" | "future";
 export type SupportedDateRanges =
   | "today"

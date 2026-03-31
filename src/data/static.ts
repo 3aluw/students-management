@@ -43,6 +43,7 @@ export const sqliteBoolean = [
 ];
 export const ArabicStudentProperties: Record<keyof Student, string> = {
   id: "المعرف",
+  status: "الحالة",
   first_name: "الاسم",
   last_name: "اللقب",
   father_name: "اسم الأب",
