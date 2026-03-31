@@ -95,7 +95,6 @@ const lastSeasonStatus = computed(() => {
 const isLastSeasonCurrent = computed(() => lastSeasonStatus.value === 'current')
 
 const terminateSeason = (season: SchoolSeason) => {
-  if (!season) return;
   let { terms } = season
   const now = new Date().getTime();
   terms = terms.filter((term) => term.startDate < now)
