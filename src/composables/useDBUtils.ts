@@ -50,11 +50,11 @@ export default function () {
     return { where, params };
   };
 
-// ========== INTERNAL: takes an array and returns a SQL values list : (1),(2),... ==========
+  // ========== INTERNAL: takes an array and returns a SQL values list : (1),(2),... ==========
   const toSqlValuesList = (values: ([string, number] | number)[]) =>
     values.map((value) => `(${value})`).join(",");
 
-// ========== generates SQL values for a CTE while taking into account empty CTEs ==========
+  // ========== generates SQL values for a CTE while taking into account empty CTEs ==========
   const generateSqlCTEValues = (
     values: ([string, number] | number)[],
     columnsCount: number,
@@ -66,10 +66,31 @@ export default function () {
     }
   };
 
+  // ========== Handle multi steps workflow and its error handling ==========
+
+  class StepError extends Error {
+    constructor(
+      public step: string,
+      public originalError: any,
+    ) {
+      super(`Step failed: ${step}`, { cause: originalError });
+    }
+  }
+
+  function runSteps(steps: { name: string; run: () => void }[]) {
+    for (const step of steps) {
+      try {
+        step.run();
+      } catch (err) {
+        throw new StepError(step.name, err);
+      }
+    }
+  }
   return {
     generateDBSetClause,
     generateDBInClause,
     buildWhereQuery,
-    generateSqlCTEValues
+    generateSqlCTEValues,
+    runSteps,
   };
 }
