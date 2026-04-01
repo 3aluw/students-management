@@ -137,11 +137,11 @@ export type PlaygroundSettings = {
 };
 
 // ========== SEASONS TYPES ==========
-export type PromoteStudentsMap = Record<number, number>;
+export type ClassPromotionMap = Record<number, number>;
 
 export type NewSeasonPayload = {
   terminateCurrentSeason: boolean;
   newSeason: NewSchoolSeason;
-  promoteStudents: PromoteStudentsMap | undefined;
-  repeaters: Student[] | undefined;
+  classPromotionMap: ClassPromotionMap 
+  repeaters: Student[] ;
 };

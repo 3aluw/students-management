@@ -73,7 +73,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import type { NewSchoolSeason, NewSeasonPayload, PromoteStudentsMap, Student } from '~/data/types';
+import type { NewSchoolSeason, NewSeasonPayload, ClassPromotionMap, Student } from '~/data/types';
 /*A prop used to suggest current season termination to the user */
 const props = defineProps<{
     isLastSeasonCurrent: boolean;
@@ -81,7 +81,7 @@ const props = defineProps<{
 
 // ========== MAIN FORM REACTIVE REFERENCES ==========
 const newSeasonData = ref<NewSchoolSeason | null>(null)
-const studentsPromotionObject = ref<PromoteStudentsMap | null>(null)
+const studentsPromotionObject = ref<ClassPromotionMap>([])
 const repeaters = ref<Student[]>([])
 
 // ==========FORM EMIT==========
@@ -143,8 +143,8 @@ const nextStepClick = async (step: number, formActivateCallback: (value: string 
         emit('create-season', {
             terminateCurrentSeason: seasonTerminationActive.value,
             newSeason: newSeasonData.value!,
-            promoteStudents: studentsPromotionObject.value!,
-            repeaters: repeaters.value.length > 0 ? repeaters.value : undefined
+            classPromotionMap: studentsPromotionObject.value,
+            repeaters: repeaters.value.length > 0 ? repeaters.value : []
         })
     }
     formActivateCallback((step + 1).toString())

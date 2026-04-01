@@ -11,7 +11,7 @@
 
 </template>
 <script setup lang="ts">
-import type { Class, PromoteStudentsMap } from '~/data/types';
+import type { Class, ClassPromotionMap } from '~/data/types';
 import { useStudentStore } from '~/store/studentStore';
 import { toGraduateClass } from '~/data/static';
 const studentStore = useStudentStore()
@@ -33,7 +33,7 @@ const createPromotionMap = (classes: Class[]) => {
     classesByGrade.get(c.grade)!.push(c);
   }
 
-  const promotionObject: PromoteStudentsMap = {};
+  const promotionObject: ClassPromotionMap = {};
   //iterate over each class and find a class in the next grade to promote to
   for (const currentClass of classes) {
     let promoteToClassId: number;

@@ -1,12 +1,12 @@
 import useDBUtils from "~/composables/useDBUtils";
-import { PromoteStudentsMap } from "~/data/types";
+import { ClassPromotionMap } from "~/data/types";
 import db from "~/db/db";
 
 const { generateSqlCTEValues } = useDBUtils();
 
-export const seasonRepo = {
+export const studentRepo = {
   async handlesStudentsPromotion(
-    promotionMap: PromoteStudentsMap,
+    promotionMap: ClassPromotionMap,
     repeatersIds: number[],
   ) {
     // promote students while ignoring the repeaters & managing the graduating ones
@@ -15,7 +15,10 @@ export const seasonRepo = {
     const graduatingClassIds = Object.entries(promotionMap)
       .filter(([from, to]) => to === -1)
       .map(([from, to]) => Number(from));
-    const formattedGraduatingClassIds = generateSqlCTEValues(graduatingClassIds, 1);
+    const formattedGraduatingClassIds = generateSqlCTEValues(
+      graduatingClassIds,
+      1,
+    );
 
     // get pure promotion map (without graduating classes) then write them in this sql syntax  (1, 4)
     const purePromotionMap = Object.entries(promotionMap).filter(
@@ -64,6 +67,6 @@ WHERE
 
 COMMIT;
 `;
-     db.exec(sql);
+    db.exec(sql);
   },
 };
