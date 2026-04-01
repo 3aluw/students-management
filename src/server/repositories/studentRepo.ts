@@ -28,8 +28,9 @@ export const studentRepo = {
 
     //transform the repeater ids to this syntax (101), (205), (309)for sql query
     const formattedRepeatersIds = generateSqlCTEValues(repeatersIds, 1);
-
-    const sql = `
+    
+    try {
+      const sql = `
 WITH 
 graduatingClassIds(class_id) AS (
   VALUES ${formattedGraduatingClassIds}
@@ -64,6 +65,10 @@ WHERE
   OR class_id IN (SELECT class_id FROM graduatingClassIds)
   OR class_id IN (SELECT from_class_id FROM promotion_map);
 `;
-    db.exec(sql);
+      db.exec(sql);
+    } catch (error) {
+      console.error("Error creating season:", error);
+      throw new Error("فشلت عملية ترقية الطلبة", { cause: error });
+    }
   },
 };

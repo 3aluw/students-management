@@ -49,11 +49,7 @@ export const seasonRepo = {
       return { success: true, id: info.lastInsertRowid, info };
     } catch (error) {
       console.error("Error creating season:", error);
-      createError({
-        statusCode: 500,
-        statusMessage: "Error creating season",
-        data: error,
-      });
+     throw new Error("فشلت عملية تعديل الموسم ", { cause: error });
     }
   },
 
@@ -69,11 +65,7 @@ export const seasonRepo = {
       return { success: true, id: info.lastInsertRowid, info };
     } catch (error) {
       console.error("Error creating season:", error);
-      createError({
-        statusCode: 500,
-        statusMessage: "Error creating season",
-        data: error,
-      });
+     throw new Error("فشلت عملية إنشاء الموسم الجديد", { cause: error });
     }
   },
 };
