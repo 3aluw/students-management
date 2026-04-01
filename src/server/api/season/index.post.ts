@@ -6,7 +6,7 @@ import type {
 import db from "~/db/db";
 import useDBUtils from "../../../composables/useDBUtils";
 import { seasonRepo } from "~/server/repositories/seasonRepo";
-
+import { seasonService } from "~/server/services/seasonService";
 export default defineEventHandler(async (event) => {
   const { generateDBSetClause } = useDBUtils();
 
@@ -14,13 +14,7 @@ export default defineEventHandler(async (event) => {
 
   // if no id : Create a new item
   if (!("id" in reqBody)) {
-    const { terminateCurrentSeason, newSeason, promoteStudents, repeaters } =
-      reqBody;
-    const stmt = db.prepare(
-      "INSERT INTO class (grade, school_level,section) VALUES (?, ?, ?)",
-    );
-    const info = stmt.run(grade, school_level, section);
-    return { success: true, id: info.lastInsertRowid, info };
+    seasonService.runNewSeasonWorkflow(reqBody);
   } // if id : item exists So update it
   else {
     seasonRepo.editSeason(reqBody);
