@@ -2,9 +2,10 @@ import useDBUtils from "~/composables/useDBUtils";
 import { PromoteStudentsMap } from "~/data/types";
 import db from "~/db/db";
 
-const { toSqlValuesList } = useDBUtils();
+const { generateSqlCTEValues } = useDBUtils();
+
 export const seasonRepo = {
-  async promoteStudents(
+  async handlesStudentsPromotion(
     promotionMap: PromoteStudentsMap,
     repeatersIds: number[],
   ) {
@@ -14,16 +15,16 @@ export const seasonRepo = {
     const graduatingClassIds = Object.entries(promotionMap)
       .filter(([from, to]) => to === -1)
       .map(([from, to]) => Number(from));
-    const formattedGraduatingClassIds = toSqlValuesList(graduatingClassIds);
+    const formattedGraduatingClassIds = generateSqlCTEValues(graduatingClassIds, 1);
 
     // get pure promotion map (without graduating classes) then write them in this sql syntax  (1, 4)
     const purePromotionMap = Object.entries(promotionMap).filter(
       ([from, to]) => to !== -1,
     );
-    const formattedPromotionMap = toSqlValuesList(purePromotionMap);
+    const formattedPromotionMap = generateSqlCTEValues(purePromotionMap, 2);
 
     //transform the repeater ids to this syntax (101), (205), (309)for sql query
-    const formattedRepeatersIds = repeatersIds.map((id) => `(${id})`).join(",");
+    const formattedRepeatersIds = generateSqlCTEValues(repeatersIds, 1);
 
     const sql = `
 BEGIN TRANSACTION;
@@ -39,7 +40,7 @@ repeaters(student_id) AS (
   VALUES ${formattedRepeatersIds}
 ),
 
-UPDATE students
+UPDATE student
 SET 
   class_id = CASE
     WHEN id IN (SELECT student_id FROM repeaters) THEN class_id
@@ -47,7 +48,7 @@ SET
     ELSE (
       SELECT to_class_id
       FROM promotion_map
-      WHERE from_class_id = students.class_id
+      WHERE from_class_id = student.class_id
     )
   END,
 
@@ -63,6 +64,6 @@ WHERE
 
 COMMIT;
 `;
-    await db.exec(sql);
+     db.exec(sql);
   },
 };

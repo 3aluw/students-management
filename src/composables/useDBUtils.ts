@@ -50,13 +50,25 @@ export default function () {
     return { where, params };
   };
 
-  const toSqlValuesList = (values:([string, number] | number)[]) =>
+  
+  const toSqlValuesList = (values: ([string, number] | number)[]) =>
     values.map((value) => `(${value})`).join(",");
+
+  const generateSqlCTEValues = (
+    values: ([string, number] | number)[],
+    columnsCount: number,
+  ) => {
+    if (values.length) return `${toSqlValuesList(values)}`;
+    else {
+      const nulls = Array(columnsCount).fill("NULL").join(", ");
+      return `SELECT ${nulls} WHERE 0`;
+    }
+  };
 
   return {
     generateDBSetClause,
     generateDBInClause,
     buildWhereQuery,
-    toSqlValuesList,
+    generateSqlCTEValues
   };
 }
