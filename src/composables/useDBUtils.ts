@@ -50,10 +50,11 @@ export default function () {
     return { where, params };
   };
 
-  
+// ========== INTERNAL: takes an array and returns a SQL values list : (1),(2),... ==========
   const toSqlValuesList = (values: ([string, number] | number)[]) =>
     values.map((value) => `(${value})`).join(",");
 
+// ========== generates SQL values for a CTE while taking into account empty CTEs ==========
   const generateSqlCTEValues = (
     values: ([string, number] | number)[],
     columnsCount: number,

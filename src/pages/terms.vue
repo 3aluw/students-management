@@ -109,7 +109,7 @@ const handleSeasonCreation = (payload: NewSeasonPayload) => {
     toast.add({ severity: 'error', summary: 'خطأ في إنشاء الموسم الدراسي', detail: 'لا يمكنك إنشاء موسم دراسي جديد طالما أن هناك موسم مستقبلي موجود. يرجى حذفه قبل إنشاء موسم جديد.', life: 7000 });
     return;
   }
-  const { terminateCurrentSeason, newSeason, promoteStudents, repeaters } = payload
+  const { terminateCurrentSeason, newSeason, classPromotionMap, repeaters } = payload
 
 }
 // ========== EDIT SEASON LOGIC ==========
