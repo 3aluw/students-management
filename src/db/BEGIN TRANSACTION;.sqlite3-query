@@ -11,7 +11,7 @@ repeaters(student_id) AS (
   VALUES (101), (205), (309)
 )
 
-UPDATE students
+UPDATE student
 SET 
   class_id = CASE
     WHEN id IN (SELECT student_id FROM repeaters) THEN class_id
