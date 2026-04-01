@@ -45,24 +45,22 @@ const validateSeasonCollision = (
 
 export const seasonService = {
   runNewSeasonWorkflow(payload: NewSeasonPayload) {
-    const trx = db.transaction((data) => {
-      if (data.terminateCurrentSeason) {
+    const trx = db.transaction((data: NewSeasonPayload) => {
+      const { newSeason, terminateCurrentSeason, classPromotionMap, repeaters } = data;
+
+      // ========== Season functions==========
+      if (terminateCurrentSeason) {
         seasonRepo.terminateCurrent();
       }
 
-      if (data.repeaters?.length) {
-        studentService.markRepeaters(data.repeaters);
-      }
-
-      if (data.promoteStudents) {
-        studentService.promote(data.promotionMap, data.repeaters);
-      }
-
       if (data.newSeason) {
-        seasonRepo.create(data.newSeason);
+        seasonRepo.createSeason(newSeason);
       }
-
-      return { success: true };
+     // ========== Student promotion functions==========
+     if(Object.keys(classPromotionMap).length > 0) {
+       studentService.promoteStudents(classPromotionMap, repeaters);
+     }
+      return { success: true };  /* Manage feedbacks */
     });
 
     return trx(payload);
