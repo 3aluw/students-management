@@ -9,7 +9,7 @@ export const studentRepo = {
     promotionMap: ClassPromotionMap,
     repeatersIds: number[],
   ) {
-    // promote students while ignoring the repeaters & managing the graduating ones
+    // ==========  promote students while ignoring the repeaters & managing the graduating ones ==========
 
     // get graduating classes then write them in this sql syntax (1, 4)
     const graduatingClassIds = Object.entries(promotionMap)
@@ -30,8 +30,6 @@ export const studentRepo = {
     const formattedRepeatersIds = generateSqlCTEValues(repeatersIds, 1);
 
     const sql = `
-BEGIN TRANSACTION;
-
 WITH 
 graduatingClassIds(class_id) AS (
   VALUES ${formattedGraduatingClassIds}
@@ -41,7 +39,7 @@ promotion_map(from_class_id, to_class_id) AS (
 ),
 repeaters(student_id) AS (
   VALUES ${formattedRepeatersIds}
-),
+)
 
 UPDATE student
 SET 
@@ -55,7 +53,8 @@ SET
     )
   END,
 
-  status = CASE
+    status = CASE
+    WHEN id IN (SELECT student_id FROM repeaters) THEN status
     WHEN class_id IN (SELECT class_id FROM graduatingClassIds) THEN 'graduated'
     ELSE status
   END
@@ -64,8 +63,6 @@ WHERE
   id IN (SELECT student_id FROM repeaters)
   OR class_id IN (SELECT class_id FROM graduatingClassIds)
   OR class_id IN (SELECT from_class_id FROM promotion_map);
-
-COMMIT;
 `;
     db.exec(sql);
   },
