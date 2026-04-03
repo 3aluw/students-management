@@ -65,7 +65,7 @@ export const seasonRepo = {
       return { success: true, id: info.lastInsertRowid, info };
     } catch (error) {
       console.error("Error creating season:", error);
-     throw new Error("فشلت عملية إنشاء الموسم الجديد", { cause: error });
+     throw error
     }
   },
 };
