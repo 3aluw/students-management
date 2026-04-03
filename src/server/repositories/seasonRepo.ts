@@ -5,6 +5,7 @@ import db from "~/db/db";
 type sqliteSchoolSeason = Omit<SchoolSeason, "terms"> & { terms: string };
 const { generateDBSetClause } = useDBUtils();
 export const seasonRepo = {
+
   // ========== returns the current season if exists, otherwise returns undefined ==========
   getCurrentSeason() {
     const currentDate = new Date().getTime();
@@ -14,12 +15,12 @@ export const seasonRepo = {
         JOIN json_each(s.terms) AS t
         ON json_extract(t.value, '$.startDate') < ?
         AND json_extract(t.value, '$.endDate') > ?;
-)
             `);
     return stmt.get(currentDate, currentDate) as sqliteSchoolSeason | undefined;
   },
 
   terminateCurrent() {
+    console.log('terminating current season at repo level');
     const currentSeason = this.getCurrentSeason();
     if (!currentSeason) return;
     let terms = JSON.parse(currentSeason.terms) as SchoolSeason["terms"];
@@ -36,24 +37,32 @@ export const seasonRepo = {
   },
 
   editSeason(season: EditSchoolSeason) {
+    console.log('editing season at repo level');
     try {
-      const stringifiedTerms = JSON.stringify(season.terms);
-      const updatedSeason = {
-        ...season,
-        terms: stringifiedTerms,
-      };
-      const values = Object.values(updatedSeason);
-      const setClause = generateDBSetClause(updatedSeason);
-      const stmt = db.prepare(`UPDATE season SET ${setClause} WHERE id = ?`);
-      const info = stmt.run(...values, season.id);
-      return { success: true, id: info.lastInsertRowid, info };
+        /* stringify terms */
+        const stringifiedTerms = JSON.stringify(season.terms);
+        const updatedSeason = {
+          ...season,
+          terms: stringifiedTerms,
+        };
+        /* exclude id from editing values */
+        const { id, ...rest } = updatedSeason;
+
+        const values = Object.values(rest);
+        const setClause = generateDBSetClause(rest);
+
+        console.log("values:", values, "setClause:", setClause);
+        const stmt = db.prepare(`UPDATE season SET ${setClause} WHERE id = ?`);
+        const info = stmt.run(...values, id);
+        return { success: true, id, changes: info.changes};
     } catch (error) {
       console.error("Error creating season:", error);
-     throw new Error("فشلت عملية تعديل الموسم ", { cause: error });
+      throw error
     }
   },
 
   createSeason(season: NewSchoolSeason) {
+    console.log('creating new season at repo level');
     try {
       const stringifiedTerms = JSON.stringify(season.terms);
       const newSeason = {
@@ -65,7 +74,7 @@ export const seasonRepo = {
       return { success: true, id: info.lastInsertRowid, info };
     } catch (error) {
       console.error("Error creating season:", error);
-     throw error
+      throw error;
     }
   },
 };
