@@ -93,7 +93,7 @@ export default function () {
       public originalError: any,
       public stepResults: StepResult[],
     ) {
-      super(`Step failed: ${step}`, { cause: originalError });
+      super(`فشلت الخطوة: ${step}`, { cause: originalError });
     }
   }
   /**

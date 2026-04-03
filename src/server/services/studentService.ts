@@ -7,8 +7,7 @@ export const studentService = {
     try{
     studentRepo.handlesStudentsPromotion(promotionMap, repeatersIds);
     }catch (error) {
-      console.error("Error creating season:", error);
-     throw new Error("فشلت عملية ترقية الطلبة", { cause: error });
+     throw new Error( "فشلت عملية ترقية الطلبة", { cause: error });
     }
   },
 };

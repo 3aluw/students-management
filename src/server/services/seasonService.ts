@@ -4,6 +4,7 @@ import { seasonRepo } from "../repositories/seasonRepo";
 import { studentService } from "./studentService";
 import { NewSchoolSeason, NewSeasonPayload, SchoolSeason } from "~/data/types";
 import useDataUtils from "~/composables/useDataUtils";
+import useDBUtils from "~/composables/useDBUtils";
 
 // ========== validates if the season collides with an existing season ==========
 const validateSeasonCollision = (
@@ -38,29 +39,47 @@ const validateSeasonCollision = (
   });
   if (legitimateCollapsingSeason) {
     throw new Error(
-      `Season date collides with an existing season ${legitimateCollapsingSeason.name}`,
+      `الموسم الجديد تتقاطع تواريخه مع الموسم : ${legitimateCollapsingSeason.name}`,
     );
   }
 };
 
 export const seasonService = {
   runNewSeasonWorkflow(payload: NewSeasonPayload) {
+
+    validateSeasonCollision(payload.newSeason, payload.terminateCurrentSeason);
+
     const trx = db.transaction((data: NewSeasonPayload) => {
-      const { newSeason, terminateCurrentSeason, classPromotionMap, repeaters } = data;
+      const {
+        newSeason,
+        terminateCurrentSeason,
+        classPromotionMap,
+        repeaters,
+      } = data;
 
-      // ========== Season functions==========
-      if (terminateCurrentSeason) {
-        seasonRepo.terminateCurrent();
-      }
+      const promoteStudentsAllowed = Object.keys(classPromotionMap).length > 0;
 
-      if (data.newSeason) {
-        seasonRepo.createSeason(newSeason);
-      }
-     // ========== Student promotion functions==========
-     if(Object.keys(classPromotionMap).length > 0) {
-       studentService.promoteStudents(classPromotionMap, repeaters);
-     }
-      return { success: true };  /* Manage feedbacks */
+      /* Manage feedbacks using runSteps helper */
+      useDBUtils().runSteps([
+        // ========== Season functions==========
+        {
+          name: "إنهاء الموسم الحالي",
+          run: () => seasonRepo.terminateCurrent(),
+          when: () => terminateCurrentSeason,
+        },
+        {
+          name: "إنشاء موسم جديد",
+          run: () => seasonRepo.createSeason(newSeason),
+        },
+        // ========== Student promotion functions==========
+        {
+          name: "ترقية الطلاب",
+          run: () =>
+            studentService.promoteStudents(classPromotionMap, repeaters),
+          when: () => promoteStudentsAllowed,
+        },
+      ]);
+      return { success: true, message: "تم إنشاء الموسم الجديد بنجاح" };
     });
 
     return trx(payload);
