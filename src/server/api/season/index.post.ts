@@ -1,6 +1,4 @@
 import type { EditSchoolSeason, NewSeasonPayload } from "~/data/types";
-import useDBUtils from "../../../composables/useDBUtils";
-import { seasonRepo } from "~/server/repositories/seasonRepo";
 import { seasonService } from "~/server/services/seasonService";
 
 export default defineEventHandler(async (event) => {
@@ -21,6 +19,6 @@ export default defineEventHandler(async (event) => {
     }
   } // if id : item exists So update it
   else {
-    seasonRepo.editSeason(reqBody);
+    return seasonService.editSeason(reqBody);
   }
 });
