@@ -25,7 +25,7 @@ const validateSeasonCollision = (
     | SchoolSeason[]
     | undefined;
   // if not collision ; return undefined
-  if (!collapsingSeason) return undefined;
+  if (!collapsingSeason) return true;
 
   // check weather the collision is happening with the current season which the user is about terminating or with other season
   const verifiedCollapsingSeason = collapsingSeason.find((season) => {
@@ -37,20 +37,21 @@ const validateSeasonCollision = (
     // Any other season collision is considered verified
     return true;
   });
-  console.log('verified collapsing season:', verifiedCollapsingSeason);
-  
+  console.log("verified collapsing season:", verifiedCollapsingSeason);
+
   if (verifiedCollapsingSeason) {
     throw new Error(
       `الموسم الجديد تتقاطع تواريخه مع الموسم : ${verifiedCollapsingSeason.name}`,
     );
+  } else {
+    return true;
   }
 };
 
 export const seasonService = {
   runNewSeasonWorkflow(payload: NewSeasonPayload) {
-
     validateSeasonCollision(payload.newSeason, payload.terminateCurrentSeason);
-   
+
     const trx = db.transaction((data: NewSeasonPayload) => {
       const {
         newSeason,
