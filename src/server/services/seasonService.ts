@@ -58,10 +58,10 @@ export const seasonService = {
         ...result,
         message: "تم تعديل الموسم بنجاح",
       };
-    } catch (error: any) {
+    } catch (error) {
       return {
         success: false,
-        message: error?.message || "حدث خطأ أثناء تعديل الموسم",
+        message: "حدث خطأ أثناء تعديل الموسم",
       };
     }
   },
