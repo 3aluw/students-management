@@ -1,4 +1,4 @@
-import type { EventQueryFilters } from "~/data/types";
+import type { BackendResponse, EventQueryFilters } from "~/data/types";
 
 export default function () {
   const generateDBSetClause = <T extends Object>(object: T) => {
@@ -66,6 +66,14 @@ export default function () {
     }
   };
 
+  // ========== create an error in case of a function throwing a non Error ==========
+const createGenericError = (operationName:string): BackendResponse => {
+      return {
+        success: false,
+        message: "لم تنجح عملية " + operationName
+          
+      }
+}
   // ========== Handle multi steps workflow and its error handling ==========
   /**
    * Represents a step in a multi-step workflow, including its name, the function to run, and an optional condition for execution.
@@ -90,7 +98,7 @@ export default function () {
   class StepError extends Error {
     constructor(
       public step: string,
-      public originalError: any,
+      public originalError: unknown,
       public stepResults: StepResult[],
     ) {
       super(`فشلت الخطوة: ${step}`, { cause: originalError });
@@ -124,6 +132,8 @@ export default function () {
     generateDBInClause,
     buildWhereQuery,
     generateSqlCTEValues,
+    createGenericError,
     runSteps,
+    StepError,
   };
 }
