@@ -1,4 +1,3 @@
-import type { TreeNode } from "primevue/treenode";
 import { ArabicStudentProperties, ArabicClassProperties } from "~/data/static";
 import type {
   Student,

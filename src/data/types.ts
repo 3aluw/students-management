@@ -145,3 +145,10 @@ export type NewSeasonPayload = {
   classPromotionMap: ClassPromotionMap 
   repeaters: Student[] ;
 };
+
+export type BackendResponse<T extends Record<string, unknown> = {}> = {
+  success: boolean;
+  message: string;
+} & T;
+
+
