@@ -1,17 +1,12 @@
-import useDBUtils from "~/composables/useDBUtils";
 import { Student } from "~/data/types";
-
-import db from "~/db/db";
+import { studentService } from "~/server/services/studentService";
+import type { H3Error } from "h3";
 
 export default defineEventHandler(async (event) => {
-  const studentsIds = await readBody<Student[]>(event);
-  const { generateDBInClause } = useDBUtils();
-  const inClause = generateDBInClause(studentsIds.length);
-  const stmt = db.prepare(`DELETE FROM student WHERE id IN (${inClause})`);
-  const result = stmt.run(studentsIds);
-  if (result.changes > 0) {
-    return { status: 200, message: "تم حذف الطلبة الذين تم تحديدهم" };
-  } else {
-    return { status: 404, message: "لم يتم إيجاد الطالب" };
+  const studentsIds = await readBody<Student["id"][]>(event);
+  try{
+  return studentService.deleteStudents(studentsIds);
+  } catch (error) {
+    return sendError(event, error as H3Error);
   }
 });

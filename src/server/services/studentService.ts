@@ -12,7 +12,27 @@ export const studentService = {
       return studentRepo.getAll();
     }
   },
+  deleteStudents(ids: number[]) {
+    if (!ids.length) {
+      throw createError({
+        statusCode: 400,
+        statusMessage: "لا يمكن حذف قائمة فارغة",
+      });
+    }
+    const result = studentRepo.deleteStudentsByIds(ids);
 
+    if (result.changes === 0) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: "لم يتم إيجاد الطلبة",
+      });
+    }
+
+    return {
+      message: "تم حذف الطلبة الذين تم تحديدهم",
+      deletedCount: result.changes,
+    };
+  },
   promoteStudents(promotionMap: ClassPromotionMap, repeaters: Student[]) {
     const repeatersIds = repeaters.map((student) => student.id);
     try {

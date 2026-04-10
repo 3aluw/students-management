@@ -2,7 +2,7 @@ import useDBUtils from "~/composables/useDBUtils";
 import { ClassPromotionMap, Student } from "~/data/types";
 import db from "~/db/db";
 
-const { generateSqlCTEValues } = useDBUtils();
+const { generateSqlCTEValues, generateDBInClause } = useDBUtils();
 
 export const studentRepo = {
   getAll(limit = 300): Student[] {
@@ -22,7 +22,11 @@ export const studentRepo = {
     const students = stmt.all(`%${name}%`);
     return students as Student[];
   },
-
+  deleteStudentsByIds(studentIds: number[]) {
+    const inClause = generateDBInClause(studentIds.length);
+    const stmt = db.prepare(`DELETE FROM student WHERE id IN (${inClause})`);
+    return stmt.run(...studentIds);
+  },
   async handlesStudentsPromotion(
     promotionMap: ClassPromotionMap,
     repeatersIds: number[],
