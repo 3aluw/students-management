@@ -17,6 +17,7 @@ import type {
   NewLateness,
   SchoolSeason,
   EditSchoolSeason,
+  NewSeasonPayload,
 } from "~/data/types";
 
 export default function () {
@@ -71,7 +72,7 @@ export default function () {
       `/api/absences`,
       {
         params,
-      }
+      },
     );
   };
   const insertAbsences = (body: NewAbsence[]) => {
@@ -101,7 +102,7 @@ export default function () {
       `/api/lateness`,
       {
         params,
-      }
+      },
     );
   };
   const insertLateness = (body: NewLateness[]) => {
@@ -130,6 +131,12 @@ export default function () {
   const getSeasons = () => {
     return $fetch<SchoolSeason[]>("/api/season");
   };
+  const createSeason = (body: NewSeasonPayload) => {
+    return $fetch("/api/season", {
+      method: "POST",
+      body,
+    });
+  };
   const updateSeasons = (body: EditSchoolSeason) => {
     return $fetch("/api/season", {
       method: "POST",
@@ -155,6 +162,7 @@ export default function () {
     updateLateness,
     deleteLateness,
     getSeasons,
+    createSeason,
     updateSeasons,
   };
 }

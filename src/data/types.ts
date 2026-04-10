@@ -27,6 +27,7 @@ export interface Class {
 export interface Student {
   id: number; // PRIMARY KEY AUTOINCREMENT
   class_id: number; // FOREIGN KEY -> class.id (nullable)
+  status : StudentStatus; // CHECK (status IN ('active', 'graduated', 'dropped', 'transferred')) DEFAULTS TO active
   first_name: string; // TEXT NOT NULL
   last_name: string; // TEXT NOT NULL
   father_name: string; // TEXT NOT NULL
@@ -44,7 +45,7 @@ export interface Lateness {
   id: number; // PRIMARY KEY AUTOINCREMENT
   student_id: number; // FOREIGN KEY -> student.id
   date: number; // INT (timestamp)
-  start_time:  number; // session start time (minutes since midnight)
+  start_time: number; // session start time (minutes since midnight)
   late_by: number; // INT NOT NULL (minutes, presumably)
   reason: string | null; // TEXT (nullable)
   reason_accepted: 1 | 0; // BOOLEAN DEFAULT FALSE
@@ -57,14 +58,10 @@ export interface Absence {
   id: number; // PRIMARY KEY AUTOINCREMENT
   student_id: number; // FOREIGN KEY -> student.id
   date: number; // INT (timestamp)
-  start_time:  number; // session start time (minutes since midnight)
+  start_time: number; // session start time (minutes since midnight)
   reason: string | null; // TEXT (nullable)
   reason_accepted: 1 | 0; // BOOLEAN DEFAULT FALSE
 }
-
-
-
-
 
 export interface SchoolSeason {
   id: number;
@@ -72,7 +69,7 @@ export interface SchoolSeason {
   terms: SchoolTerm[];
 }
 
- export interface SchoolTerm {
+export interface SchoolTerm {
   name: string;
   startDate: number;
   endDate: number;
@@ -96,8 +93,8 @@ export type BatchEditStudent = BatchEdit<Student>;
 export type BatchEditAbsence = BatchEdit<Absence>;
 export type BatchEditLateness = BatchEdit<Lateness>;
 
-export type AbsenceInfo = Omit<Absence, "student_id" | 'id'>
-export type LatenessInfo  = Omit<Lateness, "student_id" | 'id'>
+export type AbsenceInfo = Omit<Absence, "student_id" | "id">;
+export type LatenessInfo = Omit<Lateness, "student_id" | "id">;
 
 export type LocalAbsence = Absence & {
   first_name: string;
@@ -113,27 +110,45 @@ export type LocalLateness = Lateness & {
 export type EventTypes = "lateness" | "absence";
 export type Gender = "M" | "F";
 export type SchoolLevel = "primary" | "middle" | "high";
-
+export type StudentStatus = 'active' | 'graduated' | 'dropped' | 'transferred'
+export type SeasonStatus = "past" | "current" | "future";
 export type SupportedDateRanges =
   | "today"
   | "yesterday"
   | "this week"
   | "this month";
 
-  export type EventQueryFilters = Partial<{
-    limit : number,
-    offset : number,
-    classId : number,
-    name: string,
-    minDate : number,
-    maxDate : number
-  }>
+export type EventQueryFilters = Partial<{
+  limit: number;
+  offset: number;
+  classId: number;
+  name: string;
+  minDate: number;
+  maxDate: number;
+}>;
 
-  export type PlaygroundSettings = {
-    defaultStartTime: number;
-    dynamicTime : boolean;        // if true, the start time will be set to the current time when registering the lateness
-    defaultLateBy: number;       // in minutes, optional if dynamicTime is false
-    fastMode : boolean;
-    defaultReason : string;
-    reasonAcceptedByDefault : 0 | 1;
-  }
+export type PlaygroundSettings = {
+  defaultStartTime: number;
+  dynamicTime: boolean; // if true, the start time will be set to the current time when registering the lateness
+  defaultLateBy: number; // in minutes, optional if dynamicTime is false
+  fastMode: boolean;
+  defaultReason: string;
+  reasonAcceptedByDefault: 0 | 1;
+};
+
+// ========== SEASONS TYPES ==========
+export type ClassPromotionMap = Record<number, number>;
+
+export type NewSeasonPayload = {
+  terminateCurrentSeason: boolean;
+  newSeason: NewSchoolSeason;
+  classPromotionMap: ClassPromotionMap 
+  repeaters: Student[] ;
+};
+
+export type BackendResponse<T extends Record<string, unknown> = {}> = {
+  success: boolean;
+  message: string;
+} & T;
+
+

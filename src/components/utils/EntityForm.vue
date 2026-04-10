@@ -1,7 +1,7 @@
 <template>
     <div class="card flex flex-col items-center gap-5">
         <Toast />
-        <Form v-if="props.entityType == 'student'" :initialValues="props.entityObject" v-slot="$form" :resolver="resolver" @submit="onFormSubmit"
+        <Form v-if="props.entityType == 'student'" :initialValues="formattedStudentObject" v-slot="$form" :resolver="resolver" @submit="onFormSubmit"
             class="flex flex-col gap-4 w-full sm:w-80"> 
             <!-- First Name -->
             <div class="flex flex-col gap-1">
@@ -136,6 +136,13 @@ const props = defineProps<{
     entityObject?: Entity<T>
 }>()
 
+const formattedStudentObject = computed(() => {
+    if (props.entityType === 'student') {
+        const studentObj = props.entityObject as Student
+        return { ...studentObj, birth_date: new Date(studentObj.birth_date) }
+    }
+})
+
 const emit= defineEmits<{
     (e: 'submit', obj:  newEntity<T>): void;
 }>()
@@ -144,6 +151,7 @@ const resolver = computed(() => props.entityType == 'student' ? zodResolver(stud
     zodResolver(classZodSchema)
 );
 const studentZodSchema = z.object({
+    status: z.enum(['active', 'graduated', 'dropped', 'transferred'], { error: getRequiredFieldMessage("status") }),
     first_name: z.string({ error: getRequiredFieldMessage("first_name") }).min(3, { message: 'يجب إدخال اسم الطالب كاملا' }),
     last_name: z.string({ error: getRequiredFieldMessage("last_name") }).min(3, { message: 'يجب إدخال اللقب كاملا ' }),
     father_name: z.string({ error: getRequiredFieldMessage("father_name") }).min(3, { message: 'يجب استكمال اسم الأب ' }),

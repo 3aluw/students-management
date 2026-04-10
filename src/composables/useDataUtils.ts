@@ -1,4 +1,3 @@
-import type { TreeNode } from "primevue/treenode";
 import { ArabicStudentProperties, ArabicClassProperties } from "~/data/static";
 import type {
   Student,
@@ -9,35 +8,36 @@ import type {
   PlaygroundSettings,
   SchoolSeason,
   SchoolTerm,
+  SeasonStatus,
 } from "~/data/types";
 
 export default function () {
   /*Internal */
   const formatRequiredFieldMessage = (
     arabicText: string,
-    type: "text" | "choice" = "text"
+    type: "text" | "choice" = "text",
   ) =>
     type === "text"
       ? `يجب إدخال ${arabicText}`
       : type == "choice"
-      ? `يجب اختيار ${arabicText}`
-      : "هذا الحقل مطلوب";
+        ? `يجب اختيار ${arabicText}`
+        : "هذا الحقل مطلوب";
 
   const getRequiredFieldMessage = (
     fieldName: keyof Student | keyof Class | string,
-    type: "text" | "choice" = "text"
+    type: "text" | "choice" = "text",
   ) => {
     return fieldName in ArabicStudentProperties
       ? formatRequiredFieldMessage(
           ArabicStudentProperties[fieldName as keyof Student],
-          type
+          type,
         )
       : fieldName in ArabicClassProperties
-      ? formatRequiredFieldMessage(
-          ArabicClassProperties[fieldName as keyof Class],
-          type
-        )
-      : `يجب إدخال ${fieldName} `;
+        ? formatRequiredFieldMessage(
+            ArabicClassProperties[fieldName as keyof Class],
+            type,
+          )
+        : `يجب إدخال ${fieldName} `;
   };
   const getTimeRange = (range: SupportedDateRanges) => {
     const now = new Date();
@@ -66,7 +66,7 @@ export default function () {
         start = new Date(
           now.getFullYear(),
           now.getMonth(),
-          now.getDate() - diff
+          now.getDate() - diff,
         );
         start.setHours(0, 0, 0, 0);
 
@@ -99,7 +99,7 @@ export default function () {
     defaultStartTime.setMinutes(settings.defaultStartTime);
     const defaultLateBy = new Date(defaultStartTime);
     defaultLateBy.setMinutes(
-      defaultLateBy.getMinutes() + settings.defaultLateBy
+      defaultLateBy.getMinutes() + settings.defaultLateBy,
     );
     return {
       defaultLateBy,
@@ -110,9 +110,9 @@ export default function () {
   const getDatesForEventInfo = <
     T extends
       | Pick<LatenessInfo, "late_by" | "start_time" | "date">
-      | Pick<AbsenceInfo, "date" | "start_time">
+      | Pick<AbsenceInfo, "date" | "start_time">,
   >(
-    obj: T
+    obj: T,
   ) => {
     const start_time = new Date(obj.date);
     start_time.setHours(0, 0, 0, 0);
@@ -143,32 +143,36 @@ export default function () {
   //a function that transform 0/1 in DB results to real booleans
   const normalizeResultBooleans = <
     R extends Record<string, any>,
-    K extends (keyof R)[]
+    K extends (keyof R)[],
   >(
     results: R[],
-    keys: K
+    keys: K,
   ) => {
     results.map((result) =>
       keys.forEach((key) => {
         result[key] = (result[key] === 1 ? "نعم" : "لا") as R[keyof R];
-      })
+      }),
     );
 
     return results;
   };
 
-  const mapSeasonsToTree = (seasons: SchoolSeason[]): TreeNode[] | [] => {
+  const getSeasonStatus = (season: SchoolSeason): SeasonStatus => {
+    const seasonDates = getSeasonStartAndEndDates(season);
+    const now = Date.now();
+    const seasonStatus: SeasonStatus =
+      now < seasonDates.startDate
+        ? "future"
+        : now > seasonDates.endDate
+          ? "past"
+          : "current";
+    return seasonStatus;
+  };
+
+  const mapSeasonsToTree = (seasons: SchoolSeason[]) => {
     if (seasons.length === 0) return [];
     return seasons.map((season) => {
-      const seasonDates = getSeasonStartAndEndDates(season);
-      const now = Date.now();
-      const seasonStatus =
-        now < seasonDates.startDate
-          ? "مستقبل"
-          : now > seasonDates.endDate
-          ? "منتهي"
-          : "حالي";
-
+      const seasonStatus = getSeasonStatus(season);
       return {
         key: `season-${season.id}`,
         data: {
@@ -217,8 +221,10 @@ export default function () {
     getDatesForEventInfo,
     formatDatesForTerm,
     normalizeResultBooleans,
+    getSeasonStatus,
     mapSeasonsToTree,
+    getSeasonStartAndEndDates,
     getCollapsingSeasonIds,
-    hasCollapsingTerms
+    hasCollapsingTerms,
   };
 }

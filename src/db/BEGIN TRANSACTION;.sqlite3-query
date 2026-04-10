@@ -1,0 +1,36 @@
+BEGIN TRANSACTION;
+
+WITH 
+graduatingClassIds(class_id) AS (
+  VALUES (101), (205), (309)
+),
+promotion_map(from_class_id, to_class_id) AS (
+  VALUES (1,4),(2,3)
+),
+repeaters(student_id) AS (
+  VALUES (101), (205), (309)
+)
+
+UPDATE student
+SET 
+  class_id = CASE
+    WHEN id IN (SELECT student_id FROM repeaters) THEN class_id
+    WHEN class_id IN (SELECT class_id FROM graduatingClassIds) THEN NULL
+    ELSE (
+      SELECT to_class_id
+      FROM promotion_map
+      WHERE from_class_id = students.class_id
+    )
+  END,
+
+  status = CASE
+    WHEN class_id IN (SELECT class_id FROM graduatingClassIds) THEN 'graduated'
+    ELSE status
+  END
+
+WHERE 
+  id IN (SELECT student_id FROM repeaters)
+  OR class_id IN (SELECT class_id FROM graduatingClassIds)
+  OR class_id IN (SELECT from_class_id FROM promotion_map);
+
+COMMIT;

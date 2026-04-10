@@ -20,10 +20,10 @@
                         @click="useDeleteConfirm.requestAction(selectedStudents)"
                         :disabled="!selectedStudents || !selectedStudents.length" />
                     <Button label="تعديل" icon="pi pi-pencil" iconPos="right" severity="secondary" class="mx-2"
-                        @click="" v-if="selectedStudents.length == 1" />
-                    <Button v-if="selectedStudents.length" label="نقل إلى" icon="pi pi-undo" @click="toggleTransferStudentsMenu"
-                        aria-haspopup="true" aria-controls="overlay_menu" iconPos="right" severity="secondary"
-                        class="mx-2" />
+                        @click="handleStudentEditClick" v-if="selectedStudents.length == 1" />
+                    <Button v-if="selectedStudents.length" label="نقل إلى" icon="pi pi-undo"
+                        @click="toggleTransferStudentsMenu" aria-haspopup="true" aria-controls="overlay_menu"
+                        iconPos="right" severity="secondary" class="mx-2" />
                     <Menu ref="transferStudentsMenu" id="overlay_menu" :model="filteredClassOptions" :popup="true">
                         <template #item="{ item }">
                             <Button variant="text" severity="secondary"
@@ -81,8 +81,9 @@
                 <Column field="phone_number" header="رقم الهاتف" style="min-width: 5rem"></Column>
                 <Column field="address" header="العنوان" style="min-width: 16rem"></Column>
                 <Column header="القسم" v-show="globalSearchInput.length">
-                     <template #body="slotProps: DataTableSlot<Student>">
-                        <p>{{ studentStore.classOptions.find((classObj)=>classObj.value === slotProps.data.class_id)?.label }}</p>
+                    <template #body="slotProps: DataTableSlot<Student>">
+                        <p>{{studentStore.classOptions.find((classObj) => classObj.value ===
+                            slotProps.data.class_id)?.label }}</p>
                     </template>
                 </Column>
                 <template #empty>
@@ -92,6 +93,7 @@
         </div>
         <Dialog header="أدخل معلومات القسم" @hide="studentToEdit = undefined" v-model:visible="showStudentDialog"
             :style="{ width: '350px' }" :modal="true">
+
             <UtilsEntityForm entityType="student" :entityObject="studentToEdit" @submit="handleStudentSubmit" />
         </Dialog>
         <UtilsConfirmDialog header="حذف الطلبة" :danger="true" v-model="useDeleteConfirm.showConfirm.value"
@@ -150,6 +152,12 @@ const resetSelectedStudents = () => { selectedStudents.value = [] }
 // edit / create student logic
 const showStudentDialog = ref(false);
 const studentToEdit = ref<Student | undefined>(undefined)
+const handleStudentEditClick = () => {
+    if (!selectedStudents.value.length ||selectedStudents.value.length > 1) return;
+    studentToEdit.value = studentsToShow.value.find((s) => s.id === selectedStudents.value[0].id)
+    console.log(studentToEdit.value);
+    showStudentDialog.value = true
+}
 const EditStudent = async (studentObj: Student) => {
     try {
         await backend.updateStudents(studentObj)
@@ -188,7 +196,7 @@ const deleteStudents = async (students: Student[]) => {
 
 
 //confirm dialogs
-const useDeleteConfirm = useConfirmHandler(()=> deleteStudents(selectedStudents.value), studentStore.populateStudents)
+const useDeleteConfirm = useConfirmHandler(() => deleteStudents(selectedStudents.value), studentStore.populateStudents)
 const useTransferConfirm = useConfirmHandler(transferStudents, studentStore.populateStudents)
 
 

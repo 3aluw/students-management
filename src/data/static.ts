@@ -4,6 +4,7 @@ import type {
   Student,
   SchoolLevel,
   SupportedDateRanges,
+  SeasonStatus,
 } from "./types";
 
 export const genderOptions = [
@@ -42,6 +43,7 @@ export const sqliteBoolean = [
 ];
 export const ArabicStudentProperties: Record<keyof Student, string> = {
   id: "المعرف",
+  status: "الحالة",
   first_name: "الاسم",
   last_name: "اللقب",
   father_name: "اسم الأب",
@@ -62,6 +64,11 @@ export const ArabicSchoolLevels: Record<SchoolLevel, string> = {
   primary: "ابتدائي",
   middle: "متوسط",
   high: "ثانوي",
+};
+export const ArabicSeasonStatus: Record<SeasonStatus, string> = {
+  past: "منتهي",
+  current: "حالي",
+  future: "مستقبل",
 };
 export const commonReasons = [
   "المرض",
@@ -129,3 +136,7 @@ export const userFeedbackMessages = {
     deleteFailed: "حدث خطأ أثناء حذف التأخر",
   },
 };
+export const toGraduateClass: Pick<Class, 'section' | 'id'> = {
+  id : -1,
+  section: 'المتخرجون'
+}
