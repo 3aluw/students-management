@@ -5,6 +5,7 @@
       <!-- add season button: shows only If there is no future season -->
       <Button v-if="!nodes.some((seasonNode) => seasonNode.data.status === 'future')" label="موسم دراسي جديد"
         icon="pi pi-plus" iconPos="right" severity="secondary" class="mx-2" @click="showNewSeasonDialog = true" />
+      <Button label="موسم دراسي سريع test" @click="handleTestSeasonCreation" />
     </div>
 
     <TreeTable :value="nodes">
@@ -94,22 +95,20 @@ const lastSeasonStatus = computed(() => {
 })
 const isLastSeasonCurrent = computed(() => lastSeasonStatus.value === 'current')
 
-const terminateSeason = (season: SchoolSeason) => {
-  let { terms } = season
-  const now = new Date().getTime();
-  terms = terms.filter((term) => term.startDate < now)
-  const lastTerm = terms.at(-1)
-  if (lastTerm) {
-    lastTerm.endDate = new Date().setHours(24, 0, 0, 0)
-  }
-  return terms;
-}
-const handleSeasonCreation = (payload: NewSeasonPayload) => {
+const handleSeasonCreation = async (payload: NewSeasonPayload) => {
   if (lastSeasonStatus.value == 'future') {
     toast.add({ severity: 'error', summary: 'خطأ في إنشاء الموسم الدراسي', detail: 'لا يمكنك إنشاء موسم دراسي جديد طالما أن هناك موسم مستقبلي موجود. يرجى حذفه قبل إنشاء موسم جديد.', life: 7000 });
     return;
   }
-  const { terminateCurrentSeason, newSeason, classPromotionMap, repeaters } = payload
+  console.log(payload);
+  const res = await backend.createSeason(payload)
+  if (res?.success) {
+    toast.add({ severity: 'success', summary: 'تم بنجاح', detail: res.message });
+    showNewSeasonDialog.value = false;
+    clientStore.populateSeasons();
+  } else {
+    toast.add({ severity: 'error', summary: 'خطأ في العملية', detail: res.message });
+  }
 
 }
 // ========== EDIT SEASON LOGIC ==========
@@ -150,4 +149,66 @@ const handleSeasonEditSubmit = (updatedSeason: SchoolSeason) => {
   }
 }
 
+const testPayload: NewSeasonPayload = {
+  "terminateCurrentSeason": true,
+  "newSeason": {
+    "terms": [
+      {
+        "endDate": 1780182000000,
+        "startDate": 1775214569035,
+        "name": "الربيع"
+      }
+    ],
+    "name": "2026 أخيرة"
+  },
+  "classPromotionMap": {
+    "1": 3,
+    "2": 3,
+    "3": -1
+  },
+  "repeaters": [
+    {
+      "id": 5,
+      "class_id": 1,
+      "first_name": "سارة",
+      "last_name": "الطاهري",
+      "father_name": "خالد",
+      "grandfather_name": "يوسف",
+      "sex": "F",
+      "phone_number": "0611122233",
+      "birth_date": 959468400000,
+      "address": "الدار البيضاء",
+      "status": "active"
+    },
+    {
+      "id": 4,
+      "class_id": 2,
+      "first_name": "أحمد",
+      "last_name": "العسري",
+      "father_name": "محمد",
+      "grandfather_name": "عبدالله",
+      "sex": "M",
+      "phone_number": "0612345678",
+      "birth_date": 20090115,
+      "address": "الرباط",
+      "status": "active"
+    },
+    {
+      "id": 12,
+      "class_id": 3,
+      "first_name": "أنس",
+      "last_name": "الزهراء",
+      "father_name": "طارق",
+      "grandfather_name": "عبد الجليل",
+      "sex": "M",
+      "phone_number": "0610987654",
+      "birth_date": 20100105,
+      "address": "أكادير",
+      "status": "active"
+    }
+  ]
+}
+const handleTestSeasonCreation = async () => {
+  handleSeasonCreation(testPayload)
+}
 </script>

@@ -37,7 +37,6 @@ export const seasonRepo = {
   },
 
   editSeason(season: EditSchoolSeason) {
-    console.log('editing season at repo level');
     try {
         /* stringify terms */
         const stringifiedTerms = JSON.stringify(season.terms);
@@ -62,7 +61,6 @@ export const seasonRepo = {
   },
 
   createSeason(season: NewSchoolSeason) {
-    console.log('creating new season at repo level');
     try {
       const stringifiedTerms = JSON.stringify(season.terms);
       const newSeason = {
