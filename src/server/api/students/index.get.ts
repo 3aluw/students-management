@@ -1,20 +1,24 @@
 import db from "~/db/db";
 import type { Student } from "~/data/types";
-
+import { studentService } from "~/server/services/studentService";
+import type { H3Error } from "h3";
 export default defineEventHandler((event) => {
   const { classId, name } = getQuery<{ classId?: string; name?: string }>(
-    event
+    event,
   );
-  if (classId) {
-    const stmt = db.prepare("SELECT * FROM student WHERE class_id = ?");
-    const students = stmt.all(classId);
-    return students as Student[];
-  } else if (name) {
-     const stmt = db.prepare("SELECT * FROM student WHERE (first_name || ' ' || last_name) LIKE ?");
-    const students = stmt.all(`%${name}%`);
-    return students as Student[];
+  try {
+    return studentService.getStudents({ classId, name });
+  } catch (err) {
+    const error = err as Partial<H3Error>;
+    return sendError(
+      event,
+      createError({
+        statusCode: error?.statusCode || 500,
+        statusMessage:
+          error?.statusMessage ||
+          error?.message ||
+          "فشلت عملية البحث عن الطلبة",
+      }),
+    );
   }
-  const stmt = db.prepare("SELECT * FROM student LIMIT 300");
-  const students = stmt.all();
-  return students as Student[];
 });

@@ -1,10 +1,28 @@
 import useDBUtils from "~/composables/useDBUtils";
-import { ClassPromotionMap } from "~/data/types";
+import { ClassPromotionMap, Student } from "~/data/types";
 import db from "~/db/db";
 
 const { generateSqlCTEValues } = useDBUtils();
 
 export const studentRepo = {
+  getAll(limit = 300): Student[] {
+    const stmt = db.prepare("SELECT * FROM student LIMIT ?");
+    const students = stmt.all(limit);
+    return students as Student[];
+  },
+  findByClassId(classId: number): Student[] {
+    const stmt = db.prepare("SELECT * FROM student WHERE class_id = ?");
+    const students = stmt.all(classId);
+    return students as Student[];
+  },
+  findByName(name: string): Student[] {
+    const stmt = db.prepare(
+      "SELECT * FROM student WHERE (first_name || ' ' || last_name) LIKE ?",
+    );
+    const students = stmt.all(`%${name}%`);
+    return students as Student[];
+  },
+
   async handlesStudentsPromotion(
     promotionMap: ClassPromotionMap,
     repeatersIds: number[],
@@ -28,7 +46,7 @@ export const studentRepo = {
 
     //transform the repeater ids to this syntax (101), (205), (309)for sql query
     const formattedRepeatersIds = generateSqlCTEValues(repeatersIds, 1);
-    
+
     try {
       const sql = `
 WITH 
