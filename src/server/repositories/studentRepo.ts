@@ -1,5 +1,5 @@
 import useDBUtils from "~/composables/useDBUtils";
-import { ClassPromotionMap, Student } from "~/data/types";
+import { ClassPromotionMap, NewStudent, Student } from "~/data/types";
 import db from "~/db/db";
 
 const { generateSqlCTEValues, generateDBInClause } = useDBUtils();
@@ -27,6 +27,41 @@ export const studentRepo = {
     const stmt = db.prepare(`DELETE FROM student WHERE id IN (${inClause})`);
     return stmt.run(...studentIds);
   },
+  createStudent(studentData: NewStudent) {
+    const {
+      first_name,
+      last_name,
+      class_id,
+      father_name,
+      grandfather_name,
+      sex,
+      phone_number,
+      birth_date,
+      address,
+    } = studentData;
+    try {
+      const stmt = db.prepare(
+        "INSERT INTO student (class_id, first_name, last_name, father_name,grandfather_name, sex, phone_number, birth_date, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      );
+      const info = stmt.run(
+        class_id,
+        first_name,
+        last_name,
+        father_name,
+        grandfather_name,
+        sex,
+        phone_number,
+        birth_date,
+        address,
+      );
+      return { success: true, id: info.lastInsertRowid, info };
+    } catch (err) {
+      console.error(err);
+      throw err
+    }
+  },
+  updateStudent() {},
+  updateStudents() {},
   async handlesStudentsPromotion(
     promotionMap: ClassPromotionMap,
     repeatersIds: number[],

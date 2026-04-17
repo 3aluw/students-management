@@ -1,5 +1,3 @@
-import db from "~/db/db";
-import type { Student } from "~/data/types";
 import { studentService } from "~/server/services/studentService";
 import type { H3Error } from "h3";
 export default defineEventHandler((event) => {

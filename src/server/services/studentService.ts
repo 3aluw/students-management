@@ -1,4 +1,4 @@
-import { ClassPromotionMap, Student } from "~/data/types";
+import { ClassPromotionMap, NewStudent, Student } from "~/data/types";
 import { studentRepo } from "../repositories/studentRepo";
 
 export const studentService = {
@@ -11,6 +11,15 @@ export const studentService = {
     } else {
       return studentRepo.getAll();
     }
+  },
+  createStudent(studentData: NewStudent) {
+    try {
+      return studentRepo.createStudent(studentData);
+    } catch (err) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: "فشلت عملية إنشاء الطالب، يرجى التأكد من صحة البيانات المدخلة",
+      });    }
   },
   deleteStudents(ids: number[]) {
     if (!ids.length) {
@@ -29,7 +38,7 @@ export const studentService = {
     }
 
     return {
-      message: "تم حذف الطلبة الذين تم تحديدهم",
+      statusMessage: "تم حذف الطلبة الذين تم تحديدهم",
       deletedCount: result.changes,
     };
   },
