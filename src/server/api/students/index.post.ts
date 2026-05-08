@@ -5,7 +5,7 @@ import { studentService } from "~/server/services/studentService";
 import type { H3Error } from "h3";
 
 export default defineEventHandler(async (event) => {
-  const { generateDBSetClause, generateDBInClause } = useDBUtils();
+  const { generateDBSetClause, generateDBInClause, logError } = useDBUtils();
 
   const reqBody = await readBody<NewStudent | EditStudent | BatchEditStudent>(
     event
@@ -30,10 +30,12 @@ export default defineEventHandler(async (event) => {
   }
   // if no id : Create a new item
   if (!("id" in reqBody)) {
-     try{
-    studentService.createStudent(reqBody)}
+    try {
+      studentService.createStudent(reqBody)
+    }
     catch (error) {
-       return sendError(event, error as H3Error);
+      logError("Error creating student:", error, event.path, reqBody);
+      return sendError(event, error as H3Error);
     }
   } // if id : item exists So update it
   else {

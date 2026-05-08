@@ -56,7 +56,6 @@ export const studentRepo = {
       );
       return { success: true, id: info.lastInsertRowid, info };
     } catch (err) {
-      console.error(err);
       throw err
     }
   },
