@@ -1,8 +1,8 @@
 import useDBUtils from "~/composables/useDBUtils";
-import { ClassPromotionMap, NewStudent, Student } from "~/data/types";
+import { ClassPromotionMap, EditStudent, NewStudent, Student } from "~/data/types";
 import db from "~/db/db";
 
-const { generateSqlCTEValues, generateDBInClause } = useDBUtils();
+const { generateSqlCTEValues, generateDBInClause, generateDBSetClause } = useDBUtils();
 
 export const studentRepo = {
   getAll(limit = 300): Student[] {
@@ -39,28 +39,32 @@ export const studentRepo = {
       birth_date,
       address,
     } = studentData;
-    try {
-      const stmt = db.prepare(
-        "INSERT INTO student (class_id, first_name, last_name, father_name,grandfather_name, sex, phone_number, birth_date, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-      );
-      const info = stmt.run(
-        class_id,
-        first_name,
-        last_name,
-        father_name,
-        grandfather_name,
-        sex,
-        phone_number,
-        birth_date,
-        address,
-      );
-      return { success: true, id: info.lastInsertRowid, info };
-    } catch (err) {
-      throw err
-    }
+    const stmt = db.prepare(
+      "INSERT INTO student (class_id, first_name, last_name, father_name,grandfather_name, sex, phone_number, birth_date, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    );
+    const info = stmt.run(
+      class_id,
+      first_name,
+      last_name,
+      father_name,
+      grandfather_name,
+      sex,
+      phone_number,
+      birth_date,
+      address,
+    );
+    return { success: true, id: info.lastInsertRowid, info };
+
   },
-  updateStudent() {},
-  updateStudents() {},
+  updateStudent(studentData: EditStudent) {
+    const values = Object.values(studentData);
+    const setClause = generateDBSetClause(studentData);
+    const stmt = db.prepare(`UPDATE student SET ${setClause} WHERE id = ?`);
+    const info = stmt.run(...values, studentData.id);
+    return { success: true, id: info.lastInsertRowid, info };
+  },
+  
+  updateStudents() { },
   async handlesStudentsPromotion(
     promotionMap: ClassPromotionMap,
     repeatersIds: number[],
@@ -85,8 +89,7 @@ export const studentRepo = {
     //transform the repeater ids to this syntax (101), (205), (309)for sql query
     const formattedRepeatersIds = generateSqlCTEValues(repeatersIds, 1);
 
-    try {
-      const sql = `
+    const sql = `
 WITH 
 graduatingClassIds(class_id) AS (
   VALUES ${formattedGraduatingClassIds}
@@ -121,10 +124,7 @@ WHERE
   OR class_id IN (SELECT class_id FROM graduatingClassIds)
   OR class_id IN (SELECT from_class_id FROM promotion_map);
 `;
-      db.exec(sql);
-    } catch (error) {
-      console.error("Error creating season:", error);
-      throw error;
-    }
+    db.exec(sql);
+
   },
 };

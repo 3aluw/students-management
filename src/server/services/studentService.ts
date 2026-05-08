@@ -1,4 +1,4 @@
-import { ClassPromotionMap, NewStudent, Student } from "~/data/types";
+import { ClassPromotionMap, EditStudent, NewStudent, Student } from "~/data/types";
 import { studentRepo } from "../repositories/studentRepo";
 
 export const studentService = {
@@ -12,6 +12,7 @@ export const studentService = {
       return studentRepo.getAll();
     }
   },
+
   createStudent(studentData: NewStudent) {
     try {
       return studentRepo.createStudent(studentData);
@@ -23,6 +24,19 @@ export const studentService = {
       });
     }
   },
+
+  updateStudent(studentData: EditStudent) {
+    try {
+      studentRepo.updateStudent(studentData);
+    } catch (error) {
+      throw createError({
+        statusCode: 500,
+        statusMessage: "فشلت عملية تحديث معلومات الطالب، يرجى التأكد من صحة البيانات المدخلة",
+        cause: error,
+      });
+    }
+  },
+
   deleteStudents(ids: number[]) {
     if (!ids.length) {
       throw createError({

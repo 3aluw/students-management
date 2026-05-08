@@ -28,25 +28,25 @@ export default defineEventHandler(async (event) => {
       });
     }
   }
+
+  
   // if no id : Create a new item
   if (!("id" in reqBody)) {
     try {
-      studentService.createStudent(reqBody)
+      return studentService.createStudent(reqBody);
     }
     catch (error) {
       logError("Error creating student:", error, event.path, reqBody);
       return sendError(event, error as H3Error);
     }
-  } // if id : item exists So update it
+  } 
+  
+  // if id : item exists So update it
   else {
     try {
-      const values = Object.values(reqBody);
-
-      const setClause = generateDBSetClause(reqBody);
-      const stmt = db.prepare(`UPDATE student SET ${setClause} WHERE id = ?`);
-      const info = stmt.run(...values, reqBody.id);
-      return { success: true, id: info.lastInsertRowid, info };
+       return studentService.updateStudent(reqBody);
     } catch (err) {
+      logError("Error updating student:", err, event.path, reqBody);
       return { success: false, error: (err as Error).message };
     }
   }
