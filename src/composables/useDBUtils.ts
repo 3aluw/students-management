@@ -67,13 +67,23 @@ export default function () {
   };
 
   // ========== create an error in case of a function throwing a non Error ==========
-const createGenericError = (operationName:string): BackendResponse => {
-      return {
-        success: false,
-        message: "لم تنجح عملية " + operationName
-          
-      }
-}
+  const createGenericError = (operationName: string): BackendResponse => {
+    return {
+      success: false,
+      message: "لم تنجح عملية " + operationName
+
+    }
+  }
+
+  const logError = ( message: string,error: unknown, path: string, body: unknown) => {
+
+    console.error({
+      message,
+      error,
+      path,
+      body,
+    });
+  }
   // ========== Handle multi steps workflow and its error handling ==========
   /**
    * Represents a step in a multi-step workflow, including its name, the function to run, and an optional condition for execution.
@@ -132,6 +142,7 @@ const createGenericError = (operationName:string): BackendResponse => {
     generateDBInClause,
     buildWhereQuery,
     generateSqlCTEValues,
+    logError,
     createGenericError,
     runSteps,
     StepError,
