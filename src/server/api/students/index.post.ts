@@ -1,6 +1,8 @@
 import { EditStudent, BatchEditStudent, NewStudent } from "~/data/types";
 import db from "~/db/db";
 import useDBUtils from "../../../composables/useDBUtils";
+import { studentService } from "~/server/services/studentService";
+import type { H3Error } from "h3";
 
 export default defineEventHandler(async (event) => {
   const { generateDBSetClause, generateDBInClause } = useDBUtils();
@@ -26,41 +28,12 @@ export default defineEventHandler(async (event) => {
       });
     }
   }
-
-  const {
-    first_name,
-    last_name,
-    class_id,
-    father_name,
-    grandfather_name,
-    sex,
-    phone_number,
-    birth_date,
-    address,
-  } = reqBody;
   // if no id : Create a new item
   if (!("id" in reqBody)) {
-    try {
-      const stmt = db.prepare(
-        "INSERT INTO student (class_id, first_name, last_name, father_name,grandfather_name, sex, phone_number, birth_date, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
-      );
-      const info = stmt.run(
-        class_id,
-        first_name,
-        last_name,
-        father_name,
-        grandfather_name,
-        sex,
-        phone_number,
-        birth_date,
-        address
-      );
-      return { success: true, id: info.lastInsertRowid, info };
-    } catch (err) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: (err as Error).message || "لم تتم إضافة الطالب",
-      });
+     try{
+    studentService.createStudent(reqBody)}
+    catch (error) {
+       return sendError(event, error as H3Error);
     }
   } // if id : item exists So update it
   else {

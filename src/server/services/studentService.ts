@@ -15,11 +15,13 @@ export const studentService = {
   createStudent(studentData: NewStudent) {
     try {
       return studentRepo.createStudent(studentData);
-    } catch (err) {
+    } catch (error) {
       throw createError({
         statusCode: 500,
         statusMessage: "فشلت عملية إنشاء الطالب، يرجى التأكد من صحة البيانات المدخلة",
-      });    }
+        cause: error,
+      });
+    }
   },
   deleteStudents(ids: number[]) {
     if (!ids.length) {
