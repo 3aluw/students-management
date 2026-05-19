@@ -1,5 +1,5 @@
 import useDBUtils from "~/composables/useDBUtils";
-import { ClassPromotionMap, EditStudent, NewStudent, Student } from "~/data/types";
+import { BatchEditStudent, ClassPromotionMap, EditStudent, NewStudent, Student } from "~/data/types";
 import db from "~/db/db";
 
 const { generateSqlCTEValues, generateDBInClause, generateDBSetClause } = useDBUtils();
@@ -42,7 +42,7 @@ export const studentRepo = {
     const stmt = db.prepare(
       "INSERT INTO student (class_id, first_name, last_name, father_name,grandfather_name, sex, phone_number, birth_date, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
     );
-    const info = stmt.run(
+    const result = stmt.run(
       class_id,
       first_name,
       last_name,
@@ -53,18 +53,29 @@ export const studentRepo = {
       birth_date,
       address,
     );
-    return { success: true, id: info.lastInsertRowid, info };
+    return result
 
   },
   updateStudent(studentData: EditStudent) {
     const values = Object.values(studentData);
     const setClause = generateDBSetClause(studentData);
     const stmt = db.prepare(`UPDATE student SET ${setClause} WHERE id = ?`);
-    const info = stmt.run(...values, studentData.id);
-    return { success: true, id: info.lastInsertRowid, info };
+    const result = stmt.run(...values, studentData.id);
+    return result;
   },
-  
-  updateStudents() { },
+
+  updateStudents(studentsData: BatchEditStudent) {
+    const { ids, ...props } = studentsData;
+    const values = Object.values(props);
+    const inClause = generateDBInClause(ids.length);
+    const setClause = generateDBSetClause(props);
+    const stmt = db.prepare(
+      `UPDATE student SET ${setClause} WHERE id IN (${inClause}) `
+    );
+    const result = stmt.run(...values, ...ids);
+    return result
+  },
+
   async handlesStudentsPromotion(
     promotionMap: ClassPromotionMap,
     repeatersIds: number[],

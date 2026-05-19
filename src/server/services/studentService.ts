@@ -1,4 +1,4 @@
-import { ClassPromotionMap, EditStudent, NewStudent, Student } from "~/data/types";
+import { BatchEditStudent, ClassPromotionMap, EditStudent, NewStudent, Student } from "~/data/types";
 import { studentRepo } from "../repositories/studentRepo";
 
 export const studentService = {
@@ -14,27 +14,48 @@ export const studentService = {
   },
 
   createStudent(studentData: NewStudent) {
-    try {
-      return studentRepo.createStudent(studentData);
-    } catch (error) {
+    const result = studentRepo.createStudent(studentData);
+    if (result.changes === 0) {
       throw createError({
-        statusCode: 500,
-        statusMessage: "فشلت عملية إنشاء الطالب، يرجى التأكد من صحة البيانات المدخلة",
-        cause: error,
+        statusCode: 404,
+        statusMessage: "لم يتم إنشاء الطالب",
       });
     }
+
+    return {
+      message: "تم إنشاء الطالب",
+    };
   },
 
   updateStudent(studentData: EditStudent) {
-    try {
-      studentRepo.updateStudent(studentData);
-    } catch (error) {
+    const result = studentRepo.updateStudent(studentData);
+
+    if (result.changes === 0) {
       throw createError({
-        statusCode: 500,
-        statusMessage: "فشلت عملية تحديث معلومات الطالب، يرجى التأكد من صحة البيانات المدخلة",
-        cause: error,
+        statusCode: 404,
+        statusMessage: "لم يتم تعديل الطالب",
       });
     }
+
+    return {
+      message: "تم تعديل الطالب",
+    };
+
+  },
+
+  updateStudents(studentsData: BatchEditStudent) {
+    const result = studentRepo.updateStudents(studentsData);
+    if (result.changes === 0) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: "لم يتم تعديل الطلبة المحددين",
+      });
+    }
+
+    return {
+      message: "تم تعديل الطلبة المحددين",
+    };
+
   },
 
   deleteStudents(ids: number[]) {

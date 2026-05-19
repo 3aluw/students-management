@@ -85,7 +85,7 @@ export default function () {
     });
   }
 
-  const createSafeError = (error: unknown, defaultMessage: string) => {
+  const toSafeError = (error: unknown, defaultMessage: string) => {
     return {
       statusCode: (error as H3Error)?.statusCode || 500,
       statusMessage: (error as H3Error)?.statusMessage || defaultMessage,
@@ -150,7 +150,7 @@ export default function () {
     buildWhereQuery,
     generateSqlCTEValues,
     logError,
-    createSafeError,
+    toSafeError,
     createGenericError,
     runSteps,
     StepError,
