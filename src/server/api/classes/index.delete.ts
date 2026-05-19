@@ -1,14 +1,13 @@
 import { classService } from "~/server/services/classService";
-import type { H3Error } from "h3";
 import useDBUtils from "~/composables/useDBUtils";
-const { logError } = useDBUtils();
+const { logError,toSafeError } = useDBUtils();
 
 export default defineEventHandler((event) => {
   const query = getQuery<{ id: string }>(event);
   if (!query.id) {
     throw createError({
       statusCode: 400,
-      statusMessage: "Class ID is required",
+      statusMessage: "لم يتم تحديد القسم المراد حذفه",
     });
   }
   try {
@@ -16,6 +15,7 @@ export default defineEventHandler((event) => {
 
   } catch (error) {
     logError("Error deleting class:", error, event.path, query.id);
-    return sendError(event, error as H3Error);
+     const safeError = createError(toSafeError(error, "حدث خطأ أثناء حذف القسم"));
+    return sendError(event, safeError);
   }
 })
