@@ -1,4 +1,5 @@
 import type { BackendResponse, EventQueryFilters } from "~/data/types";
+import type { H3Error } from "h3";
 
 export default function () {
   const generateDBSetClause = <T extends Object>(object: T) => {
@@ -75,14 +76,20 @@ export default function () {
     }
   }
 
-  const logError = ( message: string,error: unknown, path: string, body: unknown) => {
-
+  const logError = (message: string, error: unknown, path: string, body: unknown) => {
     console.error({
       message,
       error,
       path,
       body,
     });
+  }
+
+  const createSafeError = (error: unknown, defaultMessage: string) => {
+    return {
+      statusCode: (error as H3Error)?.statusCode || 500,
+      statusMessage: (error as H3Error)?.statusMessage || defaultMessage,
+    }
   }
   // ========== Handle multi steps workflow and its error handling ==========
   /**
@@ -143,6 +150,7 @@ export default function () {
     buildWhereQuery,
     generateSqlCTEValues,
     logError,
+    createSafeError,
     createGenericError,
     runSteps,
     StepError,
