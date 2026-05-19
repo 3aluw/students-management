@@ -76,7 +76,7 @@ export const studentService = {
 
     return {
       statusMessage: "تم حذف الطلبة الذين تم تحديدهم",
-      deletedCount: result.changes,
+      count: result.changes,
     };
   },
   promoteStudents(promotionMap: ClassPromotionMap, repeaters: Student[]) {
