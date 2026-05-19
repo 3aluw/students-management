@@ -1,5 +1,6 @@
-import db from "~/db/db";
-
+import { seasonService } from "~/server/services/seasonService";
+import useDBUtils from "~/composables/useDBUtils";
+const { logError, toSafeError } = useDBUtils();
 
 export default defineEventHandler((event) => {
   const query = getQuery<{ id: string }>(event);
@@ -10,13 +11,12 @@ export default defineEventHandler((event) => {
     });
   }
   const seasonId = query.id;
-  const stmt = db.prepare(`
-    DELETE FROM season WHERE id = ?
-    `);
-  const result = stmt.run(seasonId);
-if (result.changes > 0) {
-  return { status: 200, message: 'تم حذف الموسم' };
-} else {
-  return { status: 404, message: 'لم يتم إيجاد الموسم' };
-}
+  try {
+    return seasonService.deleteSeason(Number(seasonId));
+
+  } catch (error) {
+    logError("Error deleting season:", error, event.path, seasonId);
+    const safeError = createError(toSafeError(error, "حدث خطأ أثناء حذف الموسم"));
+    return sendError(event, safeError);
+  }
 })

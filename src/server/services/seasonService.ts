@@ -44,7 +44,7 @@ export const seasonService = {
           when: () => promoteStudentsAllowed,
         },
       ]);
-      return { success: true, message: "تم إنشاء الموسم الجديد بنجاح" };
+      return { message: "تم إنشاء الموسم الجديد بنجاح" };
     });
 
     return trx(payload);
@@ -65,7 +65,7 @@ export const seasonService = {
       message: "تمت إضافة الموسم الدراسي بنجاح",
     };
   },
-  
+
   editSeason(season: EditSchoolSeason) {
 
     const result = seasonRepo.editSeason(season);

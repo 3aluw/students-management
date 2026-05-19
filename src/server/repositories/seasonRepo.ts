@@ -8,9 +8,16 @@ export const seasonRepo = {
 
   getSeasons() {
     const stmt = db.prepare('SELECT * FROM season');
-    const seasons = stmt.all();
-    return seasons as SchoolSeason[];
+    const seasons = stmt.all() as (Omit<SchoolSeason, "terms"> & {
+      terms: string;
+    })[];
+    const parsedSeasons: SchoolSeason[] = seasons.map((season) => ({
+      ...season,
+      terms: JSON.parse(season.terms) as SchoolSeason["terms"],
+    }));
+    return parsedSeasons as SchoolSeason[];;
   },
+
   editSeason(season: EditSchoolSeason) {
     /* stringify terms */
     const stringifiedTerms = JSON.stringify(season.terms);
@@ -28,7 +35,6 @@ export const seasonRepo = {
     const stmt = db.prepare(`UPDATE season SET ${setClause} WHERE id = ?`);
     const result = stmt.run(...values, id);
     return result
-
   },
 
   createSeason(season: NewSchoolSeason) {
