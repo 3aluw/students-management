@@ -1,9 +1,5 @@
-import db from '~/db/db';
-import type { Class } from '~/data/types';
+import { classService } from "~/server/services/classService";
 
-export default defineEventHandler(() => {
-  const stmt = db.prepare('SELECT * FROM class');
-  const classes = stmt.all();
-  return classes as Class[];
-});
+export default defineEventHandler(() => classService.getClasses()
+);
 

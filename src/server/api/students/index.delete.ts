@@ -3,6 +3,7 @@ import { studentService } from "~/server/services/studentService";
 import type { H3Error } from "h3";
 import useDBUtils from "~/composables/useDBUtils";
 const { logError } = useDBUtils();
+
 export default defineEventHandler(async (event) => {
   const studentsIds = await readBody<Student["id"][]>(event);
   try{

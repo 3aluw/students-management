@@ -1,5 +1,7 @@
-import db from "~/db/db";
-
+import { classService } from "~/server/services/classService";
+import type { H3Error } from "h3";
+import useDBUtils from "~/composables/useDBUtils";
+const { logError } = useDBUtils();
 
 export default defineEventHandler((event) => {
   const query = getQuery<{ id: string }>(event);
@@ -9,14 +11,11 @@ export default defineEventHandler((event) => {
       statusMessage: "Class ID is required",
     });
   }
-  const classId = query.id;
-  const stmt = db.prepare(`
-    DELETE FROM class WHERE id = ?
-    `);
-  const result = stmt.run(classId);
-if (result.changes > 0) {
-  return { status: 200, message: 'تم حذف القسم' };
-} else {
-  return { status: 404, message: 'لم يتم إيجاد القسم' };
-}
+  try {
+    return classService.deleteClass(query.id);
+
+  } catch (error) {
+    logError("Error deleting class:", error, event.path, query.id);
+    return sendError(event, error as H3Error);
+  }
 })

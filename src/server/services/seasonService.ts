@@ -1,4 +1,3 @@
-// server/services/seasonService.ts
 import db from "~/db/db";
 import { seasonRepo } from "../repositories/seasonRepo";
 import { studentService } from "./studentService";
