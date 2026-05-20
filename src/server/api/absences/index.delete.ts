@@ -1,16 +1,18 @@
-import useDBUtils from "~/composables/useDBUtils";
 
-import db from "~/db/db";
+import { absenceService } from "~/server/services/absenceService";
+import useDBUtils from "~/composables/useDBUtils";
+const { logError, toSafeError } = useDBUtils();
 
 export default defineEventHandler(async (event) => {
   const absenceIds = await readBody<number[]>(event);
-  const { generateDBInClause } = useDBUtils();
-  const inClause = generateDBInClause(absenceIds.length);
-  const stmt = db.prepare(`DELETE FROM absence WHERE id IN (${inClause})`);
-  const result = stmt.run(absenceIds);
-  if (result.changes > 0) {
-    return { status: 200, message: "تم حذف الغيابات" };
-  } else {
-    return { status: 404, message: "لم يتم إيجاد الغيابات" };
+  try {
+    return absenceService.deleteAbsences(absenceIds);
+  }
+  catch (err) {
+    logError("Error deleting absences:", err, event.path, absenceIds);
+    const safeError = createError(toSafeError(err, "فشلت عملية حذف الغيابات"));
+    return sendError(
+      event, safeError
+    );
   }
 });
