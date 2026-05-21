@@ -1,6 +1,7 @@
 import { EditStudent, BatchEditStudent, NewStudent } from "~/data/types";
 import useDBUtils from "~/composables/useDBUtils";
 import { studentService } from "~/server/services/studentService";
+import type { H3Error } from "h3";
 
 export default defineEventHandler(async (event) => {
   const {  toSafeError, logError } = useDBUtils();
@@ -26,7 +27,8 @@ export default defineEventHandler(async (event) => {
     logError("Error updating student:", error, event.path, reqBody);
 
     const reqMode = "ids" in reqBody ? "batch update" : !("id" in reqBody) ? "create" : "update";
-    const errorMessage = reqMode === "create" ? " إنشاء الطالب" : reqMode === "update" ? " تحديث معلومات الطالب" : "تعديل الطلاب المحددين";
+    const errorMessageTitle = reqMode === "create" ? " إنشاء الطالب" : reqMode === "update" ? " تحديث معلومات الطالب" : "تعديل الطلاب المحددين";
+    const errorMessage = (error as H3Error)?.statusMessage ?? "حدث خطأ أثناء " + errorMessageTitle
     const safeError = createError(toSafeError(error, "حدث خطأ أثناء " + errorMessage));
     return sendError(event, safeError);
   }

@@ -1,6 +1,7 @@
 import type { EditClass, NewClass } from "~/data/types";
 import useDBUtils from "../../../composables/useDBUtils";
 import { classService } from "~/server/services/classService";
+import type { H3Error } from "h3";
 
 const { logError, toSafeError } = useDBUtils();
 export default defineEventHandler(async (event) => {
@@ -19,8 +20,9 @@ export default defineEventHandler(async (event) => {
     logError("Error fetching classes:", error, event.path, undefined);
 
     const reqMode = "id" in reqBody ? 'edit' : 'create'
-    const defMessage = reqMode === 'edit' ? "حدث خطأ أثناء تعديل القسم" : "حدث خطأ أثناء إضافة القسم"
-    const safeError = createError(toSafeError(error, defMessage));
+    const errorMessageTitle = reqMode === 'edit' ? "تعديل القسم" : " إضافة القسم"
+        const errorMessage = (error as H3Error)?.statusMessage ?? "حدث خطأ أثناء " + errorMessageTitle
+    const safeError = createError(toSafeError(error, errorMessage));
     return sendError(event, safeError);
   }
 });
