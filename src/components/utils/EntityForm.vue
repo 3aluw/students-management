@@ -122,6 +122,7 @@ import type { NewClass, NewStudent, Student, Class  } from '~/data/types';
 import { schoolLevelOptions } from '~/data/static';
 import type { FormSubmitEvent } from "@primevue/forms"
 const { getRequiredFieldMessage } = useDataUtils()
+const {newStudentSchema, newClassSchema} = useZodSchema()
 const studentStore = useStudentStore();
 
 
@@ -139,7 +140,8 @@ const props = defineProps<{
 const formattedStudentObject = computed(() => {
     if (props.entityType === 'student') {
         const studentObj = props.entityObject as Student
-        return { ...studentObj, birth_date: new Date(studentObj.birth_date) }
+        const defaultBrithDate = new Date().getTime() - 1000 * 60 * 60 * 24 * 365 * 10 // 10 years ago
+        return { ...studentObj, birth_date: new Date(studentObj?.birth_date || defaultBrithDate) }
     }
 })
 
