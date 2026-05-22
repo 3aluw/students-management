@@ -16,7 +16,7 @@ export const absenceService = {
         }
         if (result.changes < absenceIds.length) {
             throw createError({
-                statusCode: 400,
+                statusCode: 409,
                 statusMessage: "تم حذف بعض الغيابات المحددة، لكن بعضها لم يتم العثور عليه (تم حذف " + result.changes + " من " + absenceIds.length + ")",
             });
         }
@@ -33,7 +33,7 @@ export const absenceService = {
         }
         if (result.changes < absences.length) {
             throw createError({
-                statusCode: 207,
+                statusCode: 409,
                 statusMessage: "تم إضافة بعض الغيابات الجديدة، لكن بعضها لم يتم إضافته (تم إضافة " + result.changes + " من " + absences.length + ")",
             });
         }
@@ -61,7 +61,7 @@ export const absenceService = {
         }
         if (result.changes < abcenses.ids.length) {
             throw createError({
-                statusCode: 207,
+                statusCode: 409,
                 statusMessage: "تم تحديث بعض الغيابات المحددة، لكن بعضها لم يتم العثور عليه (تم تحديث " + result.changes + " من " + abcenses.ids.length + ")",
             });
         }

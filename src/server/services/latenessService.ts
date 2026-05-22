@@ -16,7 +16,7 @@ export const latenessService = {
         }
         if (result.changes < latenessIds.length) {
             throw createError({
-                statusCode: 400,
+                statusCode: 409,
                 statusMessage: "تم حذف بعض التأخيرات المحددة، لكن بعضها لم يتم العثور عليه (تم حذف " + result.changes + " من " + latenessIds.length + ")",
             });
         }
