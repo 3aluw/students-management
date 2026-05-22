@@ -85,12 +85,29 @@ export default function () {
     });
   }
 
-  const toSafeError = (error: unknown, defaultMessage?: string) => {
+const toSafeError = (
+  error: unknown,
+  defaultMessage = "حدث خطأ أثناء العملية"
+) => {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "statusCode" in error &&
+    "statusMessage" in error
+  ) {
+    const h3Error = error as H3Error;
+
     return {
-      statusCode: (error as H3Error)?.statusCode || 500,
-      statusMessage: (error as H3Error)?.statusMessage || defaultMessage  || 'حدث خطأ أثناء العملية',
-    }
+      statusCode: h3Error.statusCode,
+      statusMessage: h3Error.statusMessage,
+    };
   }
+
+  return {
+    statusCode: 500,
+    statusMessage: defaultMessage,
+  };
+};
   // ========== Handle multi steps workflow and its error handling ==========
   /**
    * Represents a step in a multi-step workflow, including its name, the function to run, and an optional condition for execution.
