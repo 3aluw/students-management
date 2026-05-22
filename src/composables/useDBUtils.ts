@@ -1,4 +1,5 @@
 import type { BackendResponse, EventQueryFilters } from "~/data/types";
+import type { H3Error } from "h3";
 
 export default function () {
   const generateDBSetClause = <T extends Object>(object: T) => {
@@ -67,13 +68,29 @@ export default function () {
   };
 
   // ========== create an error in case of a function throwing a non Error ==========
-const createGenericError = (operationName:string): BackendResponse => {
-      return {
-        success: false,
-        message: "لم تنجح عملية " + operationName
-          
-      }
-}
+  const createGenericError = (operationName: string): BackendResponse => {
+    return {
+      success: false,
+      message: "لم تنجح عملية " + operationName
+
+    }
+  }
+
+  const logError = (message: string, error: unknown, path: string, body: unknown) => {
+    console.error({
+      message,
+      error,
+      path,
+      body,
+    });
+  }
+
+  const toSafeError = (error: unknown, defaultMessage?: string) => {
+    return {
+      statusCode: (error as H3Error)?.statusCode || 500,
+      statusMessage: (error as H3Error)?.statusMessage || defaultMessage  || 'حدث خطأ أثناء العملية',
+    }
+  }
   // ========== Handle multi steps workflow and its error handling ==========
   /**
    * Represents a step in a multi-step workflow, including its name, the function to run, and an optional condition for execution.
@@ -132,6 +149,8 @@ const createGenericError = (operationName:string): BackendResponse => {
     generateDBInClause,
     buildWhereQuery,
     generateSqlCTEValues,
+    logError,
+    toSafeError,
     createGenericError,
     runSteps,
     StepError,

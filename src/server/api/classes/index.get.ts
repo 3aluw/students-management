@@ -1,9 +1,15 @@
-import db from '~/db/db';
-import type { Class } from '~/data/types';
+import { classService } from "~/server/services/classService";
+import useDBUtils from "~/composables/useDBUtils";
+const { logError,toSafeError } = useDBUtils();
 
-export default defineEventHandler(() => {
-  const stmt = db.prepare('SELECT * FROM class');
-  const classes = stmt.all();
-  return classes as Class[];
+export default defineEventHandler((event) => {
+    try {
+        return classService.getClasses();
+    } catch (error) {
+        logError("Error fetching classes:", error, event.path, undefined);
+
+        const safeError = createError(toSafeError(error, "حدث خطأ أثناء جلب الأقسام"));
+        return sendError(event, safeError);
+    }
 });
 

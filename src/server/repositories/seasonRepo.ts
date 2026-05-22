@@ -6,6 +6,57 @@ type sqliteSchoolSeason = Omit<SchoolSeason, "terms"> & { terms: string };
 const { generateDBSetClause } = useDBUtils();
 export const seasonRepo = {
 
+  getSeasons() {
+    const stmt = db.prepare('SELECT * FROM season');
+    const seasons = stmt.all() as (Omit<SchoolSeason, "terms"> & {
+      terms: string;
+    })[];
+    const parsedSeasons: SchoolSeason[] = seasons.map((season) => ({
+      ...season,
+      terms: JSON.parse(season.terms) as SchoolSeason["terms"],
+    }));
+    return parsedSeasons as SchoolSeason[];;
+  },
+
+  editSeason(season: EditSchoolSeason) {
+    /* stringify terms */
+    const stringifiedTerms = JSON.stringify(season.terms);
+    const updatedSeason = {
+      ...season,
+      terms: stringifiedTerms,
+    };
+    /* exclude id from editing values */
+    const { id, ...rest } = updatedSeason;
+
+    const values = Object.values(rest);
+    const setClause = generateDBSetClause(rest);
+
+    console.log("values:", values, "setClause:", setClause);
+    const stmt = db.prepare(`UPDATE season SET ${setClause} WHERE id = ?`);
+    const result = stmt.run(...values, id);
+    return result
+  },
+
+  createSeason(season: NewSchoolSeason) {
+    const stringifiedTerms = JSON.stringify(season.terms);
+    const newSeason = {
+      ...season,
+      terms: stringifiedTerms,
+    };
+    const stmt = db.prepare(`INSERT INTO season (name, terms) VALUES (?, ?)`);
+    const result = stmt.run(season.name, stringifiedTerms);
+    return result
+
+  },
+  deleteSeasons(id: number) {
+    const stmt = db.prepare(`
+    DELETE FROM season WHERE id = ?
+    `);
+    const result = stmt.run(id);
+    return result;
+  },
+
+
   // ========== returns the current season if exists, otherwise returns undefined ==========
   getCurrentSeason() {
     const currentDate = new Date().getTime();
@@ -36,43 +87,5 @@ export const seasonRepo = {
     this.editSeason({ ...currentSeason, terms });
   },
 
-  editSeason(season: EditSchoolSeason) {
-    try {
-        /* stringify terms */
-        const stringifiedTerms = JSON.stringify(season.terms);
-        const updatedSeason = {
-          ...season,
-          terms: stringifiedTerms,
-        };
-        /* exclude id from editing values */
-        const { id, ...rest } = updatedSeason;
 
-        const values = Object.values(rest);
-        const setClause = generateDBSetClause(rest);
-
-        console.log("values:", values, "setClause:", setClause);
-        const stmt = db.prepare(`UPDATE season SET ${setClause} WHERE id = ?`);
-        const info = stmt.run(...values, id);
-        return { success: true, id, changes: info.changes};
-    } catch (error) {
-      console.error("Error creating season:", error);
-      throw error
-    }
-  },
-
-  createSeason(season: NewSchoolSeason) {
-    try {
-      const stringifiedTerms = JSON.stringify(season.terms);
-      const newSeason = {
-        ...season,
-        terms: stringifiedTerms,
-      };
-      const stmt = db.prepare(`INSERT INTO season (name, terms) VALUES (?, ?)`);
-      const info = stmt.run(season.name, stringifiedTerms);
-      return { success: true, id: info.lastInsertRowid, info };
-    } catch (error) {
-      console.error("Error creating season:", error);
-      throw error;
-    }
-  },
 };

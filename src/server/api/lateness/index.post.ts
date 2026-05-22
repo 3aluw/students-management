@@ -1,6 +1,9 @@
 import { BatchEditLateness, EditLateness, NewLateness } from "~/data/types";
-import db from "~/db/db";
-import useDBUtils from "../../../composables/useDBUtils";
+import useDBUtils from "~/composables/useDBUtils";
+const { logError, toSafeError } = useDBUtils();
+import { latenessService } from "~/server/services/latenessService";
+import type { H3Error } from "h3";
+
 
 export default defineEventHandler(async (event) => {
   const { generateDBSetClause, generateDBInClause } = useDBUtils();
@@ -8,96 +11,27 @@ export default defineEventHandler(async (event) => {
   const reqBody = await readBody<
     NewLateness[] | EditLateness | BatchEditLateness
   >(event);
-  // Batch Edit Absences
-  if ("ids" in reqBody) {
-    try {
-      const { ids, ...props } = reqBody;
-      const values = Object.values(props);
-      const inClause = generateDBInClause(ids.length);
-      const setClause = generateDBSetClause(props);
-      const stmt = db.prepare(
-        `UPDATE lateness SET ${setClause} WHERE id IN (${inClause}) `
-      );
-      const info = stmt.run(...values, ...ids);
-      return { success: true, id: info.lastInsertRowid, info };
-    } catch (err) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: (err as Error).message || "لم يتم تعديل معلومات الطلاب",
-      });
+  try {
+    // Batch Edit Absences
+    if ("ids" in reqBody) {
+      return latenessService.batchEditLateness(reqBody);
     }
-  }
-
-  // if no id : Create a new item
-  if (!("id" in reqBody)) {
-    try {
-      const stmt = db.prepare(
-        "INSERT OR IGNORE INTO lateness (student_id, date, start_time, late_by, reason, reason_accepted) VALUES (?, ?, ?, ?, ?, ?)"
-      );
-      const insertMany = db.transaction((latenessArray: NewLateness[]) => {
-        let insertedCount = 0;
-        let skippedIds : number[] = [];
-
-        for (const l of latenessArray) {
-          const info = stmt.run(
-            l.student_id,
-            l.date,
-            l.start_time,
-            l.late_by,
-            l.reason,
-            l.reason_accepted
-          );
-
-          if (info.changes === 0) skippedIds.push(l.student_id);
-          else insertedCount++;
-        }
-      if( insertedCount == 0 ) throw new Error('لم يتم تسجيل أي تأخر')
-        return { insertedCount, skippedIds };
-      });
-
-      const result = insertMany(reqBody);
-      return { success: true, ...result };
-    } catch (err) {
-      throw createError({
-        statusCode: 400,
-        statusMessage: (err as Error).message || "لم تتم إضافة أي تأخر",
-      });
+    // if no id : It is an array of new absences to insert db
+    if (!("id" in reqBody)) {
+      return latenessService.createLateness(reqBody);
+    } // if id : item exists So update it
+    else {
+      return latenessService.editLateness(reqBody);
     }
-  } // if id : item exists So update it
-  else {
-    try {
-      const values = Object.values(reqBody);
+  } catch (err) {
+    logError("Error fetching lateness:", err, event.path, reqBody);
 
-      const setClause = generateDBSetClause(reqBody);
-      const stmt = db.prepare(`UPDATE lateness SET ${setClause} WHERE id = ?`);
-      const info = stmt.run(...values, reqBody.id);
-      return { success: true, id: info.lastInsertRowid, info };
-    } catch (err) {
-      return { success: false, error: (err as Error).message };
-    }
+    const reqMode = "ids" in reqBody ? "batch update" : !("id" in reqBody) ? "create" : "update";
+    const errorMessageTitle = reqMode === "create" ? " إنشاء التأخر" : reqMode === "update" ? " تحديث معلومات التأخر" : "تعديل التأخرات المحددة";
+    const errorMessage = (err as H3Error)?.statusMessage ?? "حدث خطأ أثناء " + errorMessageTitle
+    const safeError = createError(toSafeError(err, errorMessage));
+    return sendError(
+      event, safeError
+    );
   }
 });
-
-/*START HERE
-
-const insertMany = db.transaction((latenessArray) => {
-  const inserted = [];
-  const skipped = [];
-
-  for (const lateness of latenessArray) {
-    const { student_id, date, start_time, late_by, reason, reason_accepted } = lateness;
-
-    const info = stmt.run(student_id, date, start_time, late_by, reason, reason_accepted);
-
-    if (info.changes === 0) {
-      // Row was skipped (duplicate)
-      skipped.push(lateness);
-    } else {
-      // Row was inserted
-      inserted.push(lateness);
-    }
-  }
-
-  return { inserted, skipped };
-});
- */

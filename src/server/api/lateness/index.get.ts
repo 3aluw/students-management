@@ -1,48 +1,24 @@
-import db from "~/db/db";
-import type { EventQueryFilters, LocalLateness } from "~/data/types";
-import useDBUtils from "~/composables/useDBUtils";
 
-type TotalRow = { total: number };
+import type { EventQueryFilters } from "~/data/types";
+import { latenessService } from "~/server/services/latenessService";
+import useDBUtils from "~/composables/useDBUtils";
+const { logError, toSafeError } = useDBUtils();
+
 
 export default defineEventHandler(async (event) => {
   const { buildWhereQuery } = useDBUtils();
 
-  const query = getQuery<EventQueryFilters>(event); // time filter / class filter / offset
-  const { limit = 20, offset = 0 } = query;
-  const { where, params } = buildWhereQuery(query, "lateness");
-
-  const stmt = db
-    .prepare(
-      `
-    SELECT
-    s.first_name,
-    s.last_name,
-    s.class_id,
-    c.grade,
-    c.school_level,
-    c.section,
-    l.*
-    FROM lateness l
-    INNER JOIN student s ON s.id = l.student_id
-    INNER JOIN class c ON c.id = s.class_id
-    ${where ? where : ""}
-    ORDER BY l.date DESC
-    LIMIT ? OFFSET ?
-`
-    )
-    .bind(...params, Number(limit), Number(offset));
-  const lateness = stmt.all() as LocalLateness[];
-
-  const stmtTotal = db
-    .prepare(
-      `SELECT COALESCE(COUNT(*), 0) AS total
-    FROM lateness l
-    INNER JOIN student s ON s.id = l.student_id
-    INNER JOIN class c ON c.id = s.class_id
-    ${where ? where : ""}
-    ORDER BY l.date DESC`
-    )
-    .bind(...params);
-  const total = (stmtTotal.get() as TotalRow).total;
-  return { total, lateness };
+  const query = getQuery<EventQueryFilters>(event); // time filter / class filter / offset  
+  
+  try {
+      return latenessService.getLateness(query);
+    }
+    catch (err) {
+      logError("Error fetching lateness:", err, event.path, query);
+      
+      const safeError = createError(toSafeError(err, "فشلت عملية إيجاد التأخرات"));
+      return sendError(
+        event, safeError
+      );
+    }
 });

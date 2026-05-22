@@ -1,20 +1,17 @@
-import db from "~/db/db";
-import type { Student } from "~/data/types";
-
+import { studentService } from "~/server/services/studentService";
+import useDBUtils from "~/composables/useDBUtils";
+const { logError, toSafeError } = useDBUtils();
 export default defineEventHandler((event) => {
   const { classId, name } = getQuery<{ classId?: string; name?: string }>(
-    event
+    event,
   );
-  if (classId) {
-    const stmt = db.prepare("SELECT * FROM student WHERE class_id = ?");
-    const students = stmt.all(classId);
-    return students as Student[];
-  } else if (name) {
-     const stmt = db.prepare("SELECT * FROM student WHERE (first_name || ' ' || last_name) LIKE ?");
-    const students = stmt.all(`%${name}%`);
-    return students as Student[];
+  try {
+    return studentService.getStudents({ classId, name });
+  } catch (err) {
+    logError("Error fetching students:", err, event.path, { classId, name });
+    const safeError = createError(toSafeError(err, "فشلت عملية إيجاد الطلبة"));
+    return sendError(
+      event, safeError
+    );
   }
-  const stmt = db.prepare("SELECT * FROM student LIMIT 300");
-  const students = stmt.all();
-  return students as Student[];
 });

@@ -1,4 +1,3 @@
-// server/services/seasonService.ts
 import db from "~/db/db";
 import { seasonRepo } from "../repositories/seasonRepo";
 import { studentService } from "./studentService";
@@ -45,28 +44,55 @@ export const seasonService = {
           when: () => promoteStudentsAllowed,
         },
       ]);
-      return { success: true, message: "تم إنشاء الموسم الجديد بنجاح" };
+      return { message: "تم إنشاء الموسم الجديد بنجاح" };
     });
 
     return trx(payload);
   },
 
-  editSeason(season: EditSchoolSeason) {
-    try {
-      const result = seasonRepo.editSeason(season);
-      return {
-        ...result,
-        message: "تم تعديل الموسم بنجاح",
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: "حدث خطأ أثناء تعديل الموسم",
-      };
-    }
+  getSeasons() {
+    return seasonRepo.getSeasons();
   },
-};
+  createSeason(season: NewSchoolSeason) {
+    const result = seasonRepo.createSeason(season);
+    if (result.changes === 0) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: "لم يتم إضافة الموسم الدراسي",
+      });
+    }
+    return {
+      message: "تمت إضافة الموسم الدراسي بنجاح",
+    };
+  },
 
+  editSeason(season: EditSchoolSeason) {
+
+    const result = seasonRepo.editSeason(season);
+    if (result.changes === 0) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: "لم يتم إيجاد الموسم المحدد",
+      });
+    }
+    return {
+      message: "تم تعديل الموسم بنجاح",
+    };
+
+  },
+  deleteSeason(id: number) {
+    const result = seasonRepo.deleteSeasons(id);
+    if (result.changes === 0) {
+      throw createError({
+        statusCode: 404,
+        statusMessage: "لم يتم إيجاد الموسم المحدد",
+      });
+    }
+    return {
+      message: "تم حذف الموسم المحدد",
+    };
+  }
+};
 // ========== INTERNAL : validates if the season collides with an existing season ==========
 const validateSeasonCollision = (
   newSeason: NewSchoolSeason,
