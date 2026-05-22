@@ -2,8 +2,10 @@
  * Utility types
  */
 export type NewEntity<T extends { id: any }> = Omit<T, "id">;
+
 type PartialExceptId<T extends { id: number }> = Partial<Omit<T, "id">> &
   Pick<T, "id">;
+
 type BatchEdit<T extends AllEntitiesUnion> = Partial<Omit<T, "id">> & {
   ids: number[];
 };
