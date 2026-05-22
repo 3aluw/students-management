@@ -92,6 +92,7 @@ import { z } from 'zod';
 import { useToast } from 'primevue/usetoast';
 import type { NewAbsence, NewLateness, AbsenceInfo, LatenessInfo, EventTypes } from '~/data/types';
 import type { FormSubmitEvent } from "@primevue/forms"
+const { latenessSchema, absenceSchema } = useZodSchema()
 const { getDatesForEventInfo, minutesAfterMidnight } = useDataUtils()
 const toast = useToast();
 
@@ -126,32 +127,30 @@ const emit = defineEmits<{
     (e: 'submit', obj: EventInfo<T>): void;
 }>()
 
-const resolver = computed(() => props.eventType == 'absence' ? zodResolver(absenceZodSchema) :
-    zodResolver(latenessZodSchema)
+const resolver = computed(() => props.eventType == 'absence' ? zodResolver(absenceInfoZodSchema) :
+    zodResolver(latenessInfoZodSchema)
 );
-const absenceZodSchema = z.object({
-    date: z.date().transform(d => d.getTime()),
-    start_time: z.date().transform(d => d.getTime()),
-    reason: z.string().min(5, { message: 'يجب إدخال سبب الغياب' }),
-    reason_accepted: z.literal([0, 1])
-})
-    .transform((data) => {
-        return {
-            ...data,
-            start_time: minutesAfterMidnight(data.start_time)
-        }
-    }) satisfies z.ZodType<AbsenceInfo>
+
+const absenceInfoZodSchema = absenceSchema
+    .omit({ id: true, student_id: true })
+    .extend({
+        date: z.date().transform(d => d.getTime()),
+        start_time: z.date().transform(d => d.getTime()),
+    })
+    .transform((data) => ({
+        ...data,
+        start_time: minutesAfterMidnight(data.start_time),
+    }))  satisfies z.ZodType<AbsenceInfo>
 
 
-
-const latenessZodSchema = z.object({
-    date: z.date().transform(d => d.getTime()),
-    reason: z.string().min(5, { message: 'يجب إدخال سبب الغياب' }),
-    reason_accepted: z.literal([0, 1]),
+    const latenessInfoZodSchema = latenessSchema
+    .omit({ id: true, student_id: true })
+    .extend({
+        date: z.date().transform(d => d.getTime()),
+        start_time: z.date().transform(d => d.getTime()),
     late_by: z.date().transform(d => d.getTime()),      // it will be used to insert the time of enter then transformed to minutes after shift start
-    start_time: z.date().transform(d => d.getTime()),
-}) 
-    .refine(
+
+    }).refine(
         (data) => data.late_by > data.start_time,
         { message: "وقت الدخول يجب أن يكون بعد بداية الحصة", path: ["late_by"] }
     )
@@ -179,4 +178,41 @@ function searchReasons(e: { query: string }) {
         return reasons.startsWith(query)
     })
 }
+
+/*
+// Complete zod schemas (used before extending zodSchemas in zod composable)
+const absenceZodSchema = z.object({
+    date: z.date().transform(d => d.getTime()),
+    start_time: z.date().transform(d => d.getTime()),
+    reason: z.string().min(5, { message: 'يجب إدخال سبب الغياب' }),
+    reason_accepted: z.literal([0, 1])
+})
+    .transform((data) => {
+        return {
+            ...data,
+            start_time: minutesAfterMidnight(data.start_time)
+        }
+    }) satisfies z.ZodType<AbsenceInfo>
+
+    
+const latenessZodSchema = z.object({
+    date: z.date().transform(d => d.getTime()),
+    reason: z.string().min(5, { message: 'يجب إدخال سبب الغياب' }),
+    reason_accepted: z.literal([0, 1]),
+    late_by: z.date().transform(d => d.getTime()),      // it will be used to insert the time of enter then transformed to minutes after shift start
+    start_time: z.date().transform(d => d.getTime()),
+}) 
+    .refine(
+        (data) => data.late_by > data.start_time,
+        { message: "وقت الدخول يجب أن يكون بعد بداية الحصة", path: ["late_by"] }
+    )
+    .transform((data) => {
+        return {
+            ...data,
+            late_by: minutesAfterMidnight(data.late_by) - minutesAfterMidnight(data.start_time),
+            start_time: minutesAfterMidnight(data.start_time)
+        }
+    }) satisfies z.ZodType<LatenessInfo>
+
+*/
 </script>
