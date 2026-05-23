@@ -1,4 +1,4 @@
-import { ArabicStudentProperties, ArabicClassProperties } from "~/data/static";
+import { arabicProperties } from "~/data/static";
 import type {
   Student,
   Class,
@@ -14,31 +14,26 @@ import type {
 export default function () {
   /*Internal */
   const formatRequiredFieldMessage = (
-    arabicText: string,
+    arabicFieldName: string,
     type: "text" | "choice" = "text",
   ) =>
     type === "text"
-      ? `يجب إدخال ${arabicText}`
+      ? `يجب إدخال ${arabicFieldName}`
       : type == "choice"
-        ? `يجب اختيار ${arabicText}`
+        ? `يجب اختيار ${arabicFieldName}`
         : "هذا الحقل مطلوب";
 
   const getRequiredFieldMessage = (
-    fieldName: keyof Student | keyof Class | string,
+    fieldName: string,
     type: "text" | "choice" = "text",
   ) => {
-    return fieldName in ArabicStudentProperties
-      ? formatRequiredFieldMessage(
-          ArabicStudentProperties[fieldName as keyof Student],
-          type,
-        )
-      : fieldName in ArabicClassProperties
-        ? formatRequiredFieldMessage(
-            ArabicClassProperties[fieldName as keyof Class],
-            type,
-          )
-        : `يجب إدخال ${fieldName} `;
+    const arabicPropertyName = getPropertyArabicName(fieldName)
+    return arabicPropertyName
+      ? formatRequiredFieldMessage(  arabicPropertyName,type)
+      : `يجب إدخال الحقل التالي: ${fieldName} `;
   };
+  const getPropertyArabicName = (fieldName: string) => fieldName in arabicProperties ? arabicProperties[fieldName as keyof typeof arabicProperties] : undefined
+
   const getTimeRange = (range: SupportedDateRanges) => {
     const now = new Date();
     let start, end;
@@ -109,8 +104,8 @@ export default function () {
   // A function that return dates for lateness info or absence info
   const getDatesForEventInfo = <
     T extends
-      | Pick<LatenessInfo, "late_by" | "start_time" | "date">
-      | Pick<AbsenceInfo, "date" | "start_time">,
+    | Pick<LatenessInfo, "late_by" | "start_time" | "date">
+    | Pick<AbsenceInfo, "date" | "start_time">,
   >(
     obj: T,
   ) => {
