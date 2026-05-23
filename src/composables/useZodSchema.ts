@@ -22,7 +22,8 @@ export default function () {
 
     const newStudentSchema = studentSchema.omit({ id: true }) satisfies z.ZodType<NewStudent>
     const editStudentSchema = studentSchema.partial().required({ id: true }) satisfies z.ZodType<EditStudent>
-
+    const batchEditStudentSchema = z.array(editStudentSchema.omit({id:true}).extend({ids: z.array(z.number())}))
+    
     // ========== Class schemas ==========
 
     const classSchema = z.object({
@@ -34,6 +35,7 @@ export default function () {
 
     const newClassSchema = classSchema.omit({ id: true }) satisfies z.ZodType<NewClass>
     const editClassSchema = classSchema.partial().required({ id: true }) satisfies z.ZodType<EditClass>
+    const batchEditClassSchema = z.array(editClassSchema.omit({id:true}).extend({ids: z.array(z.number())}))
    
     // ========== Lateness schemas ==========
     const latenessSchema = z.object({
