@@ -5,6 +5,11 @@ import type {
   SchoolLevel,
   SupportedDateRanges,
   SeasonStatus,
+  Absence,
+  SchoolSeason,
+  Lateness,
+  SchoolTerm,
+  AllEntitiesKeys
 } from "./types";
 
 export const genderOptions = [
@@ -60,6 +65,46 @@ export const ArabicClassProperties: Record<keyof Class, string> = {
   school_level: "الطور التعليمي",
   section: "الحرف",
 };
+export const ArabicLatenessProperties: Record<keyof Lateness, string> = {
+  id: "المعرف",
+  student_id: "معرف الطالب",
+  date: "التاريخ",
+  start_time: "وقت بداية الحصة",
+  late_by: "مدة التأخر (بالدقائق)",
+  reason: "السبب",
+  reason_accepted: "قبول السبب",
+};
+
+export const ArabicAbsenceProperties: Record<keyof Absence, string> = {
+  id: "المعرف",
+  student_id: "معرف الطالب",
+  date: "التاريخ",
+  start_time: "وقت بداية الحصة",
+  reason: "السبب",
+  reason_accepted: "قبول السبب",
+};
+
+export const ArabicSchoolSeasonProperties: Record<keyof SchoolSeason, string> = {
+  id: "المعرف",
+  name: "اسم الموسم الدراسي",
+  terms: "الفصول الدراسية",
+};
+
+export const ArabicSchoolTermProperties: Record<keyof SchoolTerm, string> = {
+  name: "اسم الفصل",
+  startDate: "تاريخ البداية",
+  endDate: "تاريخ النهاية",
+};
+
+export const arabicProperties : Record<AllEntitiesKeys,string> = {
+  ...ArabicStudentProperties,
+  ...ArabicClassProperties,
+  ...ArabicLatenessProperties,
+  ...ArabicAbsenceProperties,
+  ...ArabicSchoolSeasonProperties,
+  ...ArabicSchoolTermProperties,
+}  
+
 export const ArabicSchoolLevels: Record<SchoolLevel, string> = {
   primary: "ابتدائي",
   middle: "متوسط",
@@ -137,6 +182,6 @@ export const userFeedbackMessages = {
   },
 };
 export const toGraduateClass: Pick<Class, 'section' | 'id'> = {
-  id : -1,
+  id: -1,
   section: 'المتخرجون'
 }
