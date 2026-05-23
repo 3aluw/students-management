@@ -24,6 +24,7 @@ export default function () {
     const editStudentSchema = studentSchema.partial().required({ id: true }) satisfies z.ZodType<EditStudent>
     const batchEditStudentSchema = z.array(editStudentSchema.omit({id:true}).extend({ids: z.array(z.number())}))
     
+    const studentSchemas = { studentSchema, newStudentSchema, editStudentSchema, batchEditStudentSchema}
     // ========== Class schemas ==========
 
     const classSchema = z.object({
@@ -62,5 +63,5 @@ export default function () {
     const newAbsenceSchema = absenceSchema.omit({ id: true }) satisfies z.ZodType<NewAbsence>
 
 
-    return { studentSchema, classSchema, newStudentSchema, newClassSchema, latenessSchema, newLatenessSchema, absenceSchema, newAbsenceSchema }
+    return { studentSchemas, classSchema, newClassSchema, latenessSchema, newLatenessSchema, absenceSchema, newAbsenceSchema }
 }
