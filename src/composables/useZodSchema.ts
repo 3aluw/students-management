@@ -1,7 +1,7 @@
 
 import { z } from 'zod';
-import type { Absence, Class, Lateness, LatenessInfo, NewClass, NewStudent, Student, } from '~/data/types';
-const { getRequiredFieldMessage, minutesAfterMidnight } = useDataUtils()
+import type { Absence, Class, EditClass, EditStudent, Lateness, NewAbsence, NewClass, NewLateness, NewStudent, Student, } from '~/data/types';
+const { getRequiredFieldMessage } = useDataUtils()
 
 
 export default function () {
@@ -21,6 +21,7 @@ export default function () {
     }) satisfies z.ZodType<Student>
 
     const newStudentSchema = studentSchema.omit({ id: true }) satisfies z.ZodType<NewStudent>
+    const editStudentSchema = studentSchema.partial().required({ id: true }) satisfies z.ZodType<EditStudent>
 
     // ========== Class schemas ==========
 
@@ -32,7 +33,8 @@ export default function () {
     }) satisfies z.ZodType<Class>
 
     const newClassSchema = classSchema.omit({ id: true }) satisfies z.ZodType<NewClass>
-
+    const editClassSchema = classSchema.partial().required({ id: true }) satisfies z.ZodType<EditClass>
+   
     // ========== Lateness schemas ==========
     const latenessSchema = z.object({
         id: z.number({ error: getRequiredFieldMessage("id") }),
@@ -43,6 +45,7 @@ export default function () {
         late_by: z.number({ error: getRequiredFieldMessage("مدة التأخر") }),      // it will be used to insert the time of enter then transformed to minutes after shift start
         start_time: z.number({ error: getRequiredFieldMessage("وقت البدء") }),
     }) satisfies z.ZodType<Lateness>
+    const newLatenessSchema = latenessSchema.omit({ id: true }) satisfies z.ZodType<NewLateness>
 
     // ========== absence schemas ==========
 
@@ -52,9 +55,10 @@ export default function () {
         date: z.number({ error: getRequiredFieldMessage(" التاريخ") }),
         reason: z.string().min(5, { message: 'يجب إدخال سبب الغياب' }),
         reason_accepted: z.literal([0, 1]),
-       start_time: z.number({ error: getRequiredFieldMessage("وقت البدء") }),
+        start_time: z.number({ error: getRequiredFieldMessage("وقت البدء") }),
     }) satisfies z.ZodType<Absence>
+    const newAbsenceSchema = absenceSchema.omit({ id: true }) satisfies z.ZodType<NewAbsence>
 
 
-    return { studentSchema, classSchema, newStudentSchema, newClassSchema, latenessSchema, absenceSchema }
+    return { studentSchema, classSchema, newStudentSchema, newClassSchema, latenessSchema, newLatenessSchema, absenceSchema, newAbsenceSchema }
 }

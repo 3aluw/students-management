@@ -6,7 +6,6 @@ import type { H3Error } from "h3";
 
 const { logError, toSafeError } = useDBUtils();
 export default defineEventHandler(async (event) => {
-  const { createGenericError, StepError } = useDBUtils();
   const reqBody = await readBody<EditSchoolSeason | NewSeasonPayload>(event);
 
   try {
