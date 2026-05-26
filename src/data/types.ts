@@ -77,7 +77,8 @@ export interface SchoolTerm {
   endDate: number;
 }
 
-export type AllEntitiesUnion = Student | Class | Absence | Lateness;
+export type AllEntitiesUnion = Student | Class | Absence | Lateness | SchoolSeason;
+export type AllEntitiesKeys = keyof (Student & Class & Absence & Lateness & SchoolSeason & SchoolTerm)
 
 export type NewStudent = NewEntity<Student>;
 export type NewClass = NewEntity<Class>;
