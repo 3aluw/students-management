@@ -46,7 +46,7 @@ export default defineEventHandler(async (event) => {
         event,
         createError({
           statusCode: 400,
-          statusMessage: 'مشكلة في البيانات المرسلة',
+          message: 'مشكلة في البيانات المرسلة',
           data: {
             issues: error.issues
           }
@@ -56,7 +56,7 @@ export default defineEventHandler(async (event) => {
     logError("Error updating student:", error, event.path, reqBody);
 
     const errorMessageTitle = operation === "create" ? " إنشاء الطالب" : operation === "update" ? " تحديث معلومات الطالب" : "تعديل الطلاب المحددين";
-    const errorMessage = (error as H3Error)?.statusMessage ?? "حدث خطأ أثناء " + errorMessageTitle
+    const errorMessage = (error as H3Error)?.message ?? "حدث خطأ أثناء " + errorMessageTitle
     const safeError = createError(toSafeError(error, "حدث خطأ أثناء " + errorMessage));
     return sendError(event, safeError);
   }

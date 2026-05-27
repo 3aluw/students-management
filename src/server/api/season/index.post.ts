@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
     logError("Error updating student:", error, event.path, reqBody);
 
     const errorMessageTitle = "id" in reqBody  ? " تحديث الموسم " : 'إنشاء الموسم الجديد'
-    const errorMessage = (error as H3Error)?.statusMessage ?? "حدث خطأ أثناء " + errorMessageTitle
+    const errorMessage = (error as H3Error)?.message ?? "حدث خطأ أثناء " + errorMessageTitle
 
     const safeError = createError(toSafeError(error, "حدث خطأ أثناء " + errorMessage));
     return sendError(event, safeError);

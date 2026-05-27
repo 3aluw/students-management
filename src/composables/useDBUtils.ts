@@ -68,21 +68,25 @@ export default function () {
       return `SELECT ${nulls} WHERE 0`;
     }
   };
+
+  // ========== generates readable message from Zod issues array ==========
   const formatZodValidationError = (err: ZodError["issues"]) => {
     if (err.length === 1) {
       return err[0].message
     }
+    // if there are at most 4 errors : log the first message and advise the user to check other fields
     else if (err.length < 4) {
       err.shift()
       const fields = err.map(errObj => (getPropertyArabicName(errObj.path[0] as string) ?? errObj.path[0])).join(' ، ')
       return err[0].message + ` \n كما يجب التحقق من : ${fields}`
     }
+    // if there are more than 4 errors :  advise the user to check fields by name
     else {
       const fields = err.map(errObj => (getPropertyArabicName(errObj.path[0] as string) ?? errObj.path[0])).join(' ، ')
       return ` يجب التحقق من : ${fields}`
     }
   }
-
+  // ========== Logs the error (used in backend routes) ==========
   const logError = (message: string, error: unknown, path: string, body: unknown) => {
     console.error({
       message,
@@ -100,19 +104,19 @@ export default function () {
       typeof error === "object" &&
       error !== null &&
       "statusCode" in error &&
-      "statusMessage" in error
+      "message" in error
     ) {
       const h3Error = error as H3Error;
 
       return {
         statusCode: h3Error.statusCode,
-        statusMessage: h3Error.statusMessage,
+        message: h3Error.message,
       };
     }
 
     return {
       statusCode: 500,
-      statusMessage: defaultMessage,
+      message: defaultMessage,
     };
   };
   // ========== Handle multi steps workflow and its error handling ==========

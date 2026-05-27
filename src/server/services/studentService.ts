@@ -18,7 +18,7 @@ export const studentService = {
     if (result.changes === 0) {
       throw createError({
         statusCode: 404,
-        statusMessage: "لم يتم إنشاء الطالب",
+        message: "لم يتم إنشاء الطالب",
       });
     }
 
@@ -33,7 +33,7 @@ export const studentService = {
     if (result.changes === 0) {
       throw createError({
         statusCode: 404,
-        statusMessage: "لم يتم تعديل الطالب",
+        message: "لم يتم تعديل الطالب",
       });
     }
 
@@ -48,7 +48,7 @@ export const studentService = {
     if (result.changes === 0) {
       throw createError({
         statusCode: 404,
-        statusMessage: "لم يتم تعديل الطلبة المحددين",
+        message: "لم يتم تعديل الطلبة المحددين",
       });
     }
 
@@ -62,7 +62,7 @@ export const studentService = {
     if (!ids.length) {
       throw createError({
         statusCode: 400,
-        statusMessage: "لا يمكن حذف قائمة فارغة",
+        message: "لا يمكن حذف قائمة فارغة",
       });
     }
     const result = studentRepo.deleteStudentsByIds(ids);
@@ -70,12 +70,12 @@ export const studentService = {
     if (result.changes === 0) {
       throw createError({
         statusCode: 404,
-        statusMessage: "لم يتم إيجاد الطلبة",
+        message: "لم يتم إيجاد الطلبة",
       });
     }
 
     return {
-      statusMessage: "تم حذف الطلبة الذين تم تحديدهم",
+      message: "تم حذف الطلبة الذين تم تحديدهم",
       count: result.changes,
     };
   },

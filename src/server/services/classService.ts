@@ -11,7 +11,7 @@ export const classService = {
         if (result.changes === 0) {
             throw createError({
                 statusCode: 404,
-                statusMessage: "لم يتم إيجاد القسم",
+                message: "لم يتم إيجاد القسم",
             });
         }
 
@@ -25,7 +25,7 @@ export const classService = {
         if (result.changes === 0) {
             throw createError({
                 statusCode: 404,
-                statusMessage: "لم يتم إضافة القسم",
+                message: "لم يتم إضافة القسم",
             });
         }
 
@@ -39,7 +39,7 @@ export const classService = {
         if (result.changes === 0) {
             throw createError({
                 statusCode: 404,
-                statusMessage: "لم يتم تعديل القسم المحدد",
+                message: "لم يتم تعديل القسم المحدد",
             });
         }
 

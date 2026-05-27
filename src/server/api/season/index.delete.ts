@@ -7,7 +7,7 @@ export default defineEventHandler((event) => {
   if (!query.id) {
     throw createError({
       statusCode: 400,
-      statusMessage: "لم يتم تحديد الموسم المراد حذفه",
+      message: "لم يتم تحديد الموسم المراد حذفه",
     });
   }
   const seasonId = query.id;
