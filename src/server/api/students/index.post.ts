@@ -2,13 +2,13 @@ import { EditStudent, BatchEditStudent, NewStudent } from "~/data/types";
 import useDBUtils from "~/composables/useDBUtils";
 import { studentService } from "~/server/services/studentService";
 import type { H3Error } from "h3";
-import { formatError, ZodError } from "zod";
+import { ZodError } from "zod";
 import useZodSchema from "~/composables/useZodSchema";
 import { z } from "zod";
 type Operation = "create" | "update" | "batch update";
 
 export default defineEventHandler(async (event) => {
-  const { toSafeError, logError, formatZodError } = useDBUtils();
+  const { toSafeError, logError } = useDBUtils();
   const { studentSchemas } = useZodSchema()
   const reqBody = await readBody<NewStudent | EditStudent | BatchEditStudent>(
     event
@@ -42,13 +42,14 @@ export default defineEventHandler(async (event) => {
 
     // 1. validation error branch
     if (error instanceof ZodError) {
-      const formattedError = formatZodError(error)[0].message + (formatError.length > 1 ? `كما يرجى التأكد من الحقول التالية ` : '')
       return sendError(
         event,
         createError({
           statusCode: 400,
-          statusMessage: formattedError,
-
+          statusMessage: 'مشكلة في البيانات المرسلة',
+          data: {
+            issues: error.issues
+          }
         })
       );
     }
