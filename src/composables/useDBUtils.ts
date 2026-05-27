@@ -1,6 +1,8 @@
 import type { BackendResponse, EventQueryFilters } from "~/data/types";
 import type { H3Error } from "h3";
+import type { ZodError } from "zod";
 
+const { getPropertyArabicName } = useDataUtils() 
 export default function () {
   const generateDBSetClause = <T extends Object>(object: T) => {
     // fields is an object like { name: 'Alice', age: 30, status: 'active' }
@@ -66,7 +68,20 @@ export default function () {
       return `SELECT ${nulls} WHERE 0`;
     }
   };
-
+  const formatZodValidationError = (err: ZodError["issues"]) => {
+    if (err.length === 1) {
+      return err[0].message
+    }
+    else if (err.length < 4) {
+      err.shift()
+      const fields = err.map(errObj => (getPropertyArabicName(errObj.path[0] as string) ?? errObj.path[0])).join(' ، ')
+      return err[0].message + ` \n كما يجب التحقق من : ${fields}`
+    }
+    else {
+      const fields = err.map(errObj => (getPropertyArabicName(errObj.path[0] as string) ?? errObj.path[0])).join(' ، ')
+      return ` يجب التحقق من : ${fields}`
+    }
+  }
   // ========== create an error in case of a function throwing a non Error ==========
   const createGenericError = (operationName: string): BackendResponse => {
     return {
@@ -85,29 +100,29 @@ export default function () {
     });
   }
 
-const toSafeError = (
-  error: unknown,
-  defaultMessage = "حدث خطأ أثناء العملية"
-) => {
-  if (
-    typeof error === "object" &&
-    error !== null &&
-    "statusCode" in error &&
-    "statusMessage" in error
-  ) {
-    const h3Error = error as H3Error;
+  const toSafeError = (
+    error: unknown,
+    defaultMessage = "حدث خطأ أثناء العملية"
+  ) => {
+    if (
+      typeof error === "object" &&
+      error !== null &&
+      "statusCode" in error &&
+      "statusMessage" in error
+    ) {
+      const h3Error = error as H3Error;
+
+      return {
+        statusCode: h3Error.statusCode,
+        statusMessage: h3Error.statusMessage,
+      };
+    }
 
     return {
-      statusCode: h3Error.statusCode,
-      statusMessage: h3Error.statusMessage,
+      statusCode: 500,
+      statusMessage: defaultMessage,
     };
-  }
-
-  return {
-    statusCode: 500,
-    statusMessage: defaultMessage,
   };
-};
   // ========== Handle multi steps workflow and its error handling ==========
   /**
    * Represents a step in a multi-step workflow, including its name, the function to run, and an optional condition for execution.
@@ -162,6 +177,7 @@ const toSafeError = (
     }
   }
   return {
+    formatZodValidationError,
     generateDBSetClause,
     generateDBInClause,
     buildWhereQuery,

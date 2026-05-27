@@ -1,7 +1,5 @@
 import { arabicProperties } from "~/data/static";
 import type {
-  Student,
-  Class,
   SupportedDateRanges,
   LatenessInfo,
   AbsenceInfo,
@@ -209,6 +207,7 @@ export default function () {
     terms.some((term, i, arr) => i > 0 && term.startDate < arr[i - 1].endDate);
 
   return {
+    getPropertyArabicName,
     getRequiredFieldMessage,
     getTimeRange,
     minutesAfterMidnight,
