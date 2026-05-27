@@ -82,14 +82,6 @@ export default function () {
       return ` يجب التحقق من : ${fields}`
     }
   }
-  // ========== create an error in case of a function throwing a non Error ==========
-  const createGenericError = (operationName: string): BackendResponse => {
-    return {
-      success: false,
-      message: "لم تنجح عملية " + operationName
-
-    }
-  }
 
   const logError = (message: string, error: unknown, path: string, body: unknown) => {
     console.error({
@@ -184,7 +176,6 @@ export default function () {
     generateSqlCTEValues,
     logError,
     toSafeError,
-    createGenericError,
     runSteps,
     StepError,
   };
