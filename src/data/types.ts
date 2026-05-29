@@ -1,3 +1,5 @@
+import type { ZodError } from "zod";
+
 /**
  * Utility types
  */
@@ -149,9 +151,16 @@ export type NewSeasonPayload = {
   repeaters: Student[] ;
 };
 
-export type BackendResponse<T extends Record<string, unknown> = {}> = {
-  success: boolean;
-  message: string;
-} & T;
+// ========== BACKEND ERROR TYPES ==========
+
+ type BackendBaseError =  {
+  statusCode: number,
+  message : string,
+} 
+export type BackendValidationError =  BackendBaseError & {
+data : {
+  issues : ZodError["issues"]
+}
+}
 
 
