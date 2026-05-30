@@ -1,10 +1,9 @@
 import type { EventQueryFilters } from "~/data/types";
 import { absenceService } from "~/server/services/absenceService";
 import useDBUtils from "~/composables/useDBUtils";
-const { logError, toSafeError } = useDBUtils();
 
 export default defineEventHandler(async (event) => {
-
+const { logError, toSafeError } = useDBUtils();
   const query = getQuery<EventQueryFilters>(event); // time filter / class filter / offset
   try {
     return absenceService.getAbsences(query);

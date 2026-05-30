@@ -1,7 +1,8 @@
 import { studentService } from "~/server/services/studentService";
 import useDBUtils from "~/composables/useDBUtils";
-const { logError, toSafeError } = useDBUtils();
 export default defineEventHandler((event) => {
+const { logError, toSafeError } = useDBUtils();
+
   const { classId, name } = getQuery<{ classId?: string; name?: string }>(
     event,
   );
