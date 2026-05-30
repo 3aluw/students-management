@@ -4,8 +4,9 @@ import { seasonService } from "~/server/services/seasonService";
 import useDBUtils from "~/composables/useDBUtils";
 import type { H3Error } from "h3";
 
-const { logError, toSafeError } = useDBUtils();
 export default defineEventHandler(async (event) => {
+const { logError, toSafeError } = useDBUtils();
+
   const reqBody = await readBody<EditSchoolSeason | NewSeasonPayload>(event);
 
   try {

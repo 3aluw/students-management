@@ -1,7 +1,6 @@
 import { EditAbsence, BatchEditAbsence, NewAbsence, BackendValidationError } from "~/data/types";
 import { absenceService } from "~/server/services/absenceService";
 import useDBUtils from "~/composables/useDBUtils";
-const { logError, toSafeError } = useDBUtils();
 import type { H3Error } from "h3";
 import useZodSchema from "~/composables/useZodSchema";
 import { z, ZodError } from "zod";
@@ -9,6 +8,8 @@ type Operation = "create" | "update" | "batch update";
 
 
 export default defineEventHandler(async (event) => {
+  const { logError, toSafeError } = useDBUtils();
+
   const { absenceSchemas } = useZodSchema()
   const reqBody = await readBody<NewAbsence[] | EditAbsence | BatchEditAbsence>(
     event

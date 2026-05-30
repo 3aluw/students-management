@@ -1,4 +1,4 @@
-import { BackendValidationError, Student } from "~/data/types";
+import {  Student } from "~/data/types";
 import { studentService } from "~/server/services/studentService";
 import useDBUtils from "~/composables/useDBUtils";
 const { logError, toSafeError } = useDBUtils();

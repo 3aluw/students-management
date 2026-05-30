@@ -1,12 +1,12 @@
 import { BatchEditLateness, EditLateness, NewLateness } from "~/data/types";
 import useDBUtils from "~/composables/useDBUtils";
-const { logError, toSafeError } = useDBUtils();
 import { latenessService } from "~/server/services/latenessService";
 import type { H3Error } from "h3";
 
 
 export default defineEventHandler(async (event) => {
-  const { generateDBSetClause, generateDBInClause } = useDBUtils();
+ const { logError, toSafeError } = useDBUtils();
+
 
   const reqBody = await readBody<
     NewLateness[] | EditLateness | BatchEditLateness
