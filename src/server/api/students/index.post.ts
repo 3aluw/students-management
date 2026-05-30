@@ -1,4 +1,4 @@
-import { EditStudent, BatchEditStudent, NewStudent } from "~/data/types";
+import { EditStudent, BatchEditStudent, NewStudent, BackendValidationError } from "~/data/types";
 import useDBUtils from "~/composables/useDBUtils";
 import { studentService } from "~/server/services/studentService";
 import type { H3Error } from "h3";
@@ -39,26 +39,23 @@ export default defineEventHandler(async (event) => {
     }
   }
   catch (error) {
-
     // 1. validation error branch
     if (error instanceof ZodError) {
-      return sendError(
-        event,
-        createError({
-          statusCode: 400,
-          message: 'مشكلة في البيانات المرسلة',
-          data: {
-            issues: error.issues
-          }
-        })
-      );
+      throw createError({
+        statusCode: 400,
+        message: 'مشكلة في البيانات المرسلة',
+        statusMessage: "failed validtion",
+        data: {
+          issues: error.issues
+        }
+      } as BackendValidationError)
+
     }
+
     logError("Error updating student:", error, event.path, reqBody);
 
     const errorMessageTitle = operation === "create" ? " إنشاء الطالب" : operation === "update" ? " تحديث معلومات الطالب" : "تعديل الطلاب المحددين";
     const errorMessage = (error as H3Error)?.message ?? "حدث خطأ أثناء " + errorMessageTitle
-    const safeError = createError(toSafeError(error, "حدث خطأ أثناء " + errorMessage));
-    return sendError(event, safeError);
+    throw createError(toSafeError(error, "حدث خطأ أثناء " + errorMessage));
   }
-
 });

@@ -8,8 +8,8 @@ export default defineEventHandler((event) => {
     } catch (error) {
         logError("Error fetching classes:", error, event.path, undefined);
 
-        const safeError = createError(toSafeError(error, "حدث خطأ أثناء جلب الأقسام"));
-        return sendError(event, safeError);
+        throw createError(toSafeError(error, "حدث خطأ أثناء جلب الأقسام"));
+      
     }
 });
 

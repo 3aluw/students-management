@@ -9,7 +9,7 @@ export default defineEventHandler(async (event) => {
   return studentService.deleteStudents(studentsIds);
   } catch (error) {
       logError("Error deleting students:", error, event.path, studentsIds);
-    const safeError = createError(toSafeError(error, "حدث خطأ أثناء حذف الطلاب المحددين"));
-    return sendError(event, safeError);
+    throw createError(toSafeError(error, "حدث خطأ أثناء حذف الطلاب المحددين"));
+    
   }
 });

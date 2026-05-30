@@ -24,8 +24,7 @@ export default defineEventHandler(async (event) => {
     const errorMessageTitle = "id" in reqBody  ? " تحديث الموسم " : 'إنشاء الموسم الجديد'
     const errorMessage = (error as H3Error)?.message ?? "حدث خطأ أثناء " + errorMessageTitle
 
-    const safeError = createError(toSafeError(error, "حدث خطأ أثناء " + errorMessage));
-    return sendError(event, safeError);
+    throw createError(toSafeError(error, "حدث خطأ أثناء " + errorMessage));
   }
 
 });

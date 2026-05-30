@@ -27,9 +27,7 @@ export default defineEventHandler(async (event) => {
     const reqMode = "ids" in reqBody ? "batch update" : !("id" in reqBody) ? "create" : "update";
     const errorMessageTitle = reqMode === "create" ? " إنشاء الغياب" : reqMode === "update" ? " تحديث معلومات الغياب" : "تعديل الغيابات المحددة";
     const errorMessage = (err as H3Error)?.message ?? "حدث خطأ أثناء " + errorMessageTitle
-    const safeError = createError(toSafeError(err, errorMessage));
-    return sendError(
-      event, safeError
-    );
+    throw createError(toSafeError(err, errorMessage));
+
   }
 });

@@ -16,7 +16,7 @@ export default defineEventHandler((event) => {
 
   } catch (error) {
     logError("Error deleting season:", error, event.path, seasonId);
-    const safeError = createError(toSafeError(error, "حدث خطأ أثناء حذف الموسم"));
-    return sendError(event, safeError);
+    throw createError(toSafeError(error, "حدث خطأ أثناء حذف الموسم"));
+    
   }
 })

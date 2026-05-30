@@ -16,9 +16,7 @@ export default defineEventHandler(async (event) => {
     catch (err) {
       logError("Error fetching lateness:", err, event.path, query);
       
-      const safeError = createError(toSafeError(err, "فشلت عملية إيجاد التأخرات"));
-      return sendError(
-        event, safeError
-      );
+      throw createError(toSafeError(err, "فشلت عملية إيجاد التأخرات"));
+ 
     }
 });

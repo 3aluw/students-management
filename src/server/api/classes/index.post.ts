@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
     const reqMode = "id" in reqBody ? 'edit' : 'create'
     const errorMessageTitle = reqMode === 'edit' ? "تعديل القسم" : " إضافة القسم"
         const errorMessage = (error as H3Error)?.message ?? "حدث خطأ أثناء " + errorMessageTitle
-    const safeError = createError(toSafeError(error, errorMessage));
-    return sendError(event, safeError);
+    throw createError(toSafeError(error, errorMessage));
+    
   }
 });

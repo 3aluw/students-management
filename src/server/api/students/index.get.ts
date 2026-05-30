@@ -9,9 +9,6 @@ export default defineEventHandler((event) => {
     return studentService.getStudents({ classId, name });
   } catch (err) {
     logError("Error fetching students:", err, event.path, { classId, name });
-    const safeError = createError(toSafeError(err, "فشلت عملية إيجاد الطلبة"));
-    return sendError(
-      event, safeError
-    );
+    throw createError(toSafeError(err, "فشلت عملية إيجاد الطلبة"));
   }
 });

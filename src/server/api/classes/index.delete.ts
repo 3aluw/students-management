@@ -15,7 +15,7 @@ export default defineEventHandler((event) => {
 
   } catch (error) {
     logError("Error deleting class:", error, event.path, query.id);
-     const safeError = createError(toSafeError(error, "حدث خطأ أثناء حذف القسم"));
-    return sendError(event, safeError);
+     throw createError(toSafeError(error, "حدث خطأ أثناء حذف القسم"));
+    
   }
 })

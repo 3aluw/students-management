@@ -9,9 +9,7 @@ export default defineEventHandler(async (event) => {
   }
   catch (err) {
     logError("Error deleting lateness:", err, event.path, latenessIds);
-    const safeError = createError(toSafeError(err, "فشلت عملية حذف التأخرات"));
-    return sendError(
-      event, safeError
-    );
+    throw createError(toSafeError(err, "فشلت عملية حذف التأخرات"));
+ 
   }
 });
