@@ -51,7 +51,6 @@ export default function () {
     const newLatenessSchema = latenessSchema.omit({ id: true }) satisfies z.ZodType<NewLateness>
 
     // ========== absence schemas ==========
-
     const absenceSchema = z.object({
         id: z.number({ error: getRequiredFieldMessage("id") }),
         student_id: z.number({ error: getRequiredFieldMessage("student_id") }),

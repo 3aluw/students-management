@@ -21,6 +21,7 @@ import type {
 } from "~/data/types";
 
 export default function () {
+  // ========== Class functions ==========
   const createClass = (body: NewClass) => {
     return $fetch("/api/classes", {
       method: "POST",
@@ -42,6 +43,7 @@ export default function () {
     });
   };
 
+  // ========== Student functions ==========
   const getStudentsByClass = (classId: number) => {
     return $fetch<Student[]>(`/api/students/?classId=${classId}`);
   };
@@ -67,6 +69,7 @@ export default function () {
     });
   };
 
+  // ========== Absence functions ==========
   const getAbsences = (params: EventQueryFilters) => {
     return $fetch<{ absences: LocalAbsence[]; total: number }>(
       `/api/absences`,
@@ -97,6 +100,8 @@ export default function () {
       body,
     });
   };
+
+  // ========== Lateness functions ==========
   const getLateness = (params: EventQueryFilters) => {
     return $fetch<{ lateness: LocalLateness[]; total: number }>(
       `/api/lateness`,
@@ -128,6 +133,7 @@ export default function () {
     });
   };
 
+  // ========== Season functions ==========
   const getSeasons = () => {
     return $fetch<SchoolSeason[]>("/api/season");
   };
