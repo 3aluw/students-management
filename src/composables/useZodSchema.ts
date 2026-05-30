@@ -69,5 +69,9 @@ export default function () {
 
     const absenceSchemas = { absenceSchema, newAbsenceSchema, editAbsenceSchema, batchEditAbsenceSchema }
 
-    return { studentSchemas, classSchemas, latenessSchemas, absenceSchemas }
+    // ========== Other schemas ==========
+const DeleteBodySchema = z.array(z.number().int().positive()).min(1);
+
+
+    return { studentSchemas, classSchemas, latenessSchemas, absenceSchemas, DeleteBodySchema }
 }
