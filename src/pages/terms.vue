@@ -60,7 +60,10 @@ import type { NewSeasonPayload, SchoolSeason, SeasonStatus } from '~/data/types'
 import type { TreeNode } from 'primevue/treenode';
 import { useClientStore } from '~/store/clientStore';
 import { ArabicSeasonStatus } from '~/data/static';
-const { mapSeasonsToTree, getCollapsingSeasonIds, getSeasonStartAndEndDates } = useDataUtils();
+import { userFeedbackMessages, } from '~/data/static';
+
+const { season: toastMessages } = userFeedbackMessages
+const { mapSeasonsToTree, getCollapsingSeasonIds, getToastErrorObject } = useDataUtils();
 
 type EditSeasonProps = {
   status: SeasonStatus,
@@ -100,14 +103,15 @@ const handleSeasonCreation = async (payload: NewSeasonPayload) => {
     toast.add({ severity: 'error', summary: 'خطأ في إنشاء الموسم الدراسي', detail: 'لا يمكنك إنشاء موسم دراسي جديد طالما أن هناك موسم مستقبلي موجود. يرجى حذفه قبل إنشاء موسم جديد.', life: 7000 });
     return;
   }
-  console.log(payload);
+ try{
   const res = await backend.createSeason(payload)
-  if (res?.success) {
-    toast.add({ severity: 'success', summary: 'تم بنجاح', detail: res.message });
+    toast.add({ severity: 'success', summary: toastMessages.addSuccess, detail: res.message });
     showNewSeasonDialog.value = false;
     clientStore.populateSeasons();
-  } else {
-    toast.add({ severity: 'error', summary: 'خطأ في العملية', detail: res.message });
+  
+ }
+ catch(error) {
+        toast.add(getToastErrorObject(error, toastMessages.addFailed))
   }
 
 }
@@ -139,13 +143,14 @@ const handleSeasonEditSubmit = (updatedSeason: SchoolSeason) => {
   }
   try {
     backend.updateSeasons(updatedSeason).then(() => {
-      toast.add({ severity: 'success', summary: 'تم الحفظ', detail: 'تم تحديث الموسم الدراسي بنجاح.' });
+      toast.add({ severity: 'success', summary: toastMessages.updateSuccess,life: 3000 });
       clientStore.populateSeasons();
       showEditSeasonDialog.value = false;
     });
   }
   catch (error) {
-    toast.add({ severity: 'error', summary: 'خطأ في الحفظ', detail: 'حدث خطأ أثناء تحديث الموسم الدراسي.' });
+           toast.add(getToastErrorObject(error, toastMessages.updateFailed))
+
   }
 }
 

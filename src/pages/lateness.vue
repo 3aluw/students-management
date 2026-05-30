@@ -78,6 +78,7 @@ const studentStore = useStudentStore();
 const eventStore = useEventStore()
 const backend = useBackend()
 const toast = useToast();
+const { getToastErrorObject } = useDataUtils()
 // ========== TOAST & MESSAGES ==========
 const { lateness: toastMessages } = userFeedbackMessages
 
@@ -159,7 +160,7 @@ const editLateness = async (lateness: BatchEditLateness | EditLateness) => {
         resetSelected()
     }
     catch (error) {
-        toast.add({ severity: 'error', summary: toastMessages.updateFailed, life: 3000 });
+         toast.add(getToastErrorObject(error, toastMessages.updateFailed))
         return
     }
     await eventStore.populateLateness(dbFilters.value)
