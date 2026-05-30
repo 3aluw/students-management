@@ -96,14 +96,14 @@ export const ArabicSchoolTermProperties: Record<keyof SchoolTerm, string> = {
   endDate: "تاريخ النهاية",
 };
 
-export const arabicProperties : Record<AllEntitiesKeys,string> = {
+export const arabicProperties: Record<AllEntitiesKeys, string> = {
   ...ArabicStudentProperties,
   ...ArabicClassProperties,
   ...ArabicLatenessProperties,
   ...ArabicAbsenceProperties,
   ...ArabicSchoolSeasonProperties,
   ...ArabicSchoolTermProperties,
-}  
+}
 
 export const ArabicSchoolLevels: Record<SchoolLevel, string> = {
   primary: "ابتدائي",
@@ -179,6 +179,16 @@ export const userFeedbackMessages = {
     updateFailed: "حدث خطأ أثناء تحديث التأخر",
     deleteSuccess: "تم حذف التأخر بنجاح",
     deleteFailed: "حدث خطأ أثناء حذف التأخر",
+  },
+  season: {
+    addSuccess: "تمت إضافة الموسم الدراسي بنجاح",
+    addFailed: "حدث خطأ أثناء إضافة الموسم الدراسي",
+    fetchSuccess: "تم تحميل بيانات المواسم الدراسية بنجاح",
+    fetchFailed: "حدث خطأ أثناء تحميل بيانات المواسم الدراسية",
+    updateSuccess: "تم تحديث الموسم الدراسي بنجاح",
+    updateFailed: "حدث خطأ أثناء تحديث الموسم الدراسي",
+    deleteSuccess: "تم حذف الموسم الدراسي بنجاح",
+    deleteFailed: "حدث خطأ أثناء حذف الموسم الدراسي",
   },
 };
 export const toGraduateClass: Pick<Class, 'section' | 'id'> = {
