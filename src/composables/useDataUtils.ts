@@ -1,4 +1,8 @@
 import { arabicProperties } from "~/data/static";
+import type { ToastMessageOptions } from "primevue/toast"
+import type { ZodError } from "zod";
+import type { FetchError } from 'ofetch'
+import type { H3Error } from "h3";
 import type {
   SupportedDateRanges,
   LatenessInfo,
@@ -7,9 +11,11 @@ import type {
   SchoolSeason,
   SchoolTerm,
   SeasonStatus,
+  BackendValidationError,
 } from "~/data/types";
 
 export default function () {
+  // ========== Fields / its Arabic translations functions ==========
   /*Internal */
   const formatRequiredFieldMessage = (
     arabicFieldName: string,
@@ -27,11 +33,12 @@ export default function () {
   ) => {
     const arabicPropertyName = getPropertyArabicName(fieldName)
     return arabicPropertyName
-      ? formatRequiredFieldMessage(  arabicPropertyName,type)
+      ? formatRequiredFieldMessage(arabicPropertyName, type)
       : `يجب إدخال الحقل التالي: ${fieldName} `;
   };
   const getPropertyArabicName = (fieldName: string) => fieldName in arabicProperties ? arabicProperties[fieldName as keyof typeof arabicProperties] : undefined
 
+  // ========== Time functions ==========
   const getTimeRange = (range: SupportedDateRanges) => {
     const now = new Date();
     let start, end;
@@ -150,6 +157,7 @@ export default function () {
     return results;
   };
 
+  // ========== Season functions ==========
   const getSeasonStatus = (season: SchoolSeason): SeasonStatus => {
     const seasonDates = getSeasonStartAndEndDates(season);
     const now = Date.now();
@@ -206,6 +214,62 @@ export default function () {
   const hasCollapsingTerms = (terms: SchoolTerm[]) =>
     terms.some((term, i, arr) => i > 0 && term.startDate < arr[i - 1].endDate);
 
+
+  // ========== generates readable message from Zod issues array ==========
+  const formatZodValidationError = (err: ZodError["issues"]) => {
+    if (err.length === 1) {
+      return err[0].message
+    }
+    // if there are at most 4 errors : log the first message and advise the user to check other fields
+    else if (err.length < 4) {
+      err.shift()
+      const fields = err.map(errObj => (getPropertyArabicName(errObj.path[0] as string) ?? errObj.path[0])).join(' ، ')
+      return err[0].message + ` \n كما يجب التحقق من : ${fields}`
+    }
+    // if there are more than 4 errors :  advise the user to check fields by name
+    else {
+      const fields = err.map(errObj => (getPropertyArabicName(errObj.path[0] as string) ?? errObj.path[0])).join(' ، ')
+      return ` يجب التحقق من : ${fields}`
+    }
+  }
+
+  const isFetchError = (err: unknown): err is FetchError<H3Error> => {
+    return (err as FetchError)?.data !== undefined
+  }
+  const isZodApiError = (error: any): error is BackendValidationError =>
+    error &&
+    typeof error === 'object' &&
+    error.statusCode === 400 &&
+    Array.isArray(error.data?.issues)
+
+  // ========== Other functions ==========
+  // geenrates an obkect for useToast based on the error passed
+  const getToastErrorObject = (error: unknown, summary: string): ToastMessageOptions => {
+    let detail = '';
+
+  if (isFetchError(error)) {
+    const err = error.data;
+
+    if (isZodApiError(err)) {
+      detail = `${err.message}: ${formatZodValidationError(err.data.issues)}`;
+    } else if (
+      err &&
+      typeof err === 'object' &&
+      'message' in err &&
+      typeof err.message === 'string'
+    ) {
+      detail = err.message;
+    }
+    }
+
+    return {
+      severity: 'error',
+      summary,
+      detail,
+      life: 3000,
+    }
+  }
+
   return {
     getPropertyArabicName,
     getRequiredFieldMessage,
@@ -220,5 +284,6 @@ export default function () {
     getSeasonStartAndEndDates,
     getCollapsingSeasonIds,
     hasCollapsingTerms,
+    getToastErrorObject
   };
 }

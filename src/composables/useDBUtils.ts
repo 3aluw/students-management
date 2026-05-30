@@ -1,9 +1,8 @@
-import type { BackendResponse, EventQueryFilters } from "~/data/types";
+import type {  EventQueryFilters } from "~/data/types";
 import type { H3Error } from "h3";
-import type { ZodError } from "zod";
 
-const { getPropertyArabicName } = useDataUtils() 
 export default function () {
+
   const generateDBSetClause = <T extends Object>(object: T) => {
     // fields is an object like { name: 'Alice', age: 30, status: 'active' }
     const keys = Object.keys(object) as (keyof object)[];
@@ -69,23 +68,6 @@ export default function () {
     }
   };
 
-  // ========== generates readable message from Zod issues array ==========
-  const formatZodValidationError = (err: ZodError["issues"]) => {
-    if (err.length === 1) {
-      return err[0].message
-    }
-    // if there are at most 4 errors : log the first message and advise the user to check other fields
-    else if (err.length < 4) {
-      err.shift()
-      const fields = err.map(errObj => (getPropertyArabicName(errObj.path[0] as string) ?? errObj.path[0])).join(' ، ')
-      return err[0].message + ` \n كما يجب التحقق من : ${fields}`
-    }
-    // if there are more than 4 errors :  advise the user to check fields by name
-    else {
-      const fields = err.map(errObj => (getPropertyArabicName(errObj.path[0] as string) ?? errObj.path[0])).join(' ، ')
-      return ` يجب التحقق من : ${fields}`
-    }
-  }
   // ========== Logs the error (used in backend routes) ==========
   const logError = (message: string, error: unknown, path: string, body: unknown) => {
     console.error({
@@ -173,7 +155,6 @@ export default function () {
     }
   }
   return {
-    formatZodValidationError,
     generateDBSetClause,
     generateDBInClause,
     buildWhereQuery,
