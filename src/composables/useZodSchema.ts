@@ -22,9 +22,9 @@ export default function () {
 
     const newStudentSchema = studentSchema.omit({ id: true }) satisfies z.ZodType<NewStudent>
     const editStudentSchema = studentSchema.partial().required({ id: true }) satisfies z.ZodType<EditStudent>
-    const batchEditStudentSchema = z.array(editStudentSchema.omit({id:true}).extend({ids: z.array(z.number())}))
-    
-    const studentSchemas = { studentSchema, newStudentSchema, editStudentSchema, batchEditStudentSchema}
+    const batchEditStudentSchema = z.array(editStudentSchema.omit({ id: true }).extend({ ids: z.array(z.number()) }))
+
+    const studentSchemas = { studentSchema, newStudentSchema, editStudentSchema, batchEditStudentSchema }
     // ========== Class schemas ==========
 
     const classSchema = z.object({
@@ -36,8 +36,8 @@ export default function () {
 
     const newClassSchema = classSchema.omit({ id: true }) satisfies z.ZodType<NewClass>
     const editClassSchema = classSchema.partial().required({ id: true }) satisfies z.ZodType<EditClass>
-   
-    const classSchemas = { classSchema, newClassSchema, editClassSchema}
+
+    const classSchemas = { classSchema, newClassSchema, editClassSchema }
     // ========== Lateness schemas ==========
     const latenessSchema = z.object({
         id: z.number({ error: getRequiredFieldMessage("id") }),
@@ -49,8 +49,10 @@ export default function () {
         start_time: z.number({ error: getRequiredFieldMessage("وقت البدء") }),
     }) satisfies z.ZodType<Lateness>
     const newLatenessSchema = latenessSchema.omit({ id: true }) satisfies z.ZodType<NewLateness>
+    const editLatenessSchema = studentSchema.partial().required({ id: true }) satisfies z.ZodType<EditStudent>
+    const batchEditLatenessSchema = z.array(editLatenessSchema.omit({ id: true }).extend({ ids: z.array(z.number()) }))
 
-    const latenessSchemas = { latenessSchema, newLatenessSchema}
+    const latenessSchemas = { latenessSchema, newLatenessSchema, editLatenessSchema, batchEditLatenessSchema }
 
     // ========== absence schemas ==========
     const absenceSchema = z.object({
@@ -62,8 +64,10 @@ export default function () {
         start_time: z.number({ error: getRequiredFieldMessage("وقت البدء") }),
     }) satisfies z.ZodType<Absence>
     const newAbsenceSchema = absenceSchema.omit({ id: true }) satisfies z.ZodType<NewAbsence>
+    const editAbsenceSchema = studentSchema.partial().required({ id: true }) satisfies z.ZodType<EditStudent>
+    const batchEditAbsenceSchema = z.array(editAbsenceSchema.omit({ id: true }).extend({ ids: z.array(z.number()) }))
 
-    const absenceSchemas = { absenceSchema, newAbsenceSchema}
+    const absenceSchemas = { absenceSchema, newAbsenceSchema, editAbsenceSchema, batchEditAbsenceSchema }
 
-    return { studentSchemas, classSchemas, latenessSchemas, absenceSchemas  }
+    return { studentSchemas, classSchemas, latenessSchemas, absenceSchemas }
 }
