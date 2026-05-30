@@ -1,9 +1,9 @@
-import type { EditClass, NewClass } from "~/data/types";
+import type { BackendValidationError, EditClass, NewClass } from "~/data/types";
 import useDBUtils from "~/composables/useDBUtils";
 import { classService } from "~/server/services/classService";
 import type { H3Error } from "h3";
 import useZodSchema from "~/composables/useZodSchema";
-import { z } from "zod";
+import { z, ZodError } from "zod";
 type Operation = "create" | "update";
 
 export default defineEventHandler(async (event) => {
@@ -29,6 +29,19 @@ const { logError, toSafeError } = useDBUtils();
     }
   }
   catch (error) {
+        // 1. validation error branch
+        if (error instanceof ZodError) {
+          throw createError({
+            statusCode: 400,
+            message: 'مشكلة في البيانات المرسلة',
+            statusMessage: "failed validation",
+            data: {
+              issues: error.issues
+            }
+          } as BackendValidationError)
+    
+        }
+        // 2. Business / Database error branch 
     logError("Error fetching classes:", error, event.path, undefined);
 
     const reqMode = "id" in reqBody ? 'edit' : 'create'
