@@ -36,8 +36,8 @@ export default function () {
 
     const newClassSchema = classSchema.omit({ id: true }) satisfies z.ZodType<NewClass>
     const editClassSchema = classSchema.partial().required({ id: true }) satisfies z.ZodType<EditClass>
-    const batchEditClassSchema = z.array(editClassSchema.omit({id:true}).extend({ids: z.array(z.number())}))
    
+    const classSchemas = { classSchema, newClassSchema, editClassSchema}
     // ========== Lateness schemas ==========
     const latenessSchema = z.object({
         id: z.number({ error: getRequiredFieldMessage("id") }),
@@ -50,6 +50,8 @@ export default function () {
     }) satisfies z.ZodType<Lateness>
     const newLatenessSchema = latenessSchema.omit({ id: true }) satisfies z.ZodType<NewLateness>
 
+    const latenessSchemas = { latenessSchema, newLatenessSchema}
+
     // ========== absence schemas ==========
     const absenceSchema = z.object({
         id: z.number({ error: getRequiredFieldMessage("id") }),
@@ -61,6 +63,7 @@ export default function () {
     }) satisfies z.ZodType<Absence>
     const newAbsenceSchema = absenceSchema.omit({ id: true }) satisfies z.ZodType<NewAbsence>
 
+    const absenceSchemas = { absenceSchema, newAbsenceSchema}
 
-    return { studentSchemas, classSchema, newClassSchema, latenessSchema, newLatenessSchema, absenceSchema, newAbsenceSchema }
+    return { studentSchemas, classSchemas, latenessSchemas, absenceSchemas  }
 }
