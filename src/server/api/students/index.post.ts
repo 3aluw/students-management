@@ -25,7 +25,7 @@ export default defineEventHandler(async (event) => {
   };
 
   try {
-    const parsed = schemaMap[operation].parse(reqBody);
+    schemaMap[operation].parse(reqBody);
     if ("ids" in reqBody) {
       return studentService.updateStudents(reqBody);
     }
@@ -44,14 +44,14 @@ export default defineEventHandler(async (event) => {
       throw createError({
         statusCode: 400,
         message: 'مشكلة في البيانات المرسلة',
-        statusMessage: "failed validtion",
+        statusMessage: "failed validation",
         data: {
           issues: error.issues
         }
       } as BackendValidationError)
 
     }
-
+    // 2. Business / Database error branch 
     logError("Error updating student:", error, event.path, reqBody);
 
     const errorMessageTitle = operation === "create" ? " إنشاء الطالب" : operation === "update" ? " تحديث معلومات الطالب" : "تعديل الطلاب المحددين";

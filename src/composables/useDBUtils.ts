@@ -1,4 +1,4 @@
-import type {  EventQueryFilters } from "~/data/types";
+import type { EventQueryFilters } from "~/data/types";
 import type { H3Error } from "h3";
 
 export default function () {
@@ -77,28 +77,51 @@ export default function () {
       body,
     });
   }
-
   const toSafeError = (
     error: unknown,
-    defaultMessage = "حدث خطأ أثناء العملية"
+    defaultMessage = "حدث خطأ أثناء العملية",
+    defaultStatusMessage = "Bad Request "
   ) => {
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "statusCode" in error &&
-      "message" in error
-    ) {
-      const h3Error = error as H3Error;
-
-      return {
-        statusCode: h3Error.statusCode,
-        message: h3Error.message,
-      };
-    }
-
-    return {
+    const fallback = {
       statusCode: 500,
       message: defaultMessage,
+      statusMessage: defaultStatusMessage,
+    };
+
+    if (typeof error !== "object" || error === null) {
+      return fallback;
+    }
+
+    const err = error as Partial<H3Error> & Record<string, unknown>;
+
+    const statusCode =
+      typeof err.statusCode === "number" ? err.statusCode : 500;
+
+    const message =
+      typeof err.message === "string"
+        ? err.message
+        : defaultMessage;
+
+    // Try to extract any existing status message variants
+    const statusMessage =
+      typeof err.statusMessage === "string"
+        ? err.statusMessage
+        : statusCode === 400
+          ? "Bad Request"
+          : statusCode === 401
+            ? "Unauthorized"
+            : statusCode === 403
+              ? "Forbidden"
+              : statusCode === 404
+                ? "Not Found"
+                : statusCode >= 500
+                  ? "Internal Server Error"
+                  : "Error";
+
+    return {
+      statusCode,
+      message,
+      statusMessage,
     };
   };
   // ========== Handle multi steps workflow and its error handling ==========
