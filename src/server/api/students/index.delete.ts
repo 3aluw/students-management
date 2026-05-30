@@ -1,12 +1,13 @@
 import {  Student } from "~/data/types";
 import { studentService } from "~/server/services/studentService";
 import useDBUtils from "~/composables/useDBUtils";
-const { logError, toSafeError } = useDBUtils();
-import { z, ZodError } from "zod";
+import { z } from "zod";
 
 const schema = z.array(z.number().int().positive()).min(1);
 
 export default defineEventHandler(async (event) => {
+const { logError, toSafeError } = useDBUtils();
+
   const studentsIds = await readBody<Student["id"][]>(event)
   
   /* Validation */

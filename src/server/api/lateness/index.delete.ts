@@ -1,6 +1,6 @@
 import { latenessService } from "~/server/services/latenessService";
 import useDBUtils from "~/composables/useDBUtils";
-import { z, ZodError } from "zod";
+import { z } from "zod";
 
 const schema = z.array(z.number().int().positive()).min(1);
 
