@@ -10,9 +10,7 @@ export default defineEventHandler(async (event) => {
   }
   catch (err) {
     logError("Error deleting absences:", err, event.path, absenceIds);
-    const safeError = createError(toSafeError(err, "فشلت عملية حذف الغيابات"));
-    return sendError(
-      event, safeError
-    );
+    throw createError(toSafeError(err, "فشلت عملية حذف الغيابات"));
+
   }
 });
