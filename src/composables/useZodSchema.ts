@@ -1,7 +1,7 @@
 import useDataUtils from "~/composables/useDataUtils";
 import { z } from 'zod';
-import type { Absence, Class, EditClass, EditStudent, Lateness, NewAbsence, NewClass, NewLateness, NewStudent, Student, } from '~/data/types';
-const { getRequiredFieldMessage } = useDataUtils()
+import type { Absence, Class, EditClass, EditSchoolSeason, EditStudent, Lateness, NewAbsence, NewClass, NewLateness, NewSchoolSeason, NewSeasonPayload, NewStudent, SchoolSeason, Student, } from '~/data/types';
+const { getRequiredFieldMessage, hasCollapsingTerms, toTimestamp } = useDataUtils()
 
 
 export default function () {
@@ -69,9 +69,76 @@ export default function () {
 
     const absenceSchemas = { absenceSchema, newAbsenceSchema, editAbsenceSchema, batchEditAbsenceSchema }
 
-    // ========== Other schemas ==========
-const DeleteBodySchema = z.array(z.number().int().positive()).min(1);
+
+    // ========== Season schemas ==========
+    const schoolSeasonSchema = z.object({
+        id: z.number({ error: getRequiredFieldMessage("id") }),
+        name: z.string({
+            error: getRequiredFieldMessage("اسم السنة الدراسية"),
+        })
+            .min(4, "اسم السنة الدراسية يجب أن يكون على الأقل 4 أحرف"),
+
+        terms: z.array(
+            z.object({
+                name: z.string({
+                    error: getRequiredFieldMessage("اسم الفصل"),
+                })
+                    .min(4, "اسم الفصل يجب أن يكون على الأقل 4 أحرف"),
+                startDate: z.preprocess(
+                    (val) => toTimestamp(val),
+                    z.number({
+                        error: getRequiredFieldMessage("تاريخ البداية"),
+                    })
+                ),
+                endDate: z.preprocess(
+                    (val) => toTimestamp(val),
+                    z.number({
+                        error: getRequiredFieldMessage("تاريخ النهاية"),
+                    })
+                ),
+            })
+        )
+            .min(1, "يجب أن تحتوي السنة الدراسية على فصل دراسي على الأقل")
+            .refine((terms) => !hasCollapsingTerms(terms), {
+                message: "يجب ألا تتداخل الفصول الدراسية مع بعضها",
+            })
+            .superRefine((terms, ctx) => {
+                terms.forEach((term, index) => {
+                    const start = term.startDate;
+                    const end = term.endDate;
+
+                    if (end <= start) {
+                        ctx.addIssue({
+                            code: "custom",
+                            path: [index, "endDate"],
+                            message: "تاريخ النهاية يجب أن يكون بعد تاريخ البداية",
+                        });
+                    }
+
+                    if (end - start < 259200000) {
+                        ctx.addIssue({
+                            code: "custom",
+                            path: [index, "endDate"],
+                            message: "مدة الفصل الدراسي لا تقل عن ثلاثة أيام",
+                        });
+                    }
+                });
+            }),
+    }) satisfies z.ZodType<SchoolSeason>;
+    const newSeasonSchema = schoolSeasonSchema.omit({ id: true }) satisfies z.ZodType<NewSchoolSeason>
+    const editSeasonSchema = schoolSeasonSchema.partial().required({ id: true }) satisfies z.ZodType<EditSchoolSeason>
+    const NewSeasonPayloadSchema = z.object({
+        terminateCurrentSeason: z.boolean(),
+        newSeason: newSeasonSchema,
+        classPromotionMap: z.record(z.number(), z.number()),
+        repeaters: z.array(studentSchema)
+    }) satisfies z.ZodType<NewSeasonPayload>
+
+    const seasonSchemas = { editSeasonSchema, NewSeasonPayloadSchema }
+
+    // ========== Other schemas (to be used across DELETE endpoints)==========
+    const DeleteBodySchema = z.array(z.number().int().positive()).min(1);
 
 
-    return { studentSchemas, classSchemas, latenessSchemas, absenceSchemas, DeleteBodySchema }
+    return { studentSchemas, classSchemas, latenessSchemas, absenceSchemas, DeleteBodySchema, seasonSchemas }
 }
