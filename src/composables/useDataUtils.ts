@@ -139,6 +139,17 @@ export default function () {
       endDate: term.endDate ? new Date(term.endDate) : undefined,
     };
   };
+  /* Convert dates back to timestamps */
+const toTimestamp = (
+  value: unknown,
+  originalValue?: unknown
+) => {
+  const raw = originalValue ?? value;
+
+  return raw instanceof Date
+    ? raw.getTime()
+    : value;
+};
 
   //a function that transform 0/1 in DB results to real booleans
   const normalizeResultBooleans = <
@@ -247,19 +258,19 @@ export default function () {
   const getToastErrorObject = (error: unknown, summary: string): ToastMessageOptions => {
     let detail = '';
 
-  if (isFetchError(error)) {
-    const err = error.data;
+    if (isFetchError(error)) {
+      const err = error.data;
 
-    if (isZodApiError(err)) {
-      detail = `${err.message}: ${formatZodValidationError(err.data.issues)}`;
-    } else if (
-      err &&
-      typeof err === 'object' &&
-      'message' in err &&
-      typeof err.message === 'string'
-    ) {
-      detail = err.message;
-    }
+      if (isZodApiError(err)) {
+        detail = `${err.message}: ${formatZodValidationError(err.data.issues)}`;
+      } else if (
+        err &&
+        typeof err === 'object' &&
+        'message' in err &&
+        typeof err.message === 'string'
+      ) {
+        detail = err.message;
+      }
     }
 
     return {
@@ -278,6 +289,7 @@ export default function () {
     getDatesForPlaygroundSettings,
     getDatesForEventInfo,
     formatDatesForTerm,
+    toTimestamp,
     normalizeResultBooleans,
     getSeasonStatus,
     mapSeasonsToTree,

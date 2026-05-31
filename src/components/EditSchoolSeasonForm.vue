@@ -77,7 +77,7 @@ import type { NewSchoolSeason, SchoolSeason, SeasonStatus } from '~/data/types';
 import { yupResolver } from '@primevue/forms/resolvers/yup';
 import * as yup from 'yup';
 import type { FormInstance, FormSubmitEvent } from '@primevue/forms';
-const { formatDatesForTerm, getRequiredFieldMessage, hasCollapsingTerms } = useDataUtils();
+const { formatDatesForTerm, getRequiredFieldMessage, hasCollapsingTerms, toTimestamp } = useDataUtils();
 const props = defineProps<{
     status: SeasonStatus | 'new',
     season: SchoolSeason | NewSchoolSeason
@@ -98,13 +98,7 @@ const formatSeason = (season: SchoolSeason | NewSchoolSeason = props.season) => 
     }
     return !("id" in season) ? base : { ...base, id: season.id }
 }
-/* Convert dates back to timestamps */
-const toTimestamp = (value: unknown, originalValue: unknown) => {
-    if (originalValue instanceof Date) {
-        return originalValue.getTime();
-    }
-    return value;
-};
+
 
 const yupSchema: yup.ObjectSchema<Omit<SchoolSeason, 'id'>> =
     yup.object().shape({
