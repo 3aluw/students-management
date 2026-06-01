@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
     !("id" in reqBody) ? "create" : "update";
 
   const schemaMap: Record<Operation, z.ZodTypeAny> = {
-    create: absenceSchemas.newAbsenceSchema,
+    create: z.array(absenceSchemas.newAbsenceSchema) satisfies z.ZodType<NewAbsence[]>,
     update: absenceSchemas.editAbsenceSchema,
     'batch update': absenceSchemas.batchEditAbsenceSchema,
   };

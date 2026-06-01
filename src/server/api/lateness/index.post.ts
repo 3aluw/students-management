@@ -9,7 +9,7 @@ type Operation = "create" | "update" | "batch update";
 
 export default defineEventHandler(async (event) => {
   const { logError, toSafeError } = useDBUtils();
-  const { studentSchemas } = useZodSchema()
+  const { latenessSchemas  } = useZodSchema()
 
   const reqBody = await readBody<
     NewLateness[] | EditLateness | BatchEditLateness
@@ -20,9 +20,9 @@ export default defineEventHandler(async (event) => {
 
 
   const schemaMap: Record<Operation, z.ZodTypeAny> = {
-    create: studentSchemas.newStudentSchema,
-    update: studentSchemas.editStudentSchema,
-    'batch update': studentSchemas.batchEditStudentSchema,
+    create: z.array(latenessSchemas.newLatenessSchema) satisfies z.ZodType<NewLateness[]>,
+    update: latenessSchemas.editLatenessSchema,
+    'batch update': latenessSchemas.batchEditLatenessSchema,
   };
   try {
     schemaMap[operation].parse(reqBody);
