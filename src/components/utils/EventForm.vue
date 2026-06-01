@@ -150,7 +150,7 @@ const absenceInfoZodSchema = absenceSchema
     .extend({
         date: z.date().transform(d => d.getTime()),
         start_time: z.date().transform(d => d.getTime()),
-    late_by: z.date().transform(d => d.getTime()),      // it will be used to insert the time of enter then transformed to minutes after shift start
+        late_by: z.date().transform(d => d.getTime()),      // it will be used to insert the time of enter then transformed to minutes after shift start
 
     }).refine(
         (data) => data.late_by > data.start_time,

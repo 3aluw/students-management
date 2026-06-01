@@ -1,15 +1,21 @@
 <template>
     <div class="card flex flex-col items-center gap-5">
         <Toast />
-        <Form v-if="props.entityType == 'student'" :initialValues="formattedStudentObject" v-slot="$form" :resolver="resolver" @submit="onFormSubmit"
-            class="flex flex-col gap-4 w-full sm:w-80"> 
+        <Form v-if="props.entityType == 'student'" :initialValues="formattedStudentObject" v-slot="$form"
+            :resolver="resolver" @submit="onFormSubmit" class="flex flex-col gap-4 w-full sm:w-80">
+            
+            <!-- Status -->
+            <div class="flex flex-col gap-1">
+                <InputText name="status" type="text" placeholder="الحالة" fluid hidden />
+            </div>
+
             <!-- First Name -->
             <div class="flex flex-col gap-1">
                 <InputText name="first_name" type="text" placeholder="الاسم" fluid />
                 <Message v-if="$form.first_name?.invalid" severity="error" size="small" variant="simple">{{
                     $form.first_name.error.message }}</Message>
-
             </div>
+            
             <!-- Last Name -->
             <div class="flex flex-col gap-1">
                 <InputText name="last_name" placeholder="اللقب" fluid />
@@ -82,17 +88,17 @@
 
 
 
-        <Form v-else-if="props.entityType == 'class'" :initialValues="props.entityObject" v-slot="$form" :resolver="resolver" @submit="onFormSubmit"
-            class="flex flex-col gap-4 w-full sm:w-80"> 
+        <Form v-else-if="props.entityType == 'class'" :initialValues="props.entityObject" v-slot="$form"
+            :resolver="resolver" @submit="onFormSubmit" class="flex flex-col gap-4 w-full sm:w-80">
             <!-- Grade -->
             <div class="flex flex-col gap-1">
-                <InputNumber  name="grade" placeholder="المستوى" :min="0" :max="10" fluid />
+                <InputNumber name="grade" placeholder="المستوى" :min="0" :max="10" fluid />
                 <Message v-if="$form.grade?.invalid" severity="error" size="small" variant="simple">{{
                     $form.grade.error.message }}</Message>
             </div>
             <!-- school_level -->
             <div class="flex flex-col gap-1">
-              <Select name="school_level" :options="schoolLevelOptions" optionLabel="label" optionValue="value"
+                <Select name="school_level" :options="schoolLevelOptions" optionLabel="label" optionValue="value"
                     placeholder="اختر الصف" fluid />
                 <Message v-if="$form.school_level?.invalid" severity="error" size="small" variant="simple">{{
                     $form.school_level.error.message }}</Message>
@@ -111,18 +117,19 @@
 
 </template>
 
-<script setup lang="ts"  generic="T extends 'student' | 'class'">
+<script setup lang="ts" generic="T extends 'student' | 'class'">
 
 import { useStudentStore } from '~/store/studentStore';
 import { genderOptions } from '~/data/static';
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from 'primevue/usetoast';
-import type { NewClass, NewStudent, Student, Class  } from '~/data/types';
+import type { NewClass, NewStudent, Student, Class } from '~/data/types';
 import { schoolLevelOptions } from '~/data/static';
 import type { FormSubmitEvent } from "@primevue/forms"
-const {studentSchemas, classSchemas} = useZodSchema()
+const { studentSchemas, classSchemas } = useZodSchema()
 const studentStore = useStudentStore();
+const { getRequiredFieldMessage } = useDataUtils()
 
 
 const toast = useToast();
@@ -137,15 +144,16 @@ const props = defineProps<{
 }>()
 
 const formattedStudentObject = computed(() => {
+    // Fomrat student object to be compatible with the form, By formatting the birth_date & adding default status if not provided (in case of new student)
     if (props.entityType === 'student') {
-        const studentObj = props.entityObject as Student
+        const studentObj = props.entityObject as Student 
         const defaultBrithDate = new Date().getTime() - 1000 * 60 * 60 * 24 * 365 * 10 // 10 years ago
-        return { ...studentObj, birth_date: new Date(studentObj?.birth_date || defaultBrithDate) }
+        return { ...studentObj, birth_date: new Date(studentObj?.birth_date || defaultBrithDate), status: studentObj?.status || "active" } 
     }
 })
 
-const emit= defineEmits<{
-    (e: 'submit', obj:  newEntity<T>): void;
+const emit = defineEmits<{
+    (e: 'submit', obj: newEntity<T>): void;
 }>()
 
 const resolver = computed(() => props.entityType == 'student' ? zodResolver(studentZodSchema) :
@@ -158,10 +166,9 @@ const classZodSchema = classSchemas.newClassSchema satisfies z.ZodType<NewClass>
 
 
 const onFormSubmit = (event: FormSubmitEvent) => {
-  if (!event.valid) return
-
-  toast.add({ severity: 'info', summary: 'يتم معالجة طلبك', life: 3000 })
-  emit('submit', event.values as newEntity<T>)
+    if (!event.valid) return
+    toast.add({ severity: 'info', summary: 'يتم معالجة طلبك', life: 3000 })
+    emit('submit', event.values as newEntity<T>)
 }
 
 </script>
