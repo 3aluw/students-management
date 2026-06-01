@@ -81,7 +81,7 @@ const props = defineProps<{
 
 // ========== MAIN FORM REACTIVE REFERENCES ==========
 const newSeasonData = ref<NewSchoolSeason | null>(null)
-const studentsPromotionObject = ref<ClassPromotionMap>([])
+const studentsPromotionObject = ref<ClassPromotionMap>({})
 const repeaters = ref<Student[]>([])
 
 // ==========FORM EMIT==========

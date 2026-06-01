@@ -17,7 +17,7 @@ export default function () {
         sex: z.literal(['F', 'M'], { error: getRequiredFieldMessage("sex") }),
         phone_number: z.string({ error: getRequiredFieldMessage("phone_number") }).length(10, { message: 'يجب إدخال رقم هاتف صحيح ' }),
         birth_date: z.number({ error: getRequiredFieldMessage("birth_date") }),
-        address: z.string({ error: getRequiredFieldMessage("address") }).min(10, { message: 'يجب إدخال العنوان بدقة ' }),
+        address: z.string({ error: getRequiredFieldMessage("address") }).min(5, { message: 'يجب إدخال العنوان بدقة ' }),
     }) satisfies z.ZodType<Student>
 
     const newStudentSchema = studentSchema.omit({ id: true }) satisfies z.ZodType<NewStudent>

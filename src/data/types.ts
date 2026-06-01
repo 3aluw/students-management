@@ -142,7 +142,7 @@ export type PlaygroundSettings = {
 };
 
 // ========== SEASONS TYPES ==========
-export type ClassPromotionMap = Record<number, number>;
+export type ClassPromotionMap = Record<string, number>;
 
 export type NewSeasonPayload = {
   terminateCurrentSeason: boolean;
