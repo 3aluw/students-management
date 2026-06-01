@@ -151,7 +151,9 @@ const emit= defineEmits<{
 const resolver = computed(() => props.entityType == 'student' ? zodResolver(studentZodSchema) :
     zodResolver(classZodSchema)
 );
-const studentZodSchema = studentSchemas.newStudentSchema satisfies z.ZodType<NewStudent>
+const studentZodSchema = studentSchemas.newStudentSchema.extend({
+    birth_date: z.date({ error: getRequiredFieldMessage("birth_date") }).transform(d => d.getTime())
+}) satisfies z.ZodType<NewStudent>
 const classZodSchema = classSchemas.newClassSchema satisfies z.ZodType<NewClass>
 
 
