@@ -121,7 +121,7 @@ import { useToast } from 'primevue/usetoast';
 import type { NewClass, NewStudent, Student, Class  } from '~/data/types';
 import { schoolLevelOptions } from '~/data/static';
 import type { FormSubmitEvent } from "@primevue/forms"
-const {newStudentSchema, newClassSchema} = useZodSchema()
+const {studentSchemas, classSchemas} = useZodSchema()
 const studentStore = useStudentStore();
 
 
@@ -151,9 +151,8 @@ const emit= defineEmits<{
 const resolver = computed(() => props.entityType == 'student' ? zodResolver(studentZodSchema) :
     zodResolver(classZodSchema)
 );
-const studentZodSchema = newStudentSchema satisfies z.ZodType<NewStudent>
-const classZodSchema = newClassSchema satisfies z.ZodType<NewClass>
-
+const studentZodSchema = studentSchemas.newStudentSchema satisfies z.ZodType<NewStudent>
+const classZodSchema = classSchemas.newClassSchema satisfies z.ZodType<NewClass>
 
 
 const onFormSubmit = (event: FormSubmitEvent) => {
