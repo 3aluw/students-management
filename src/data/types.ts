@@ -148,7 +148,7 @@ export type NewSeasonPayload = {
   terminateCurrentSeason: boolean;
   newSeason: NewSchoolSeason;
   classPromotionMap: ClassPromotionMap 
-  repeaters: Student[] ;
+  repeaters: Student["id"][] ;
 };
 
 // ========== BACKEND ERROR TYPES ==========

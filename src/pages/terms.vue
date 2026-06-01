@@ -171,47 +171,7 @@ const testPayload: NewSeasonPayload = {
     "2": 3,
     "3": -1
   },
-  "repeaters": [
-    {
-      "id": 5,
-      "class_id": 1,
-      "first_name": "سارة",
-      "last_name": "الطاهري",
-      "father_name": "خالد",
-      "grandfather_name": "يوسف",
-      "sex": "F",
-      "phone_number": "0611122233",
-      "birth_date": 959468400000,
-      "address": "الدار البيضاء",
-      "status": "active"
-    },
-    {
-      "id": 4,
-      "class_id": 2,
-      "first_name": "أحمد",
-      "last_name": "العسري",
-      "father_name": "محمد",
-      "grandfather_name": "عبدالله",
-      "sex": "M",
-      "phone_number": "0612345678",
-      "birth_date": 20090115,
-      "address": "الرباط",
-      "status": "active"
-    },
-    {
-      "id": 12,
-      "class_id": 3,
-      "first_name": "أنس",
-      "last_name": "الزهراء",
-      "father_name": "طارق",
-      "grandfather_name": "عبد الجليل",
-      "sex": "M",
-      "phone_number": "0610987654",
-      "birth_date": 20100105,
-      "address": "أكادير",
-      "status": "active"
-    }
-  ]
+  "repeaters": [12,4,5]
 }
 const handleTestSeasonCreation = async () => {
   handleSeasonCreation(testPayload)

@@ -131,7 +131,7 @@ export default function () {
         terminateCurrentSeason: z.boolean(),
         newSeason: newSeasonSchema,
         classPromotionMap: z.record(z.number(), z.number()),
-        repeaters: z.array(studentSchema)
+        repeaters: z.array(z.number())
     }) satisfies z.ZodType<NewSeasonPayload>
 
     const seasonSchemas = { editSeasonSchema, NewSeasonPayloadSchema }

@@ -144,7 +144,7 @@ const nextStepClick = async (step: number, formActivateCallback: (value: string 
             terminateCurrentSeason: seasonTerminationActive.value,
             newSeason: newSeasonData.value!,
             classPromotionMap: studentsPromotionObject.value,
-            repeaters: repeaters.value.length > 0 ? repeaters.value : []
+            repeaters:  repeaters.value.map(s=>s.id)
         })
     }
     formActivateCallback((step + 1).toString())

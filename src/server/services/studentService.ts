@@ -79,10 +79,9 @@ export const studentService = {
       count: result.changes,
     };
   },
-  promoteStudents(promotionMap: ClassPromotionMap, repeaters: Student[]) {
-    const repeatersIds = repeaters.map((student) => student.id);
+  promoteStudents(promotionMap: ClassPromotionMap, repeaters: Student["id"][]) {
     try {
-      studentRepo.handlesStudentsPromotion(promotionMap, repeatersIds);
+      studentRepo.handlesStudentsPromotion(promotionMap, repeaters);
     } catch (error) {
       throw new Error("فشلت عملية ترقية الطلبة", { cause: error });
     }
