@@ -140,16 +140,16 @@ export default function () {
     };
   };
   /* Convert dates back to timestamps */
-const toTimestamp = (
-  value: unknown,
-  originalValue?: unknown
-) => {
-  const raw = originalValue ?? value;
+  const toTimestamp = (
+    value: unknown,
+    originalValue?: unknown
+  ) => {
+    const raw = originalValue ?? value;
 
-  return raw instanceof Date
-    ? raw.getTime()
-    : value;
-};
+    return raw instanceof Date
+      ? raw.getTime()
+      : value;
+  };
 
   //a function that transform 0/1 in DB results to real booleans
   const normalizeResultBooleans = <
@@ -226,21 +226,39 @@ const toTimestamp = (
     terms.some((term, i, arr) => i > 0 && term.startDate < arr[i - 1].endDate);
 
 
-  // ========== generates readable message from Zod issues array ==========
-  const formatZodValidationError = (err: ZodError["issues"]) => {
-    if (err.length === 1) {
-      return err[0].message
+  // ========== Zod Error formatting ==========
+  // keep one error per path
+  const getUniqueZodIssues = (issues: ZodError["issues"]) => {
+    const seen = new Set();
+
+    const uniqueIssues = issues.filter(issue => {
+      const key = issue.path[0];
+
+      if (seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    });
+    return uniqueIssues
+  }
+  //generates readable message from Zod issues array
+  const formatZodValidationError = (issues: ZodError["issues"]) => {
+    const uniqueIssues = getUniqueZodIssues(issues)
+    if (uniqueIssues.length === 1) {
+      return uniqueIssues[0].message
     }
     // if there are at most 4 errors : log the first message and advise the user to check other fields
-    else if (err.length < 4) {
-      err.shift()
-      const fields = err.map(errObj => (getPropertyArabicName(errObj.path[0] as string) ?? errObj.path[0])).join(' ، ')
-      return err[0].message + ` \n كما يجب التحقق من : ${fields}`
+    else if (uniqueIssues.length < 4) {
+      uniqueIssues.shift()
+      const fields = uniqueIssues.filter(errObj => (getPropertyArabicName(errObj.path[0] as string)))
+      return uniqueIssues[0].message + (fields.length ? ` \n كما يجب التحقق من : ${fields.join(' ، ')}` : "\n كما يرجى التحقق من المعلومات الأخرى المدخلة   ")
     }
     // if there are more than 4 errors :  advise the user to check fields by name
     else {
-      const fields = err.map(errObj => (getPropertyArabicName(errObj.path[0] as string) ?? errObj.path[0])).join(' ، ')
-      return ` يجب التحقق من : ${fields}`
+      const fields = uniqueIssues.filter(errObj => (getPropertyArabicName(errObj.path[0] as string)))
+      return fields.length ? ` يجب التحقق من : ${fields.join(' ، ')}` : "يرجى التحقق من المعلومات المدخلة"
     }
   }
 
