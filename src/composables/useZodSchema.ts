@@ -112,7 +112,7 @@ export default function () {
                         ctx.addIssue({
                             code: "custom",
                             path: [index, "endDate"],
-                            message: "تاريخ النهاية يجب أن يكون بعد تاريخ البداية",
+                            message: `تاريخ نهاية الفصل الدراسي (${term.name}) يجب أن يكون بعد تاريخ البداية` ,
                         });
                     }
 
@@ -120,7 +120,7 @@ export default function () {
                         ctx.addIssue({
                             code: "custom",
                             path: [index, "endDate"],
-                            message: "مدة الفصل الدراسي لا تقل عن ثلاثة أيام",
+                            message: `مدة الفصل الدراسي (${term.name}) لا تقل عن ثلاثة أيام`,
                         });
                     }
                 });
@@ -131,8 +131,8 @@ export default function () {
     const NewSeasonPayloadSchema = z.object({
         terminateCurrentSeason: z.boolean(),
         newSeason: newSeasonSchema,
-        classPromotionMap: z.record(z.number(), z.number()),
-        repeaters: z.array(z.number())
+        classPromotionMap: z.record((z.string().regex(/^\d+$/)), z.number(), {error: "توجد مشكلة في نقل الأقسام إلى المستويات القادمة"}),
+        repeaters: z.array(z.number(),{error: "توجد مشكلة في قائمة المعيدين"})
     }) satisfies z.ZodType<NewSeasonPayload>
 
     const seasonSchemas = { editSeasonSchema, NewSeasonPayloadSchema }
