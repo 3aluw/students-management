@@ -16,7 +16,7 @@ export default function () {
         class_id: z.number({ error: getRequiredFieldMessage("class_id") }),
         sex: z.literal(['F', 'M'], { error: getRequiredFieldMessage("sex") }),
         phone_number: z.string({ error: getRequiredFieldMessage("phone_number") }).length(10, { message: 'يجب إدخال رقم هاتف صحيح ' }),
-        birth_date: z.date({ error: getRequiredFieldMessage("birth_date") }).transform(d => d.getTime()),
+        birth_date: z.number({ error: getRequiredFieldMessage("birth_date") }),
         address: z.string({ error: getRequiredFieldMessage("address") }).min(10, { message: 'يجب إدخال العنوان بدقة ' }),
     }) satisfies z.ZodType<Student>
 
@@ -38,11 +38,12 @@ export default function () {
     const editClassSchema = classSchema.partial().required({ id: true }) satisfies z.ZodType<EditClass>
 
     const classSchemas = { classSchema, newClassSchema, editClassSchema }
+    
     // ========== Lateness schemas ==========
     const latenessSchema = z.object({
         id: z.number({ error: getRequiredFieldMessage("id") }),
         student_id: z.number({ error: getRequiredFieldMessage("student_id") }),
-        date: z.date().transform(d => d.getTime()),
+        date: z.number({ error: getRequiredFieldMessage(" التاريخ") }),
         reason: z.string().min(5, { message: 'يجب إدخال سبب الغياب' }),
         reason_accepted: z.literal([0, 1]),
         late_by: z.number({ error: getRequiredFieldMessage("مدة التأخر") }),      // it will be used to insert the time of enter then transformed to minutes after shift start
