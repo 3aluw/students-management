@@ -8,7 +8,7 @@ import {
   SchoolSeason,
 } from "~/data/types";
 import useDataUtils from "~/composables/useDataUtils";
-import useDBUtils from "~/composables/useDBUtils";
+
 
 export const seasonService = {
   runNewSeasonWorkflow(payload: NewSeasonPayload) {
@@ -25,7 +25,7 @@ export const seasonService = {
       const promoteStudentsAllowed = Object.keys(classPromotionMap).length > 0;
 
       /* Manage feedbacks using runSteps helper */
-      useDBUtils().runSteps([
+      runSteps([
         // ========== Season functions==========
         {
           name: "إنهاء الموسم الحالي",
