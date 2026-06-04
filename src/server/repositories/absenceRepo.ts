@@ -1,9 +1,7 @@
 import db from '~/db/db';
 import type { BatchEditAbsence, EditAbsence, EventQueryFilters, LocalAbsence, NewAbsence } from "~/data/types";
-import useDBUtils from '~/composables/useDBUtils';
 type TotalRow = { total: number };
 
-const { buildWhereQuery, generateDBSetClause, generateDBInClause } = useDBUtils();
 
 export const absenceRepo = {
     getAbsences: (filters: EventQueryFilters) => {
@@ -48,7 +46,7 @@ export const absenceRepo = {
     },
 
     deleteAbsences: (absenceIds: number[]) => {
-        const { generateDBInClause } = useDBUtils();
+
         const inClause = generateDBInClause(absenceIds.length);
         const stmt = db.prepare(`DELETE FROM absence WHERE id IN (${inClause})`);
         return stmt.run(absenceIds);

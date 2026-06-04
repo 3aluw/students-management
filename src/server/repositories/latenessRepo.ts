@@ -1,10 +1,8 @@
 import db from '~/db/db';
 import type {  BatchEditLateness,  EditLateness, EventQueryFilters,  LocalLateness,  NewLateness } from "~/data/types";
-import useDBUtils from '~/composables/useDBUtils';
 
 type TotalRow = { total: number };
 
-const { buildWhereQuery, generateDBSetClause, generateDBInClause } = useDBUtils();
 
 export const latenessRepo = {
     getLateness: (filters: EventQueryFilters) => {

@@ -1,9 +1,8 @@
-import useDBUtils from "~/composables/useDBUtils";
 import { EditSchoolSeason, NewSchoolSeason, SchoolSeason } from "~/data/types";
 import db from "~/db/db";
 
 type sqliteSchoolSeason = Omit<SchoolSeason, "terms"> & { terms: string };
-const { generateDBSetClause } = useDBUtils();
+
 export const seasonRepo = {
 
   getSeasons() {
