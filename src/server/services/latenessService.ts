@@ -11,13 +11,13 @@ export const latenessService = {
         if (result.changes === 0) {
             throw createError({
                 statusCode: 404,
-                statusMessage: "لم يتم حذف التأخير المحدد",
+                message: "لم يتم حذف التأخير المحدد",
             });
         }
         if (result.changes < latenessIds.length) {
             throw createError({
-                statusCode: 400,
-                statusMessage: "تم حذف بعض التأخيرات المحددة، لكن بعضها لم يتم العثور عليه (تم حذف " + result.changes + " من " + latenessIds.length + ")",
+                statusCode: 409,
+                message: "تم حذف بعض التأخيرات المحددة، لكن بعضها لم يتم العثور عليه (تم حذف " + result.changes + " من " + latenessIds.length + ")",
             });
         }
         return { message: "تم حذف التأخيرات المحددة بنجاح" };
@@ -28,13 +28,13 @@ export const latenessService = {
         if (result.changes === 0) {
             throw createError({
                 statusCode: 400,
-                statusMessage: "لم يتم إضافة التأخيرات الجديدة",
+                message: "لم يتم إضافة التأخيرات الجديدة",
             });
         }
         if (result.changes < lateness.length) {
             throw createError({
                 statusCode: 207,
-                statusMessage: "تم إضافة بعض التأخيرات الجديدة، لكن بعضها لم يتم إضافته (تم إضافة " + result.changes + " من " + lateness.length + ")",
+                message: "تم إضافة بعض التأخيرات الجديدة، لكن بعضها لم يتم إضافته (تم إضافة " + result.changes + " من " + lateness.length + ")",
             });
         }
         return { message: "تم إضافة التأخيرات الجديدة بنجاح", };
@@ -45,7 +45,7 @@ export const latenessService = {
         if (result.changes === 0) {
             throw createError({
                 statusCode: 404,
-                statusMessage: "لم يتم العثور على التأخير المحدد للتحديث",
+                message: "لم يتم العثور على التأخير المحدد للتحديث",
             });
         }
         return { message: "تم تحديث التأخير المحدد بنجاح" };
@@ -56,13 +56,13 @@ export const latenessService = {
         if (result.changes === 0) {
             throw createError({
                 statusCode: 404,
-                statusMessage: "لم يتم العثور على التأخيرات المحددة للتحديث",
+                message: "لم يتم العثور على التأخيرات المحددة للتحديث",
             });
         }
         if (result.changes < lateness.ids.length) {
             throw createError({
                 statusCode: 207,
-                statusMessage: "تم تحديث بعض التأخيرات المحددة، لكن بعضها لم يتم العثور عليه (تم تحديث " + result.changes + " من " + lateness.ids.length + ")",
+                message: "تم تحديث بعض التأخيرات المحددة، لكن بعضها لم يتم العثور عليه (تم تحديث " + result.changes + " من " + lateness.ids.length + ")",
             });
         }
         return { message: "تم تحديث التأخيرات المحددة بنجاح" };

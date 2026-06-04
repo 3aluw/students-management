@@ -1,37 +1,61 @@
-import { BatchEditLateness, EditLateness, NewLateness } from "~/data/types";
+import { BackendValidationError, BatchEditLateness, EditLateness, NewLateness } from "~/data/types";
 import useDBUtils from "~/composables/useDBUtils";
-const { logError, toSafeError } = useDBUtils();
 import { latenessService } from "~/server/services/latenessService";
 import type { H3Error } from "h3";
-
+import { ZodError } from "zod";
+import useZodSchema from "~/composables/useZodSchema";
+import { z } from "zod";
+type Operation = "create" | "update" | "batch update";
 
 export default defineEventHandler(async (event) => {
-  const { generateDBSetClause, generateDBInClause } = useDBUtils();
+  const { logError, toSafeError } = useDBUtils();
+  const { latenessSchemas  } = useZodSchema()
 
   const reqBody = await readBody<
     NewLateness[] | EditLateness | BatchEditLateness
   >(event);
+
+  let operation: Operation = "ids" in reqBody ? "batch update" :
+    !("id" in reqBody) ? "create" : "update";
+
+
+  const schemaMap: Record<Operation, z.ZodTypeAny> = {
+    create: z.array(latenessSchemas.newLatenessSchema) satisfies z.ZodType<NewLateness[]>,
+    update: latenessSchemas.editLatenessSchema,
+    'batch update': latenessSchemas.batchEditLatenessSchema,
+  };
   try {
-    // Batch Edit Absences
+    schemaMap[operation].parse(reqBody);
+    // Batch Edit lateness
     if ("ids" in reqBody) {
       return latenessService.batchEditLateness(reqBody);
     }
-    // if no id : It is an array of new absences to insert db
+    // if no id : It is an array of new lateness to insert db
     if (!("id" in reqBody)) {
       return latenessService.createLateness(reqBody);
     } // if id : item exists So update it
     else {
       return latenessService.editLateness(reqBody);
     }
-  } catch (err) {
-    logError("Error fetching lateness:", err, event.path, reqBody);
+  } catch (error) {
+    // 1. validation error branch
+    if (error instanceof ZodError) {
+      throw createError({
+        statusCode: 400,
+        message: 'مشكلة في البيانات المرسلة',
+        statusMessage: "failed validation",
+        data: {
+          issues: error.issues
+        }
+      } as BackendValidationError)
 
-    const reqMode = "ids" in reqBody ? "batch update" : !("id" in reqBody) ? "create" : "update";
-    const errorMessageTitle = reqMode === "create" ? " إنشاء التأخر" : reqMode === "update" ? " تحديث معلومات التأخر" : "تعديل التأخرات المحددة";
-    const errorMessage = (err as H3Error)?.statusMessage ?? "حدث خطأ أثناء " + errorMessageTitle
-    const safeError = createError(toSafeError(err, errorMessage));
-    return sendError(
-      event, safeError
-    );
+    }
+    // 2. Business / Database error branch 
+    logError("Error fetching lateness:", error, event.path, reqBody);
+
+    const errorMessageTitle = operation === "create" ? " إنشاء التأخر" : operation === "update" ? " تحديث معلومات التأخر" : "تعديل التأخرات المحددة";
+    const errorMessage = (error as H3Error)?.message ?? "حدث خطأ أثناء " + errorMessageTitle
+    throw createError(toSafeError(error, errorMessage));
+
   }
 });

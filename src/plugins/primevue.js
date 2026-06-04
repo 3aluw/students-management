@@ -7,7 +7,8 @@ import Panel from 'primevue/panel';
 import Tree from 'primevue/tree';
 import Button from 'primevue/button';
 import {ConfirmationService, ToastService} from "primevue"; */
-
+import * as z from "zod";
+import { ar } from "zod/locales"
 export default defineNuxtPlugin((nuxtApp) => {
 /*     nuxtApp.vueApp.use(PrimeVue);
     nuxtApp.vueApp.use(ToastService);
@@ -18,4 +19,5 @@ export default defineNuxtPlugin((nuxtApp) => {
     nuxtApp.vueApp.component('Panel', Panel);
     nuxtApp.vueApp.component('Tree', Tree);
     nuxtApp.vueApp.component('Button', Button); */
+    z.config(ar());
 });

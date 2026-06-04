@@ -1,9 +1,13 @@
+import type { ZodError } from "zod";
+
 /**
  * Utility types
  */
 export type NewEntity<T extends { id: any }> = Omit<T, "id">;
+
 type PartialExceptId<T extends { id: number }> = Partial<Omit<T, "id">> &
   Pick<T, "id">;
+
 type BatchEdit<T extends AllEntitiesUnion> = Partial<Omit<T, "id">> & {
   ids: number[];
 };
@@ -75,7 +79,8 @@ export interface SchoolTerm {
   endDate: number;
 }
 
-export type AllEntitiesUnion = Student | Class | Absence | Lateness;
+export type AllEntitiesUnion = Student | Class | Absence | Lateness | SchoolSeason;
+export type AllEntitiesKeys = keyof (Student & Class & Absence & Lateness & SchoolSeason & SchoolTerm)
 
 export type NewStudent = NewEntity<Student>;
 export type NewClass = NewEntity<Class>;
@@ -137,18 +142,25 @@ export type PlaygroundSettings = {
 };
 
 // ========== SEASONS TYPES ==========
-export type ClassPromotionMap = Record<number, number>;
+export type ClassPromotionMap = Record<string, number>;
 
 export type NewSeasonPayload = {
   terminateCurrentSeason: boolean;
   newSeason: NewSchoolSeason;
   classPromotionMap: ClassPromotionMap 
-  repeaters: Student[] ;
+  repeaters: Student["id"][] ;
 };
 
-export type BackendResponse<T extends Record<string, unknown> = {}> = {
-  success: boolean;
-  message: string;
-} & T;
+// ========== BACKEND ERROR TYPES ==========
+
+ type BackendBaseError =  {
+  statusCode: number,
+  message : string,
+} 
+export type BackendValidationError =  BackendBaseError & {
+data : {
+  issues : ZodError["issues"]
+}
+}
 
 

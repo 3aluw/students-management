@@ -1,15 +1,21 @@
 <template>
     <div class="card flex flex-col items-center gap-5">
         <Toast />
-        <Form v-if="props.entityType == 'student'" :initialValues="formattedStudentObject" v-slot="$form" :resolver="resolver" @submit="onFormSubmit"
-            class="flex flex-col gap-4 w-full sm:w-80"> 
+        <Form v-if="props.entityType == 'student'" :initialValues="formattedStudentObject" v-slot="$form"
+            :resolver="resolver" @submit="onFormSubmit" class="flex flex-col gap-4 w-full sm:w-80">
+            
+            <!-- Status -->
+            <div class="flex flex-col gap-1">
+                <InputText name="status" type="text" placeholder="الحالة" fluid hidden />
+            </div>
+
             <!-- First Name -->
             <div class="flex flex-col gap-1">
                 <InputText name="first_name" type="text" placeholder="الاسم" fluid />
                 <Message v-if="$form.first_name?.invalid" severity="error" size="small" variant="simple">{{
                     $form.first_name.error.message }}</Message>
-
             </div>
+            
             <!-- Last Name -->
             <div class="flex flex-col gap-1">
                 <InputText name="last_name" placeholder="اللقب" fluid />
@@ -82,17 +88,17 @@
 
 
 
-        <Form v-else-if="props.entityType == 'class'" :initialValues="props.entityObject" v-slot="$form" :resolver="resolver" @submit="onFormSubmit"
-            class="flex flex-col gap-4 w-full sm:w-80"> 
+        <Form v-else-if="props.entityType == 'class'" :initialValues="props.entityObject" v-slot="$form"
+            :resolver="resolver" @submit="onFormSubmit" class="flex flex-col gap-4 w-full sm:w-80">
             <!-- Grade -->
             <div class="flex flex-col gap-1">
-                <InputNumber  name="grade" placeholder="المستوى" :min="0" :max="10" fluid />
+                <InputNumber name="grade" placeholder="المستوى" :min="0" :max="10" fluid />
                 <Message v-if="$form.grade?.invalid" severity="error" size="small" variant="simple">{{
                     $form.grade.error.message }}</Message>
             </div>
             <!-- school_level -->
             <div class="flex flex-col gap-1">
-              <Select name="school_level" :options="schoolLevelOptions" optionLabel="label" optionValue="value"
+                <Select name="school_level" :options="schoolLevelOptions" optionLabel="label" optionValue="value"
                     placeholder="اختر الصف" fluid />
                 <Message v-if="$form.school_level?.invalid" severity="error" size="small" variant="simple">{{
                     $form.school_level.error.message }}</Message>
@@ -111,18 +117,19 @@
 
 </template>
 
-<script setup lang="ts"  generic="T extends 'student' | 'class'">
+<script setup lang="ts" generic="T extends 'student' | 'class'">
 
 import { useStudentStore } from '~/store/studentStore';
 import { genderOptions } from '~/data/static';
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from 'primevue/usetoast';
-import type { NewClass, NewStudent, Student, Class  } from '~/data/types';
+import type { NewClass, NewStudent, Student, Class } from '~/data/types';
 import { schoolLevelOptions } from '~/data/static';
 import type { FormSubmitEvent } from "@primevue/forms"
-const { getRequiredFieldMessage } = useDataUtils()
+const { studentSchemas, classSchemas } = useZodSchema()
 const studentStore = useStudentStore();
+const { getRequiredFieldMessage } = useDataUtils()
 
 
 const toast = useToast();
@@ -137,45 +144,31 @@ const props = defineProps<{
 }>()
 
 const formattedStudentObject = computed(() => {
+    // Fomrat student object to be compatible with the form, By formatting the birth_date & adding default status if not provided (in case of new student)
     if (props.entityType === 'student') {
-        const studentObj = props.entityObject as Student
-        return { ...studentObj, birth_date: new Date(studentObj.birth_date) }
+        const studentObj = props.entityObject as Student 
+        const defaultBrithDate = new Date().getTime() - 1000 * 60 * 60 * 24 * 365 * 10 // 10 years ago
+        return { ...studentObj, birth_date: new Date(studentObj?.birth_date || defaultBrithDate), status: studentObj?.status || "active" } 
     }
 })
 
-const emit= defineEmits<{
-    (e: 'submit', obj:  newEntity<T>): void;
+const emit = defineEmits<{
+    (e: 'submit', obj: newEntity<T>): void;
 }>()
 
 const resolver = computed(() => props.entityType == 'student' ? zodResolver(studentZodSchema) :
     zodResolver(classZodSchema)
 );
-const studentZodSchema = z.object({
-    status: z.enum(['active', 'graduated', 'dropped', 'transferred'], { error: getRequiredFieldMessage("status") }),
-    first_name: z.string({ error: getRequiredFieldMessage("first_name") }).min(3, { message: 'يجب إدخال اسم الطالب كاملا' }),
-    last_name: z.string({ error: getRequiredFieldMessage("last_name") }).min(3, { message: 'يجب إدخال اللقب كاملا ' }),
-    father_name: z.string({ error: getRequiredFieldMessage("father_name") }).min(3, { message: 'يجب استكمال اسم الأب ' }),
-    grandfather_name: z.string({ error: getRequiredFieldMessage("grandfather_name") }).min(3, { message: 'يجب استكمال اسم الجد ' }),
-    class_id: z.number({ error: getRequiredFieldMessage("class_id") }),
-    sex: z.literal(['F', 'M'], { error: getRequiredFieldMessage("sex") }),
-    phone_number: z.string({ error: getRequiredFieldMessage("phone_number") }).length(10, { message: 'يجب إدخال رقم هاتف صحيح ' }),
-    birth_date: z.date({ error: getRequiredFieldMessage("birth_date") }).transform(d => d.getTime()),
-    address: z.string({ error: getRequiredFieldMessage("address") }).min(10, { message: 'يجب إدخال العنوان بدقة ' }),
+const studentZodSchema = studentSchemas.newStudentSchema.extend({
+    birth_date: z.date({ error: getRequiredFieldMessage("birth_date") }).transform(d => d.getTime())
 }) satisfies z.ZodType<NewStudent>
-
-const classZodSchema = z.object({
-    grade: z.number({ error: getRequiredFieldMessage("grade") }).max(10, { message: 'يرجى إدخال مستوى منطقي' }),
-    school_level : z.literal(['primary','middle','high'], {error: getRequiredFieldMessage("school_level")}),
-    section: z.string({ error: getRequiredFieldMessage("section") })
-}) satisfies z.ZodType<NewClass>
-
+const classZodSchema = classSchemas.newClassSchema satisfies z.ZodType<NewClass>
 
 
 const onFormSubmit = (event: FormSubmitEvent) => {
-  if (!event.valid) return
-
-  toast.add({ severity: 'info', summary: 'يتم معالجة طلبك', life: 3000 })
-  emit('submit', event.values as newEntity<T>)
+    if (!event.valid) return
+    toast.add({ severity: 'info', summary: 'يتم معالجة طلبك', life: 3000 })
+    emit('submit', event.values as newEntity<T>)
 }
 
 </script>

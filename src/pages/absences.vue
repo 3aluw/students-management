@@ -76,7 +76,7 @@ import type { DataTablePageEvent } from 'primevue';
 // ========== STORES & SERVICES ==========
 const studentStore = useStudentStore();
 const eventStore = useEventStore()
-const { getTimeRange } = useDataUtils()
+const { getToastErrorObject } = useDataUtils()
 const backend = useBackend()
 const toast = useToast();
 // ========== TOAST & MESSAGES ==========
@@ -159,7 +159,9 @@ const EditAbsences = async (absences: BatchEditAbsence | EditAbsence) => {
         resetSelected()
     }
     catch (error) {
-        toast.add({ severity: 'error', summary: toastMessages.updateFailed, life: 3000 });
+        
+        toast.add(getToastErrorObject(error, toastMessages.updateFailed))
+
         return
     }
     await eventStore.populateAbsences(dbFilters.value)

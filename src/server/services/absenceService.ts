@@ -11,13 +11,13 @@ export const absenceService = {
         if (result.changes === 0) {
             throw createError({
                 statusCode: 404,
-                statusMessage: "لم يتم حذف الغياب المحدد",
+                message: "لم يتم حذف الغياب المحدد",
             });
         }
         if (result.changes < absenceIds.length) {
             throw createError({
-                statusCode: 400,
-                statusMessage: "تم حذف بعض الغيابات المحددة، لكن بعضها لم يتم العثور عليه (تم حذف " + result.changes + " من " + absenceIds.length + ")",
+                statusCode: 409,
+                message: "تم حذف بعض الغيابات المحددة، لكن بعضها لم يتم العثور عليه (تم حذف " + result.changes + " من " + absenceIds.length + ")",
             });
         }
         return { message: "تم حذف الغيابات المحددة بنجاح" };
@@ -28,13 +28,13 @@ export const absenceService = {
         if (result.changes === 0) {
             throw createError({
                 statusCode: 400,
-                statusMessage: "لم يتم إضافة الغيابات الجديدة",
+                message: "لم يتم إضافة الغيابات الجديدة",
             });
         }
         if (result.changes < absences.length) {
             throw createError({
-                statusCode: 207,
-                statusMessage: "تم إضافة بعض الغيابات الجديدة، لكن بعضها لم يتم إضافته (تم إضافة " + result.changes + " من " + absences.length + ")",
+                statusCode: 409,
+                message: "تم إضافة بعض الغيابات الجديدة، لكن بعضها لم يتم إضافته (تم إضافة " + result.changes + " من " + absences.length + ")",
             });
         }
         return { message: "تم إضافة الغيابات الجديدة بنجاح", };
@@ -45,7 +45,7 @@ export const absenceService = {
         if (result.changes === 0) {
             throw createError({
                 statusCode: 404,
-                statusMessage: "لم يتم العثور على الغياب المحدد للتحديث",
+                message: "لم يتم العثور على الغياب المحدد للتحديث",
             });
         }
         return { message: "تم تحديث الغياب المحدد بنجاح" };
@@ -56,13 +56,13 @@ export const absenceService = {
         if (result.changes === 0) {
             throw createError({
                 statusCode: 404,
-                statusMessage: "لم يتم العثور على الغيابات المحددة للتحديث",
+                message: "لم يتم العثور على الغيابات المحددة للتحديث",
             });
         }
         if (result.changes < abcenses.ids.length) {
             throw createError({
-                statusCode: 207,
-                statusMessage: "تم تحديث بعض الغيابات المحددة، لكن بعضها لم يتم العثور عليه (تم تحديث " + result.changes + " من " + abcenses.ids.length + ")",
+                statusCode: 409,
+                message: "تم تحديث بعض الغيابات المحددة، لكن بعضها لم يتم العثور عليه (تم تحديث " + result.changes + " من " + abcenses.ids.length + ")",
             });
         }
         return { message: "تم تحديث الغيابات المحددة بنجاح" };

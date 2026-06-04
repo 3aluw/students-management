@@ -58,7 +58,7 @@ export const seasonService = {
     if (result.changes === 0) {
       throw createError({
         statusCode: 404,
-        statusMessage: "لم يتم إضافة الموسم الدراسي",
+        message: "لم يتم إضافة الموسم الدراسي",
       });
     }
     return {
@@ -72,7 +72,7 @@ export const seasonService = {
     if (result.changes === 0) {
       throw createError({
         statusCode: 404,
-        statusMessage: "لم يتم إيجاد الموسم المحدد",
+        message: "لم يتم إيجاد الموسم المحدد",
       });
     }
     return {
@@ -85,7 +85,7 @@ export const seasonService = {
     if (result.changes === 0) {
       throw createError({
         statusCode: 404,
-        statusMessage: "لم يتم إيجاد الموسم المحدد",
+        message: "لم يتم إيجاد الموسم المحدد",
       });
     }
     return {

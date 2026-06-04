@@ -1,7 +1,8 @@
-import type { BackendResponse, EventQueryFilters } from "~/data/types";
+import type { EventQueryFilters } from "~/data/types";
 import type { H3Error } from "h3";
 
 export default function () {
+
   const generateDBSetClause = <T extends Object>(object: T) => {
     // fields is an object like { name: 'Alice', age: 30, status: 'active' }
     const keys = Object.keys(object) as (keyof object)[];
@@ -67,15 +68,7 @@ export default function () {
     }
   };
 
-  // ========== create an error in case of a function throwing a non Error ==========
-  const createGenericError = (operationName: string): BackendResponse => {
-    return {
-      success: false,
-      message: "لم تنجح عملية " + operationName
-
-    }
-  }
-
+  // ========== Logs the error (used in backend routes) ==========
   const logError = (message: string, error: unknown, path: string, body: unknown) => {
     console.error({
       message,
@@ -84,13 +77,53 @@ export default function () {
       body,
     });
   }
+  const toSafeError = (
+    error: unknown,
+    defaultMessage = "حدث خطأ أثناء العملية",
+    defaultStatusMessage = "Bad Request "
+  ) => {
+    const fallback = {
+      statusCode: 500,
+      message: defaultMessage,
+      statusMessage: defaultStatusMessage,
+    };
 
-  const toSafeError = (error: unknown, defaultMessage?: string) => {
-    return {
-      statusCode: (error as H3Error)?.statusCode || 500,
-      statusMessage: (error as H3Error)?.statusMessage || defaultMessage  || 'حدث خطأ أثناء العملية',
+    if (typeof error !== "object" || error === null) {
+      return fallback;
     }
-  }
+
+    const err = error as Partial<H3Error> & Record<string, unknown>;
+
+    const statusCode =
+      typeof err.statusCode === "number" ? err.statusCode : 500;
+
+    const message =
+      typeof err.message === "string"
+        ? err.message
+        : defaultMessage;
+
+    // Try to extract any existing status message variants
+    const statusMessage =
+      typeof err.statusMessage === "string"
+        ? err.statusMessage
+        : statusCode === 400
+          ? "Bad Request"
+          : statusCode === 401
+            ? "Unauthorized"
+            : statusCode === 403
+              ? "Forbidden"
+              : statusCode === 404
+                ? "Not Found"
+                : statusCode >= 500
+                  ? "Internal Server Error"
+                  : "Error";
+
+    return {
+      statusCode,
+      message,
+      statusMessage,
+    };
+  };
   // ========== Handle multi steps workflow and its error handling ==========
   /**
    * Represents a step in a multi-step workflow, including its name, the function to run, and an optional condition for execution.
@@ -151,7 +184,6 @@ export default function () {
     generateSqlCTEValues,
     logError,
     toSafeError,
-    createGenericError,
     runSteps,
     StepError,
   };

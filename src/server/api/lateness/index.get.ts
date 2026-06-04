@@ -2,11 +2,10 @@
 import type { EventQueryFilters } from "~/data/types";
 import { latenessService } from "~/server/services/latenessService";
 import useDBUtils from "~/composables/useDBUtils";
-const { logError, toSafeError } = useDBUtils();
 
 
 export default defineEventHandler(async (event) => {
-  const { buildWhereQuery } = useDBUtils();
+const { logError, toSafeError } = useDBUtils();
 
   const query = getQuery<EventQueryFilters>(event); // time filter / class filter / offset  
   
@@ -16,9 +15,7 @@ export default defineEventHandler(async (event) => {
     catch (err) {
       logError("Error fetching lateness:", err, event.path, query);
       
-      const safeError = createError(toSafeError(err, "فشلت عملية إيجاد التأخرات"));
-      return sendError(
-        event, safeError
-      );
+      throw createError(toSafeError(err, "فشلت عملية إيجاد التأخرات"));
+ 
     }
 });

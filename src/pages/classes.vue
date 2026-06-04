@@ -40,10 +40,14 @@
 import type { Class, NewClass,DataTableSlot } from '~/data/types'
 import { useStudentStore } from '~/store/studentStore';
 import { ArabicSchoolLevels } from '~/data/static';
+import { userFeedbackMessages, } from '~/data/static';
+const { class: toastMessages } = userFeedbackMessages
 
 const studentStore = useStudentStore()
 const backend = useBackend()
 const toast = useToast();
+const { getToastErrorObject } = useDataUtils()
+
 
 const showClassDialog = ref(false)
 const classToEdit = ref<Class | undefined>(undefined)
@@ -72,9 +76,11 @@ const executeDelete = async (classId: number) => {
     await backend.deleteClass(classId)
     await studentStore.populateClasses()
     classIdToDelete.value = undefined
-    toast.add({ severity: 'success', summary: 'تم حذف القسم بنجاح', life: 3000 })
+    toast.add({ severity: 'success', summary: toastMessages.deleteSuccess, life: 3000 })
   } catch (error) {
     toast.add({ severity: 'error', summary: 'حدث خطأ أثناء حذف القسم', life: 3000 })
+        toast.add(getToastErrorObject(error, toastMessages.deleteFailed))
+
 
   }
 }
@@ -87,11 +93,10 @@ const EditClass = async (classObj: Class) => {
     await backend.updateClass(classObj)
     await studentStore.populateClasses()
     showClassDialog.value = false
-    toast.add({ severity: 'success', summary: 'تم تعديل القسم بنجاح', life: 3000 })
+    toast.add({ severity: 'success', summary: toastMessages.updateSuccess, life: 3000 })
 
   } catch (error) {
-    toast.add({ severity: 'error', summary: 'حدث خطأ أثناء تعديل معلومات القسم', life: 3000 })
-
+    toast.add(getToastErrorObject(error, toastMessages.updateFailed))
   }
 }
 const createNewClass = async (newClass: NewClass) => {
@@ -99,11 +104,10 @@ const createNewClass = async (newClass: NewClass) => {
     await backend.createClass(newClass)
     await studentStore.populateClasses()
     showClassDialog.value = false
-    toast.add({ severity: 'success', summary: 'تم إنشاء القسم بنجاح', life: 3000 })
+    toast.add({ severity: 'success', summary: toastMessages.addSuccess, life: 3000 })
 
   } catch (error) {
-    toast.add({ severity: 'error', summary: 'حدث خطأ أثناء إنشاء القسم', life: 3000 })
-
+    toast.add(getToastErrorObject(error, toastMessages.addFailed))
   }
 }
 </script>

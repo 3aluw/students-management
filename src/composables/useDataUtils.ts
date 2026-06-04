@@ -1,7 +1,9 @@
-import { ArabicStudentProperties, ArabicClassProperties } from "~/data/static";
+import { arabicProperties } from "~/data/static";
+import type { ToastMessageOptions } from "primevue/toast"
+import type { ZodError } from "zod";
+import type { FetchError } from 'ofetch'
+import type { H3Error } from "h3";
 import type {
-  Student,
-  Class,
   SupportedDateRanges,
   LatenessInfo,
   AbsenceInfo,
@@ -9,36 +11,34 @@ import type {
   SchoolSeason,
   SchoolTerm,
   SeasonStatus,
+  BackendValidationError,
 } from "~/data/types";
 
 export default function () {
+  // ========== Fields / its Arabic translations functions ==========
   /*Internal */
   const formatRequiredFieldMessage = (
-    arabicText: string,
+    arabicFieldName: string,
     type: "text" | "choice" = "text",
   ) =>
     type === "text"
-      ? `يجب إدخال ${arabicText}`
+      ? `يجب إدخال ${arabicFieldName}`
       : type == "choice"
-        ? `يجب اختيار ${arabicText}`
+        ? `يجب اختيار ${arabicFieldName}`
         : "هذا الحقل مطلوب";
 
   const getRequiredFieldMessage = (
-    fieldName: keyof Student | keyof Class | string,
+    fieldName: string,
     type: "text" | "choice" = "text",
   ) => {
-    return fieldName in ArabicStudentProperties
-      ? formatRequiredFieldMessage(
-          ArabicStudentProperties[fieldName as keyof Student],
-          type,
-        )
-      : fieldName in ArabicClassProperties
-        ? formatRequiredFieldMessage(
-            ArabicClassProperties[fieldName as keyof Class],
-            type,
-          )
-        : `يجب إدخال ${fieldName} `;
+    const arabicPropertyName = getPropertyArabicName(fieldName)
+    return arabicPropertyName
+      ? formatRequiredFieldMessage(arabicPropertyName, type)
+      : `يجب إدخال الحقل التالي: ${fieldName} `;
   };
+  const getPropertyArabicName = (fieldName: string) => fieldName in arabicProperties ? arabicProperties[fieldName as keyof typeof arabicProperties] : undefined
+
+  // ========== Time functions ==========
   const getTimeRange = (range: SupportedDateRanges) => {
     const now = new Date();
     let start, end;
@@ -109,8 +109,8 @@ export default function () {
   // A function that return dates for lateness info or absence info
   const getDatesForEventInfo = <
     T extends
-      | Pick<LatenessInfo, "late_by" | "start_time" | "date">
-      | Pick<AbsenceInfo, "date" | "start_time">,
+    | Pick<LatenessInfo, "late_by" | "start_time" | "date">
+    | Pick<AbsenceInfo, "date" | "start_time">,
   >(
     obj: T,
   ) => {
@@ -139,6 +139,17 @@ export default function () {
       endDate: term.endDate ? new Date(term.endDate) : undefined,
     };
   };
+  /* Convert dates back to timestamps */
+  const toTimestamp = (
+    value: unknown,
+    originalValue?: unknown
+  ) => {
+    const raw = originalValue ?? value;
+
+    return raw instanceof Date
+      ? raw.getTime()
+      : value;
+  };
 
   //a function that transform 0/1 in DB results to real booleans
   const normalizeResultBooleans = <
@@ -157,6 +168,7 @@ export default function () {
     return results;
   };
 
+  // ========== Season functions ==========
   const getSeasonStatus = (season: SchoolSeason): SeasonStatus => {
     const seasonDates = getSeasonStartAndEndDates(season);
     const now = Date.now();
@@ -213,18 +225,95 @@ export default function () {
   const hasCollapsingTerms = (terms: SchoolTerm[]) =>
     terms.some((term, i, arr) => i > 0 && term.startDate < arr[i - 1].endDate);
 
+
+  // ========== Zod Error formatting ==========
+  // keep one error per path
+  const getUniqueZodIssues = (issues: ZodError["issues"]) => {
+    const seen = new Set();
+
+    const uniqueIssues = issues.filter(issue => {
+      const key = issue.path[0];
+
+      if (seen.has(key)) {
+        return false;
+      }
+
+      seen.add(key);
+      return true;
+    });
+    return uniqueIssues
+  }
+  //generates readable message from Zod issues array
+  const formatZodValidationError = (issues: ZodError["issues"]) => {
+    const uniqueIssues = getUniqueZodIssues(issues)
+    if (uniqueIssues.length === 1) {
+      return uniqueIssues[0].message
+    }
+    // if there are at most 4 errors : log the first message and advise the user to check other fields
+    else if (uniqueIssues.length < 4) {
+      uniqueIssues.shift()
+      const fields = uniqueIssues.filter(errObj => (getPropertyArabicName(errObj.path[0] as string)))
+      return uniqueIssues[0].message + (fields.length ? ` \n كما يجب التحقق من : ${fields.join(' ، ')}` : "\n كما يرجى التحقق من المعلومات الأخرى المدخلة   ")
+    }
+    // if there are more than 4 errors :  advise the user to check fields by name
+    else {
+      const fields = uniqueIssues.filter(errObj => (getPropertyArabicName(errObj.path[0] as string)))
+      return fields.length ? ` يجب التحقق من : ${fields.join(' ، ')}` : "يرجى التحقق من المعلومات المدخلة"
+    }
+  }
+
+  const isFetchError = (err: unknown): err is FetchError<H3Error> => {
+    return (err as FetchError)?.data !== undefined
+  }
+  const isZodApiError = (error: any): error is BackendValidationError =>
+    error &&
+    typeof error === 'object' &&
+    error.statusCode === 400 &&
+    Array.isArray(error.data?.issues)
+
+  // ========== Other functions ==========
+  // geenrates an obkect for useToast based on the error passed
+  const getToastErrorObject = (error: unknown, summary: string): ToastMessageOptions => {
+    let detail = '';
+
+    if (isFetchError(error)) {
+      const err = error.data;
+
+      if (isZodApiError(err)) {
+        detail = `${err.message}: ${formatZodValidationError(err.data.issues)}`;
+      } else if (
+        err &&
+        typeof err === 'object' &&
+        'message' in err &&
+        typeof err.message === 'string'
+      ) {
+        detail = err.message;
+      }
+    }
+
+    return {
+      severity: 'error',
+      summary,
+      detail,
+      life: 3000,
+    }
+  }
+
   return {
+    getPropertyArabicName,
     getRequiredFieldMessage,
     getTimeRange,
     minutesAfterMidnight,
     getDatesForPlaygroundSettings,
     getDatesForEventInfo,
     formatDatesForTerm,
+    toTimestamp,
     normalizeResultBooleans,
     getSeasonStatus,
     mapSeasonsToTree,
     getSeasonStartAndEndDates,
     getCollapsingSeasonIds,
     hasCollapsingTerms,
+    getToastErrorObject
   };
 }

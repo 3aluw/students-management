@@ -60,7 +60,10 @@ import type { NewSeasonPayload, SchoolSeason, SeasonStatus } from '~/data/types'
 import type { TreeNode } from 'primevue/treenode';
 import { useClientStore } from '~/store/clientStore';
 import { ArabicSeasonStatus } from '~/data/static';
-const { mapSeasonsToTree, getCollapsingSeasonIds, getSeasonStartAndEndDates } = useDataUtils();
+import { userFeedbackMessages, } from '~/data/static';
+
+const { season: toastMessages } = userFeedbackMessages
+const { mapSeasonsToTree, getCollapsingSeasonIds, getToastErrorObject } = useDataUtils();
 
 type EditSeasonProps = {
   status: SeasonStatus,
@@ -100,14 +103,15 @@ const handleSeasonCreation = async (payload: NewSeasonPayload) => {
     toast.add({ severity: 'error', summary: 'خطأ في إنشاء الموسم الدراسي', detail: 'لا يمكنك إنشاء موسم دراسي جديد طالما أن هناك موسم مستقبلي موجود. يرجى حذفه قبل إنشاء موسم جديد.', life: 7000 });
     return;
   }
-  console.log(payload);
+ try{
   const res = await backend.createSeason(payload)
-  if (res?.success) {
-    toast.add({ severity: 'success', summary: 'تم بنجاح', detail: res.message });
+    toast.add({ severity: 'success', summary: toastMessages.addSuccess, detail: res.message });
     showNewSeasonDialog.value = false;
     clientStore.populateSeasons();
-  } else {
-    toast.add({ severity: 'error', summary: 'خطأ في العملية', detail: res.message });
+  
+ }
+ catch(error) {
+        toast.add(getToastErrorObject(error, toastMessages.addFailed))
   }
 
 }
@@ -139,13 +143,14 @@ const handleSeasonEditSubmit = (updatedSeason: SchoolSeason) => {
   }
   try {
     backend.updateSeasons(updatedSeason).then(() => {
-      toast.add({ severity: 'success', summary: 'تم الحفظ', detail: 'تم تحديث الموسم الدراسي بنجاح.' });
+      toast.add({ severity: 'success', summary: toastMessages.updateSuccess,life: 3000 });
       clientStore.populateSeasons();
       showEditSeasonDialog.value = false;
     });
   }
   catch (error) {
-    toast.add({ severity: 'error', summary: 'خطأ في الحفظ', detail: 'حدث خطأ أثناء تحديث الموسم الدراسي.' });
+           toast.add(getToastErrorObject(error, toastMessages.updateFailed))
+
   }
 }
 
@@ -166,47 +171,7 @@ const testPayload: NewSeasonPayload = {
     "2": 3,
     "3": -1
   },
-  "repeaters": [
-    {
-      "id": 5,
-      "class_id": 1,
-      "first_name": "سارة",
-      "last_name": "الطاهري",
-      "father_name": "خالد",
-      "grandfather_name": "يوسف",
-      "sex": "F",
-      "phone_number": "0611122233",
-      "birth_date": 959468400000,
-      "address": "الدار البيضاء",
-      "status": "active"
-    },
-    {
-      "id": 4,
-      "class_id": 2,
-      "first_name": "أحمد",
-      "last_name": "العسري",
-      "father_name": "محمد",
-      "grandfather_name": "عبدالله",
-      "sex": "M",
-      "phone_number": "0612345678",
-      "birth_date": 20090115,
-      "address": "الرباط",
-      "status": "active"
-    },
-    {
-      "id": 12,
-      "class_id": 3,
-      "first_name": "أنس",
-      "last_name": "الزهراء",
-      "father_name": "طارق",
-      "grandfather_name": "عبد الجليل",
-      "sex": "M",
-      "phone_number": "0610987654",
-      "birth_date": 20100105,
-      "address": "أكادير",
-      "status": "active"
-    }
-  ]
+  "repeaters": [12,4,5]
 }
 const handleTestSeasonCreation = async () => {
   handleSeasonCreation(testPayload)

@@ -137,6 +137,7 @@ const { minutesAfterMidnight } = useDataUtils();
 const studentStore = useStudentStore();
 const backend = useBackend()
 const toast = useToast();
+const { getToastErrorObject } = useDataUtils()
 const { absence: absenceToastMessages, lateness: latenessToastMessages } = userFeedbackMessages
 type EventInfo<T extends EventTypes> = T extends 'absence' ? AbsenceInfo : LatenessInfo
 type NewEvent<T extends EventTypes> = T extends 'absence' ? NewAbsence : NewLateness
@@ -171,7 +172,6 @@ const handleEventSubmit = <T extends EventTypes>(data: EventInfo<T>) => {
 }
 const postEvent = async<T extends EventTypes>(eventType: T, ids: number[], data: EventInfo<T>) => {
     const rowsToInsert = bindStudentIdToEventInfo(eventType, ids, data);
-    console.log('rowsToInsert: ', rowsToInsert);
     let toastMessage = '';
     let severity: 'success' | 'error' = 'success';
     let skippedIds: number[] = []
@@ -188,24 +188,21 @@ const postEvent = async<T extends EventTypes>(eventType: T, ids: number[], data:
             insertedCount = result.insertedCount;
             toastMessage = latenessToastMessages.addSuccess;
         }
+            toast.add({ severity, summary: toastMessage, life: 3000 });
+
     } catch (error) {
         severity = 'error';
         toastMessage =
             eventType === 'absence'
                 ? absenceToastMessages.addFailed
                 : latenessToastMessages.addFailed;
-        console.error(error);
+        toast.add(getToastErrorObject(error, toastMessage))
     } finally {
-        if (severity === 'error') {
-            toast.add({ severity, summary: toastMessage, life: 3000 });
-        } else if (skippedIds.length === 0) {
-            resetSelectedStudents();
-            toast.add({ severity, summary: toastMessage, life: 3000 });
-        } else {
+        if (severity === 'error') return
+        else if (skippedIds.length > 0) {
             createPartialAddToastMessage(eventType, insertedCount, skippedIds);
-            resetSelectedStudents();
         }
-
+        resetSelectedStudents();
     }
 }
 const createPartialAddToastMessage = (eventType: EventTypes, insertedCount: number, skippedIds: number[]) => {

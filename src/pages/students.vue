@@ -113,7 +113,7 @@ const studentStore = useStudentStore();
 const backend = useBackend()
 const toast = useToast();
 const { student: toastMessages } = userFeedbackMessages
-
+const { getToastErrorObject } = useDataUtils()
 //table logic
 const dt = ref(); //dataTable Ref
 const filters = ref({
@@ -166,7 +166,7 @@ const EditStudent = async (studentObj: Student) => {
         toast.add({ severity: 'success', summary: toastMessages.updateSuccess, life: 3000 })
 
     } catch (error) {
-        toast.add({ severity: 'error', summary: toastMessages.updateFailed, life: 3000 })
+        toast.add(getToastErrorObject(error, toastMessages.updateFailed))
     }
 }
 const createNewStudent = async (newStudent: NewStudent) => {
@@ -177,8 +177,7 @@ const createNewStudent = async (newStudent: NewStudent) => {
         toast.add({ severity: 'success', summary: toastMessages.addSuccess, life: 3000 })
 
     } catch (error) {
-        toast.add({ severity: 'error', summary: toastMessages.addFailed, life: 3000 })
-
+        toast.add(getToastErrorObject(error, toastMessages.addFailed))
     }
 }
 const handleStudentSubmit = (newStudent: NewStudent) => {
