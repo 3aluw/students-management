@@ -1,8 +1,7 @@
 import { classService } from "~/server/services/classService";
-import useDBUtils from "~/composables/useDBUtils";
 
 export default defineEventHandler((event) => {
-const { logError,toSafeError } = useDBUtils();
+
 
     try {
         return classService.getClasses();
