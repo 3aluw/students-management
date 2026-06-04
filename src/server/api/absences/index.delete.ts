@@ -1,8 +1,6 @@
-
 import { absenceService } from "~/server/services/absenceService";
-import useDBUtils from "~/composables/useDBUtils";
-const { logError, toSafeError } = useDBUtils();
-import { z, ZodError } from "zod";
+
+import { z } from "zod";
 
 const schema = z.array(z.number().int().positive()).min(1);
 
