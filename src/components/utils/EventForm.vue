@@ -95,7 +95,6 @@ import type { FormSubmitEvent } from "@primevue/forms"
 const { absenceSchemas,latenessSchemas } = useZodSchema()
 const absenceSchema = absenceSchemas.absenceSchema 
 const latenessSchema = latenessSchemas.latenessSchema
-const { getDatesForEventInfo, minutesAfterMidnight } = useDataUtils()
 const toast = useToast();
 
 const formatEventObject = () => {
