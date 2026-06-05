@@ -211,7 +211,7 @@ const filteredClassOptions = computed(() =>
             classObject.value !== studentStore.selectedClassId
     )
 );
-
+//used inside confirm composable so there is no catching of errors here
 const transferStudents = async (
     students: Student[],
     classId: number
@@ -332,9 +332,7 @@ const deleteStudents = async (
     const studentIds = students.map(
         (student) => student.id
     );
-
     await backend.deleteStudents(studentIds);
-
     resetSelectedStudents();
 };
 
