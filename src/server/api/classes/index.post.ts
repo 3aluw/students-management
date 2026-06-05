@@ -1,13 +1,13 @@
 import type { BackendValidationError, EditClass, NewClass } from "~/data/types";
 import { classService } from "~/server/services/classService";
 import type { H3Error } from "h3";
-import useZodSchema from "~/composables/useZodSchema";
+import { classSchemas } from "~/utils/zod-schemas";
+
 import { z, ZodError } from "zod";
 type Operation = "create" | "update";
 
 export default defineEventHandler(async (event) => {
 
-  const { classSchemas } = useZodSchema()
 
   const reqBody = await readBody<NewClass | EditClass>(event);
 

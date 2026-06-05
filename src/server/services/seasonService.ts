@@ -7,8 +7,7 @@ import {
   NewSeasonPayload,
   SchoolSeason,
 } from "~/data/types";
-import useDataUtils from "~/composables/useDataUtils";
-
+import { getSeasonStatus } from "~/utils/season";
 
 export const seasonService = {
   runNewSeasonWorkflow(payload: NewSeasonPayload) {
@@ -116,7 +115,7 @@ const validateSeasonCollision = (
 
   // check weather the collision is happening with the current season which the user is about terminating or with other season
   const verifiedCollapsingSeason = collapsingSeason.find((season) => {
-    const status = useDataUtils().getSeasonStatus(season);
+    const status = getSeasonStatus(season);
 
     // Acceptable collision only if it's the current season AND user is terminating it
     if (status === "current" && terminateCurrentSeason) return false;

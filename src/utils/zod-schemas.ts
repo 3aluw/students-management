@@ -1,10 +1,6 @@
-import useDataUtils from "~/composables/useDataUtils";
 import { z } from 'zod';
 import type { Absence, Class, EditClass, EditSchoolSeason, EditStudent, Lateness, NewAbsence, NewClass, NewLateness, NewSchoolSeason, NewSeasonPayload, NewStudent, SchoolSeason, Student, } from '~/data/types';
-const { getRequiredFieldMessage, hasCollapsingTerms, toTimestamp } = useDataUtils()
 
-
-export default function () {
     // ========== Student schemas ==========
     const studentSchema = z.object({
         id: z.number({ error: getRequiredFieldMessage("id") }),
@@ -24,7 +20,7 @@ export default function () {
     const editStudentSchema = studentSchema.partial().required({ id: true }) satisfies z.ZodType<EditStudent>
     const batchEditStudentSchema = z.array(editStudentSchema.omit({ id: true }).extend({ ids: z.array(z.number()) }))
 
-    const studentSchemas = { studentSchema, newStudentSchema, editStudentSchema, batchEditStudentSchema }
+    export const studentSchemas = { studentSchema, newStudentSchema, editStudentSchema, batchEditStudentSchema }
     // ========== Class schemas ==========
 
     const classSchema = z.object({
@@ -37,7 +33,7 @@ export default function () {
     const newClassSchema = classSchema.omit({ id: true }) satisfies z.ZodType<NewClass>
     const editClassSchema = classSchema.partial().required({ id: true }) satisfies z.ZodType<EditClass>
 
-    const classSchemas = { classSchema, newClassSchema, editClassSchema }
+    export const classSchemas = { classSchema, newClassSchema, editClassSchema }
     
     // ========== Lateness schemas ==========
     const latenessSchema = z.object({
@@ -53,7 +49,7 @@ export default function () {
     const editLatenessSchema = studentSchema.partial().required({ id: true }) satisfies z.ZodType<EditStudent>
     const batchEditLatenessSchema = z.array(editLatenessSchema.omit({ id: true }).extend({ ids: z.array(z.number()) }))
 
-    const latenessSchemas = { latenessSchema, newLatenessSchema, editLatenessSchema, batchEditLatenessSchema }
+    export const latenessSchemas = { latenessSchema, newLatenessSchema, editLatenessSchema, batchEditLatenessSchema }
 
     // ========== absence schemas ==========
     const absenceSchema = z.object({
@@ -68,7 +64,7 @@ export default function () {
     const editAbsenceSchema = studentSchema.partial().required({ id: true }) satisfies z.ZodType<EditStudent>
     const batchEditAbsenceSchema = z.array(editAbsenceSchema.omit({ id: true }).extend({ ids: z.array(z.number()) }))
 
-    const absenceSchemas = { absenceSchema, newAbsenceSchema, editAbsenceSchema, batchEditAbsenceSchema }
+    export const absenceSchemas = { absenceSchema, newAbsenceSchema, editAbsenceSchema, batchEditAbsenceSchema }
 
 
     // ========== Season schemas ==========
@@ -135,11 +131,7 @@ export default function () {
         repeaters: z.array(z.number(),{error: "توجد مشكلة في قائمة المعيدين"})
     }) satisfies z.ZodType<NewSeasonPayload>
 
-    const seasonSchemas = { editSeasonSchema, NewSeasonPayloadSchema }
+    export const seasonSchemas = { editSeasonSchema, NewSeasonPayloadSchema }
 
     // ========== Other schemas (to be used across DELETE endpoints)==========
-    const DeleteBodySchema = z.array(z.number().int().positive()).min(1);
-
-
-    return { studentSchemas, classSchemas, latenessSchemas, absenceSchemas, DeleteBodySchema, seasonSchemas }
-}
+    export const DeleteBodySchema = z.array(z.number().int().positive()).min(1);

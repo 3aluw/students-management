@@ -3,12 +3,12 @@ import { BackendValidationError, BatchEditLateness, EditLateness, NewLateness } 
 import { latenessService } from "~/server/services/latenessService";
 import type { H3Error } from "h3";
 import { ZodError } from "zod";
-import useZodSchema from "~/composables/useZodSchema";
+import { latenessSchemas } from "~/utils/zod-schemas";
+
 import { z } from "zod";
 type Operation = "create" | "update" | "batch update";
 
 export default defineEventHandler(async (event) => {
-  const { latenessSchemas  } = useZodSchema()
 
   const reqBody = await readBody<
     NewLateness[] | EditLateness | BatchEditLateness

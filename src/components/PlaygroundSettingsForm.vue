@@ -58,7 +58,6 @@ import { ArabicBooleans, sqliteBoolean } from '~/data/static';
 import type { PlaygroundSettings } from '~/data/types'
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import type { FormSubmitEvent } from "@primevue/forms"
-const { minutesAfterMidnight, getDatesForPlaygroundSettings } = useDataUtils()
 import { z } from 'zod';
 const toast = useToast()
 

@@ -133,11 +133,9 @@ import { useToast } from 'primevue/usetoast';
 import type { Student, DataTableSlot, PlaygroundSettings, EventTypes, AbsenceInfo, LatenessInfo, NewLateness, NewAbsence } from '~/data/types'
 import { userFeedbackMessages } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
-const { minutesAfterMidnight } = useDataUtils();
 const studentStore = useStudentStore();
 const backend = useBackend()
 const toast = useToast();
-const { getToastErrorObject } = useDataUtils()
 const { absence: absenceToastMessages, lateness: latenessToastMessages } = userFeedbackMessages
 type EventInfo<T extends EventTypes> = T extends 'absence' ? AbsenceInfo : LatenessInfo
 type NewEvent<T extends EventTypes> = T extends 'absence' ? NewAbsence : NewLateness

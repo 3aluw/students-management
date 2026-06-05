@@ -113,7 +113,6 @@ const studentStore = useStudentStore();
 const backend = useBackend()
 const toast = useToast();
 const { student: toastMessages } = userFeedbackMessages
-const { getToastErrorObject } = useDataUtils()
 //table logic
 const dt = ref(); //dataTable Ref
 const filters = ref({

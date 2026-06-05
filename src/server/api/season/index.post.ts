@@ -3,12 +3,12 @@ import type { BackendValidationError, EditSchoolSeason, NewSeasonPayload } from 
 import { seasonService } from "~/server/services/seasonService";
 import type { H3Error } from "h3";
 import { ZodError } from "zod";
-import useZodSchema from "~/composables/useZodSchema";
+import { seasonSchemas } from "~/utils/zod-schemas";
+
 import { z } from "zod";
 type Operation = "create" | "update";
 
 export default defineEventHandler(async (event) => {
-  const { seasonSchemas } = useZodSchema()
 
   const reqBody = await readBody<EditSchoolSeason | NewSeasonPayload>(event);
 
