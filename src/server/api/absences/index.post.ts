@@ -1,14 +1,13 @@
 import { EditAbsence, BatchEditAbsence, NewAbsence, BackendValidationError } from "~/data/types";
 import { absenceService } from "~/server/services/absenceService";
 import type { H3Error } from "h3";
-import useZodSchema from "~/composables/useZodSchema";
+import { absenceSchemas } from "~/utils/zod-schemas";
 import { z, ZodError } from "zod";
 type Operation = "create" | "update" | "batch update";
 
 
 export default defineEventHandler(async (event) => {
 
-  const { absenceSchemas } = useZodSchema()
   const reqBody = await readBody<NewAbsence[] | EditAbsence | BatchEditAbsence>(
     event
   );
