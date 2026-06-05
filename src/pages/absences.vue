@@ -65,120 +65,179 @@
     </div>
 </template>
 <script setup lang="ts">
-
 import { useToast } from 'primevue/usetoast';
-import type { DataTableSlot, LocalAbsence, EventQueryFilters, AbsenceInfo, EditAbsence, BatchEditAbsence } from '~/data/types'
+import type {
+  LocalAbsence,
+  EventQueryFilters,
+  AbsenceInfo,
+  EditAbsence,
+  BatchEditAbsence,
+  DataTableSlot
+} from '~/data/types';
+
 import { userFeedbackMessages } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
 import { useEventStore } from '~/store/eventStore';
 import type { DataTablePageEvent } from 'primevue';
 
-// ========== STORES & SERVICES ==========
-const studentStore = useStudentStore();
-const eventStore = useEventStore()
-const backend = useBackend()
-const toast = useToast();
-// ========== TOAST & MESSAGES ==========
-const { absence: toastMessages } = userFeedbackMessages
+/* -------------------------------------------------------------------------- */
+/*                                Stores                                      */
+/* -------------------------------------------------------------------------- */
 
+const studentStore = useStudentStore();
+const eventStore = useEventStore();
+const backend = useBackend();
+const toast = useToast();
+
+/* -------------------------------------------------------------------------- */
+/*                              Messages                                      */
+/* -------------------------------------------------------------------------- */
+
+const { absence: toastMessages } = userFeedbackMessages;
+
+/* -------------------------------------------------------------------------- */
+/*                              State                                         */
+/* -------------------------------------------------------------------------- */
+
+// Dialog
+const showAbsenceDialog = ref(false);
+const absenceToEdit = ref<AbsenceInfo>();
+
+// Table
+const dt = ref();
+const totalRecords = ref(0);
+
+const selectedAbsences = ref<LocalAbsence[]>([]);
+
+const dbFilters = ref<EventQueryFilters>({
+  limit: 20,
+  offset: 0
+});
+
+/* -------------------------------------------------------------------------- */
+/*                              Lifecycle                                     */
+/* -------------------------------------------------------------------------- */
+
+onMounted(async () => {
+  totalRecords.value = await eventStore.populateAbsences(dbFilters.value);
+});
+
+/* -------------------------------------------------------------------------- */
+/*                              Filters                                       */
+/* -------------------------------------------------------------------------- */
 
 const updateFilters = (filtersObj: EventQueryFilters) => {
-    const {limit, offset} = dbFilters.value
-    dbFilters.value = { limit, offset, ...filtersObj }
-    eventStore.populateAbsences(dbFilters.value)
-}
+  const { limit, offset } = dbFilters.value;
 
-// ========== LIFECYCLE HOOKS ==========
-onMounted(async () => {
-    totalRecords.value = await eventStore.populateAbsences(dbFilters.value)
-})
+  dbFilters.value = {
+    limit,
+    offset,
+    ...filtersObj
+  };
 
-// ========== REACTIVE REFERENCES ==========
-// Dialog states
-const showAbsenceDialog = ref(false)
-const absenceToEdit = ref<AbsenceInfo | undefined>(undefined)
+  eventStore.populateAbsences(dbFilters.value);
+};
 
-// Data table references
-const dt = ref(); //dataTable Ref
-const totalRecords = ref(0)
-const selectedAbsences = ref<LocalAbsence[]>([]);
-const dbFilters = ref<EventQueryFilters>({
-    limit: 20,
-    offset: 0,
-})
+/* -------------------------------------------------------------------------- */
+/*                              Selection                                     */
+/* -------------------------------------------------------------------------- */
 
-// ========== EVENT HANDLERS ==========
+const resetSelected = () => {
+  selectedAbsences.value = [];
+};
 
-// Absence management handlers
-const handleAbsenceSubmit = async (absenceInfo: AbsenceInfo) => {
-    let absences: BatchEditAbsence | EditAbsence;
+/* -------------------------------------------------------------------------- */
+/*                              Table Pagination                              */
+/* -------------------------------------------------------------------------- */
 
-    if (selectedAbsences.value.length === 1) {
-        absences = { id: selectedAbsences.value[0].id, ...absenceInfo }
-    }
-    else {
-        const ids = selectedAbsences.value.map((absence) => absence.id)
-        absences = { ...absenceInfo, ids }
-    }
-    EditAbsences(absences)
-}
+const updatePage = (event: DataTablePageEvent) => {
+  const { page, rows } = event;
+
+  dbFilters.value.offset = page * rows;
+  dbFilters.value.limit = rows;
+
+  eventStore.populateAbsences(dbFilters.value);
+};
+
+/* -------------------------------------------------------------------------- */
+/*                              Absence Actions                               */
+/* -------------------------------------------------------------------------- */
 
 const handleEditClick = () => {
-    const absence = selectedAbsences.value[0] // pass the first selected absence
-    absenceToEdit.value = {
-        date: absence.date,
-        start_time: absence.start_time,
-        reason: absence.reason,
-        reason_accepted: absence.reason_accepted,
-    }
-    showAbsenceDialog.value = true
+  const absence = selectedAbsences.value[0];
 
-}
-//selection handlers
-const resetSelected = () => { selectedAbsences.value = [] }
+  absenceToEdit.value = {
+    date: absence.date,
+    start_time: absence.start_time,
+    reason: absence.reason,
+    reason_accepted: absence.reason_accepted
+  };
 
-// Data table handlers
-const updatePage = (event: DataTablePageEvent) => {
-    const { page, rows } = event
-    dbFilters.value.offset = page * rows
-    dbFilters.value.limit = rows
-    eventStore.populateAbsences(dbFilters.value)
-}
+  showAbsenceDialog.value = true;
+};
 
+const handleAbsenceSubmit = async (absenceInfo: AbsenceInfo) => {
+  const payload: BatchEditAbsence | EditAbsence =
+    selectedAbsences.value.length === 1
+      ? { id: selectedAbsences.value[0].id, ...absenceInfo }
+      : {
+          ...absenceInfo,
+          ids: selectedAbsences.value.map((a) => a.id)
+        };
 
+   editAbsences(payload);
+};
 
-// ========== BUSINESS LOGIC ==========
+/* -------------------------------------------------------------------------- */
+/*                              API Logic                                     */
+/* -------------------------------------------------------------------------- */
 
-const EditAbsences = async (absences: BatchEditAbsence | EditAbsence) => {
-    try {
-        await backend.updateAbsences(absences)
-        toast.add({ severity: 'success', summary: toastMessages.updateSuccess, life: 3000 });
-        showAbsenceDialog.value = false
-        absenceToEdit.value = undefined
-        resetSelected()
-    }
-    catch (error) {
-        
-        toast.add(getToastErrorObject(error, toastMessages.updateFailed))
+const editAbsences = async (
+  absences: BatchEditAbsence | EditAbsence
+) => {
+  try {
+    await backend.updateAbsences(absences);
 
-        return
-    }
-    await eventStore.populateAbsences(dbFilters.value)
+    toast.add({
+      severity: 'success',
+      summary: toastMessages.updateSuccess,
+      life: 3000
+    });
 
-}
+    showAbsenceDialog.value = false;
+    absenceToEdit.value = undefined;
+    resetSelected();
+
+    await eventStore.populateAbsences(dbFilters.value);
+  } catch (error) {
+    toast.add(getToastErrorObject(error, toastMessages.updateFailed));
+  }
+};
 
 const deleteAbsences = async (absences: LocalAbsence[]) => {
-    const studentIds = absences.map((absence) => absence.id)
-    await backend.deleteAbsences(studentIds);
-    resetSelected()
-}
+  const ids = absences.map((a) => a.id);
 
-// ========== CONFIRMATION DIALOG ==========
-const useDeleteConfirm = useConfirmHandler(() => deleteAbsences(selectedAbsences.value), () => eventStore.populateAbsences(dbFilters.value), toastMessages.deleteSuccess, toastMessages.deleteFailed)
+  await backend.deleteAbsences(ids);
+  resetSelected();
+};
 
-// ========== UTILITY FUNCTIONS ==========
+/* -------------------------------------------------------------------------- */
+/*                              Confirm Handler                               */
+/* -------------------------------------------------------------------------- */
+
+const useDeleteConfirm = useConfirmHandler(
+  () => deleteAbsences(selectedAbsences.value),
+  () => eventStore.populateAbsences(dbFilters.value),
+  toastMessages.deleteSuccess,
+  toastMessages.deleteFailed
+);
+
+/* -------------------------------------------------------------------------- */
+/*                              Export                                        */
+/* -------------------------------------------------------------------------- */
+
 function exportCSV() {
-    dt.value.exportCSV();
+  dt.value.exportCSV();
 }
 
 </script>
