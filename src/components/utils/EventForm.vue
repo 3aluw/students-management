@@ -92,7 +92,6 @@ import { z } from 'zod';
 import { useToast } from 'primevue/usetoast';
 import type { NewAbsence, NewLateness, AbsenceInfo, LatenessInfo, EventTypes } from '~/data/types';
 import type { FormSubmitEvent } from "@primevue/forms"
-const { absenceSchemas,latenessSchemas } = useZodSchema()
 const absenceSchema = absenceSchemas.absenceSchema 
 const latenessSchema = latenessSchemas.latenessSchema
 const toast = useToast();
