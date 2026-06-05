@@ -129,7 +129,6 @@ import { schoolLevelOptions } from '~/data/static';
 import type { FormSubmitEvent } from "@primevue/forms"
 const { studentSchemas, classSchemas } = useZodSchema()
 const studentStore = useStudentStore();
-const { getRequiredFieldMessage } = useDataUtils()
 
 
 const toast = useToast();

@@ -63,7 +63,6 @@ import { ArabicSeasonStatus } from '~/data/static';
 import { userFeedbackMessages, } from '~/data/static';
 
 const { season: toastMessages } = userFeedbackMessages
-const { mapSeasonsToTree, getCollapsingSeasonIds, getToastErrorObject } = useDataUtils();
 
 type EditSeasonProps = {
   status: SeasonStatus,

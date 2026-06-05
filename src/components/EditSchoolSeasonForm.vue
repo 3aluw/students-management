@@ -77,7 +77,7 @@ import type { NewSchoolSeason, SchoolSeason, SeasonStatus } from '~/data/types';
 import { yupResolver } from '@primevue/forms/resolvers/yup';
 import * as yup from 'yup';
 import type { FormInstance, FormSubmitEvent } from '@primevue/forms';
-const { formatDatesForTerm, getRequiredFieldMessage, hasCollapsingTerms, toTimestamp } = useDataUtils();
+
 const props = defineProps<{
     status: SeasonStatus | 'new',
     season: SchoolSeason | NewSchoolSeason

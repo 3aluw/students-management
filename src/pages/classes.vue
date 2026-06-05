@@ -46,7 +46,6 @@ const { class: toastMessages } = userFeedbackMessages
 const studentStore = useStudentStore()
 const backend = useBackend()
 const toast = useToast();
-const { getToastErrorObject } = useDataUtils()
 
 
 const showClassDialog = ref(false)
