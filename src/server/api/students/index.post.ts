@@ -2,12 +2,12 @@ import { EditStudent, BatchEditStudent, NewStudent, BackendValidationError } fro
 import { studentService } from "~/server/services/studentService";
 import type { H3Error } from "h3";
 import { ZodError } from "zod";
-import useZodSchema from "~/composables/useZodSchema";
+import { studentSchemas } from "~/utils/zod-schemas";
+
 import { z } from "zod";
 type Operation = "create" | "update" | "batch update";
 
 export default defineEventHandler(async (event) => {
-  const { studentSchemas } = useZodSchema()
   const reqBody = await readBody<NewStudent | EditStudent | BatchEditStudent>(
     event
   );
