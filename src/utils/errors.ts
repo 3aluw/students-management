@@ -75,6 +75,6 @@ export const getToastErrorObject = (error: unknown, summary: string): ToastMessa
         severity: 'error',
         summary,
         detail,
-        life: 3000,
+        life: 7000,
     }
 }
