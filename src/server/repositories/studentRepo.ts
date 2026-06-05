@@ -1,8 +1,6 @@
-import useDBUtils from "~/composables/useDBUtils";
 import { BatchEditStudent, ClassPromotionMap, EditStudent, NewStudent, Student } from "~/data/types";
 import db from "~/db/db";
 
-const { generateSqlCTEValues, generateDBInClause, generateDBSetClause } = useDBUtils();
 
 export const studentRepo = {
   getAll(limit = 300): Student[] {

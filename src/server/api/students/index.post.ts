@@ -1,5 +1,4 @@
 import { EditStudent, BatchEditStudent, NewStudent, BackendValidationError } from "~/data/types";
-import useDBUtils from "~/composables/useDBUtils";
 import { studentService } from "~/server/services/studentService";
 import type { H3Error } from "h3";
 import { ZodError } from "zod";
@@ -8,7 +7,6 @@ import { z } from "zod";
 type Operation = "create" | "update" | "batch update";
 
 export default defineEventHandler(async (event) => {
-  const { toSafeError, logError } = useDBUtils();
   const { studentSchemas } = useZodSchema()
   const reqBody = await readBody<NewStudent | EditStudent | BatchEditStudent>(
     event

@@ -1,8 +1,7 @@
 import { seasonService } from "~/server/services/seasonService";
-import useDBUtils from "~/composables/useDBUtils";
 
 export default defineEventHandler((event) => {
-const { logError, toSafeError } = useDBUtils();
+
   const query = getQuery<{ id: string }>(event);
   if (!query.id) {
     throw createError({

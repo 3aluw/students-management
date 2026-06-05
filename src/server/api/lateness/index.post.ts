@@ -1,5 +1,5 @@
 import { BackendValidationError, BatchEditLateness, EditLateness, NewLateness } from "~/data/types";
-import useDBUtils from "~/composables/useDBUtils";
+
 import { latenessService } from "~/server/services/latenessService";
 import type { H3Error } from "h3";
 import { ZodError } from "zod";
@@ -8,7 +8,6 @@ import { z } from "zod";
 type Operation = "create" | "update" | "batch update";
 
 export default defineEventHandler(async (event) => {
-  const { logError, toSafeError } = useDBUtils();
   const { latenessSchemas  } = useZodSchema()
 
   const reqBody = await readBody<

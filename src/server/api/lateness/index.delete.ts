@@ -1,11 +1,9 @@
 import { latenessService } from "~/server/services/latenessService";
-import useDBUtils from "~/composables/useDBUtils";
 import { z } from "zod";
 
 const schema = z.array(z.number().int().positive()).min(1);
 
 export default defineEventHandler(async (event) => {
-  const { logError, toSafeError } = useDBUtils();
   const latenessIds = await readBody<number[]>(event);
 
   /* Validation */

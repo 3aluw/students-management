@@ -1,8 +1,6 @@
 import db from '~/db/db';
 import type { EditClass, NewClass, Class } from "~/data/types";
-import useDBUtils from '~/composables/useDBUtils';
- 
-const { generateDBSetClause } = useDBUtils();
+
 
 export const classRepo = {
     getClasses() {

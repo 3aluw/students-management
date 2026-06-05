@@ -1,7 +1,6 @@
 
 import type { BackendValidationError, EditSchoolSeason, NewSeasonPayload } from "~/data/types";
 import { seasonService } from "~/server/services/seasonService";
-import useDBUtils from "~/composables/useDBUtils";
 import type { H3Error } from "h3";
 import { ZodError } from "zod";
 import useZodSchema from "~/composables/useZodSchema";
@@ -9,7 +8,6 @@ import { z } from "zod";
 type Operation = "create" | "update";
 
 export default defineEventHandler(async (event) => {
-  const { logError, toSafeError } = useDBUtils();
   const { seasonSchemas } = useZodSchema()
 
   const reqBody = await readBody<EditSchoolSeason | NewSeasonPayload>(event);
