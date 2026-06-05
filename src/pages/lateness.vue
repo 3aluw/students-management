@@ -78,7 +78,8 @@ const studentStore = useStudentStore();
 const eventStore = useEventStore()
 const backend = useBackend()
 const toast = useToast();
-// ========== TOAST & MESSAGES ==========
+
+// ========== TOAST MESSAGES ==========
 const { lateness: toastMessages } = userFeedbackMessages
 
 

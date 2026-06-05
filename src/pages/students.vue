@@ -27,7 +27,7 @@
                     <Menu ref="transferStudentsMenu" id="overlay_menu" :model="filteredClassOptions" :popup="true">
                         <template #item="{ item }">
                             <Button variant="text" severity="secondary"
-                                @click="useTransferConfirm.requestAction(selectedStudents, item.value)"> {{ item.label
+                                @click="useTransferConfirm.requestAction(selectedStudents, [item.value])"> {{ item.label
                                 }}</Button>
                         </template>
                     </Menu>
@@ -83,7 +83,7 @@
                 <Column header="القسم" v-show="globalSearchInput.length">
                     <template #body="slotProps: DataTableSlot<Student>">
                         <p>{{studentStore.classOptions.find((classObj) => classObj.value ===
-                            slotProps.data.class_id)?.label }}</p>
+                            slotProps.data.class_id)?.label}}</p>
                     </template>
                 </Column>
                 <template #empty>
@@ -104,102 +104,253 @@
     </div>
 </template>
 <script setup lang="ts">
+/* -------------------------------------------------------------------------- */
+/*                                   Imports                                  */
+/* -------------------------------------------------------------------------- */
 import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
-import type { Student, DataTableSlot, NewStudent, BatchEditStudent } from '~/data/types'
-import { userFeedbackMessages, } from '~/data/static';
+
+import type {
+    Student,
+    DataTableSlot,
+    NewStudent,
+    BatchEditStudent
+} from '~/data/types';
+
+import { userFeedbackMessages } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
-const studentStore = useStudentStore();
-const backend = useBackend()
+
+
+/* -------------------------------------------------------------------------- */
+/*                                Composables                                 */
+/* -------------------------------------------------------------------------- */
+
+const backend = useBackend();
 const toast = useToast();
-const { student: toastMessages } = userFeedbackMessages
-//table logic
-const dt = ref(); //dataTable Ref
+const studentStore = useStudentStore();
+
+const { student: toastMessages } = userFeedbackMessages;
+
+
+/* -------------------------------------------------------------------------- */
+/*                               Table Logic                                  */
+/* -------------------------------------------------------------------------- */
+
+const dt = ref();
+
 const filters = ref({
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS }
+    global: {
+        value: null,
+        matchMode: FilterMatchMode.CONTAINS
+    }
 });
-const studentsToShow = computed(() => globalSearchInput.value.trim().length ? studentStore.searchedStudents : studentStore.students)
-const changeClass = (classId: number) => {
-    selectedStudents.value = []
-    studentStore.populateStudents(classId)
-}
 
-// global search logic
-const globalSearchInput = ref('')
-watchDebounced(globalSearchInput, () => {
-    studentStore.populateSearchedStudents(globalSearchInput.value)
-}, { debounce: 500, maxWait: 2000 },)
-
-//transfer student Menu logic
-const transferStudentsMenu = ref(); // transfer students menu Ref
-const toggleTransferStudentsMenu = (event: Event) => {
-    transferStudentsMenu.value.toggle(event);
-};
-const filteredClassOptions = computed(() => studentStore.classOptions.filter((classObject) => classObject.value !== studentStore.selectedClassId))
-const transferStudents = async (students: Student[], classId: number) => {
-    const studentIds = students.map((student) => student.id)
-    const reqBody: BatchEditStudent = { class_id: classId, ids: studentIds }
-    await backend.updateStudents(reqBody)
-    studentStore.populateStudents()
-    resetSelectedStudents()
-}
-
-// select students logic
-const selectedStudents = ref<Student[]>([])
-const resetSelectedStudents = () => { selectedStudents.value = [] }
-
-// edit / create student logic
-const showStudentDialog = ref(false);
-const studentToEdit = ref<Student | undefined>(undefined)
-const handleStudentEditClick = () => {
-    if (!selectedStudents.value.length ||selectedStudents.value.length > 1) return;
-    studentToEdit.value = studentsToShow.value.find((s) => s.id === selectedStudents.value[0].id)
-    console.log(studentToEdit.value);
-    showStudentDialog.value = true
-}
-const EditStudent = async (studentObj: Student) => {
-    try {
-        await backend.updateStudents(studentObj)
-        await studentStore.populateStudents(studentToEdit.value?.class_id!)
-        showStudentDialog.value = false
-        toast.add({ severity: 'success', summary: toastMessages.updateSuccess, life: 3000 })
-
-    } catch (error) {
-        toast.add(getToastErrorObject(error, toastMessages.updateFailed))
-    }
-}
-const createNewStudent = async (newStudent: NewStudent) => {
-    try {
-        await backend.createStudent(newStudent)
-        await studentStore.populateStudents(newStudent.class_id)
-        showStudentDialog.value = false
-        toast.add({ severity: 'success', summary: toastMessages.addSuccess, life: 3000 })
-
-    } catch (error) {
-        toast.add(getToastErrorObject(error, toastMessages.addFailed))
-    }
-}
-const handleStudentSubmit = (newStudent: NewStudent) => {
-    studentToEdit.value ? EditStudent({ ...newStudent, id: studentToEdit.value.id }) : createNewStudent(newStudent)
-}
-
-
-const deleteStudents = async (students: Student[]) => {
-    const studentIds = students.map((student) => student.id)
-    await backend.deleteStudents(studentIds);
-    resetSelectedStudents()
-
-}
-
-
-
-//confirm dialogs
-const useDeleteConfirm = useConfirmHandler(() => deleteStudents(selectedStudents.value), studentStore.populateStudents)
-const useTransferConfirm = useConfirmHandler(transferStudents, studentStore.populateStudents)
-
+const studentsToShow = computed(() =>
+    globalSearchInput.value.trim().length
+        ? studentStore.searchedStudents
+        : studentStore.students
+);
 
 function exportCSV() {
     dt.value.exportCSV();
 }
+
+
+/* -------------------------------------------------------------------------- */
+/*                              Class change Handling                         */
+/* -------------------------------------------------------------------------- */
+
+const changeClass = (classId: number) => {
+    selectedStudents.value = [];
+    studentStore.populateStudents(classId);
+};
+
+
+/* -------------------------------------------------------------------------- */
+/*                              Global Search                                 */
+/* -------------------------------------------------------------------------- */
+
+const globalSearchInput = ref('');
+
+watchDebounced(
+    globalSearchInput,
+    () => {
+        studentStore.populateSearchedStudents(globalSearchInput.value);
+    },
+    {
+        debounce: 500,
+        maxWait: 2000
+    }
+);
+
+
+/* -------------------------------------------------------------------------- */
+/*                           Student Selection                                */
+/* -------------------------------------------------------------------------- */
+
+const selectedStudents = ref<Student[]>([]);
+
+const resetSelectedStudents = () => {
+    selectedStudents.value = [];
+};
+
+
+/* -------------------------------------------------------------------------- */
+/*                           Transfer Students                                */
+/* -------------------------------------------------------------------------- */
+// A tempalte ref for the transfer students menu 
+const transferStudentsMenu = ref();
+
+const toggleTransferStudentsMenu = (event: Event) => {
+    transferStudentsMenu.value.toggle(event);
+};
+
+const filteredClassOptions = computed(() =>
+    studentStore.classOptions.filter(
+        (classObject) =>
+            classObject.value !== studentStore.selectedClassId
+    )
+);
+
+const transferStudents = async (
+    students: Student[],
+    classId: number
+) => {
+    const studentIds = students.map(
+        (student) => student.id
+    );
+
+    const reqBody: BatchEditStudent = {
+        class_id: classId,
+        ids: studentIds
+    };
+        await backend.updateStudents(reqBody);
+
+        studentStore.populateStudents();
+        resetSelectedStudents();
+
+};
+
+
+/* -------------------------------------------------------------------------- */
+/*                          Create / Edit Student                             */
+/* -------------------------------------------------------------------------- */
+
+const showStudentDialog = ref(false);
+
+const studentToEdit = ref<Student>();
+
+const handleStudentEditClick = () => {
+    if (
+        !selectedStudents.value.length ||
+        selectedStudents.value.length > 1
+    ) {
+        return;
+    }
+
+    studentToEdit.value = studentsToShow.value.find(
+        (student) =>
+            student.id === selectedStudents.value[0].id
+    );
+
+    showStudentDialog.value = true;
+};
+
+const EditStudent = async (studentObj: Student) => {
+    try {
+        await backend.updateStudents(studentObj);
+
+        await studentStore.populateStudents(
+            studentToEdit.value?.class_id!
+        );
+
+        showStudentDialog.value = false;
+
+        toast.add({
+            severity: 'success',
+            summary: toastMessages.updateSuccess,
+            life: 3000
+        });
+
+    } catch (error) {
+        toast.add(
+            getToastErrorObject(
+                error,
+                toastMessages.updateFailed
+            )
+        );
+    }
+};
+
+const createNewStudent = async (
+    newStudent: NewStudent
+) => {
+    try {
+        await backend.createStudent(newStudent);
+
+        await studentStore.populateStudents(
+            newStudent.class_id
+        );
+
+        showStudentDialog.value = false;
+
+        toast.add({
+            severity: 'success',
+            summary: toastMessages.addSuccess,
+            life: 3000
+        });
+
+    } catch (error) {
+        toast.add(
+            getToastErrorObject(
+                error,
+                toastMessages.addFailed
+            )
+        );
+    }
+};
+
+const handleStudentSubmit = (
+    newStudent: NewStudent
+) => {
+    studentToEdit.value
+        ? EditStudent({
+            ...newStudent,
+            id: studentToEdit.value.id
+        })
+        : createNewStudent(newStudent);
+};
+
+
+/* -------------------------------------------------------------------------- */
+/*                              Delete Students                               */
+/* -------------------------------------------------------------------------- */
+
+const deleteStudents = async (
+    students: Student[]
+) => {
+    const studentIds = students.map(
+        (student) => student.id
+    );
+
+    await backend.deleteStudents(studentIds);
+
+    resetSelectedStudents();
+};
+
+
+/* -------------------------------------------------------------------------- */
+/*                              Confirm Dialogs                               */
+/* -------------------------------------------------------------------------- */
+
+const useDeleteConfirm = useConfirmHandler(
+    () => deleteStudents(selectedStudents.value),
+    studentStore.populateStudents
+);
+
+const useTransferConfirm = useConfirmHandler(
+    transferStudents,
+    studentStore.populateStudents,
+);
 
 </script>
