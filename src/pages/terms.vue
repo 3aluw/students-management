@@ -56,102 +56,211 @@
   </div>
 </template>
 <script setup lang="ts">
-import type { NewSeasonPayload, SchoolSeason, SeasonStatus } from '~/data/types';
-import type { TreeNode } from 'primevue/treenode';
-import { useClientStore } from '~/store/clientStore';
-import { ArabicSeasonStatus } from '~/data/static';
-import { userFeedbackMessages, } from '~/data/static';
+import type {
+  NewSeasonPayload,
+  SchoolSeason,
+  SeasonStatus
+} from '~/data/types';
 
-const { season: toastMessages } = userFeedbackMessages
+import type { TreeNode } from 'primevue/treenode';
+
+import { useClientStore } from '~/store/clientStore';
+
+import {
+  ArabicSeasonStatus,
+  userFeedbackMessages
+} from '~/data/static';
+
+/* -------------------------------------------------------------------------- */
+/*                                  Types                                     */
+/* -------------------------------------------------------------------------- */
 
 type EditSeasonProps = {
-  status: SeasonStatus,
-  season: SchoolSeason
-}
+  status: SeasonStatus;
+  season: SchoolSeason;
+};
+
+/* -------------------------------------------------------------------------- */
+/*                                Stores                                      */
+/* -------------------------------------------------------------------------- */
 
 const backend = useBackend();
 const toast = useToast();
 const clientStore = useClientStore();
 
+/* -------------------------------------------------------------------------- */
+/*                                Messages                                    */
+/* -------------------------------------------------------------------------- */
+
+const { season: toastMessages } = userFeedbackMessages;
+
+/* -------------------------------------------------------------------------- */
+/*                                Dialogs                                     */
+/* -------------------------------------------------------------------------- */
+
 const showNewSeasonDialog = ref(false);
 const showEditSeasonDialog = ref(false);
-const editSeasonProps = ref<EditSeasonProps | undefined>(undefined);
 
-// ========== SEASONS TABLE LOGIC ==========
+const editSeasonProps = ref<EditSeasonProps>();
+
+/* -------------------------------------------------------------------------- */
+/*                              Seasons Table                                 */
+/* -------------------------------------------------------------------------- */
+
+// create node to populate on tree table
+const nodes = computed(() =>
+  mapSeasonsToTree(clientStore.seasons)
+);
 
 // format season status badges
-const formatSeasonBadgeProps = (status: SeasonStatus) => {
-  const value = ArabicSeasonStatus[status]
-  const severity = status === 'current' ? 'success' : status === 'future' ? 'info' : 'secondary'
-  return { value, severity }
-}
-// create node to populate on tree table
-const nodes = computed(() => mapSeasonsToTree(clientStore.seasons));
+const formatSeasonBadgeProps = (
+  status: SeasonStatus
+) => {
+  const value = ArabicSeasonStatus[status];
 
+  const severity =
+    status === 'current'
+      ? 'success'
+      : status === 'future'
+        ? 'info'
+        : 'secondary';
 
-// ========== NEW SEASON LOGIC ==========
+  return { value, severity };
+};
+
+/* -------------------------------------------------------------------------- */
+/*                            Season Creation                                 */
+/* -------------------------------------------------------------------------- */
+
 const lastSeasonStatus = computed(() => {
   const lastNode = nodes.value.at(-1);
-  const lastSeasonStatus = lastNode?.data.status;
-  return lastSeasonStatus
-})
-const isLastSeasonCurrent = computed(() => lastSeasonStatus.value === 'current')
 
-const handleSeasonCreation = async (payload: NewSeasonPayload) => {
-  if (lastSeasonStatus.value == 'future') {
-    toast.add({ severity: 'error', summary: 'خطأ في إنشاء الموسم الدراسي', detail: 'لا يمكنك إنشاء موسم دراسي جديد طالما أن هناك موسم مستقبلي موجود. يرجى حذفه قبل إنشاء موسم جديد.', life: 7000 });
+  return lastNode?.data.status;
+});
+
+const isLastSeasonCurrent = computed(
+  () => lastSeasonStatus.value === 'current'
+);
+
+const handleSeasonCreation = async (
+  payload: NewSeasonPayload
+) => {
+  if (lastSeasonStatus.value === 'future') {
+    toast.add({
+      severity: 'error',
+      summary: 'خطأ في إنشاء الموسم الدراسي',
+      detail:
+        'لا يمكنك إنشاء موسم دراسي جديد طالما أن هناك موسم مستقبلي موجود. يرجى حذفه قبل إنشاء موسم جديد.',
+      life: 7000
+    });
+
     return;
   }
- try{
-  const res = await backend.createSeason(payload)
-    toast.add({ severity: 'success', summary: toastMessages.addSuccess, detail: res.message });
-    showNewSeasonDialog.value = false;
-    clientStore.populateSeasons();
-  
- }
- catch(error) {
-        toast.add(getToastErrorObject(error, toastMessages.addFailed))
-  }
 
-}
-// ========== EDIT SEASON LOGIC ==========
-//populate season props then open editing dialog
-const handleEditSeasonClick = (node: TreeNode) => {
+  try {
+    const res = await backend.createSeason(payload);
+
+    toast.add({
+      severity: 'success',
+      summary: toastMessages.addSuccess,
+      detail: res.message
+    });
+
+    showNewSeasonDialog.value = false;
+
+    clientStore.populateSeasons();
+
+  } catch (error) {
+    toast.add(
+      getToastErrorObject(error, toastMessages.addFailed)
+    );
+  }
+};
+
+/* -------------------------------------------------------------------------- */
+/*                              Season Editing                                */
+/* -------------------------------------------------------------------------- */
+//populate season editing props then open editing dialog
+const handleEditSeasonClick = (
+  node: TreeNode
+) => {
   const status = node.data.status;
-  const season = clientStore.seasons.find(s => s.id === node.data.id)!
-  editSeasonProps.value = { season, status };
+
+  const season = clientStore.seasons.find(
+    (s) => s.id === node.data.id
+  )!;
+
+  editSeasonProps.value = {
+    season,
+    status
+  };
+
   showEditSeasonDialog.value = true;
 };
 // get past and future season to check for date collisions when editing a season
-const getSeasonWithNeighborsById = (season: SchoolSeason) => {
-  const seasonId = season.id;
-  const index = clientStore.seasons.findIndex(s => s.id === seasonId);
+const getSeasonWithNeighborsById = (
+  season: SchoolSeason
+) => {
+  const index = clientStore.seasons.findIndex(
+    (s) => s.id === season.id
+  );
+
   return [
     clientStore.seasons[index - 1],
     season,
-    clientStore.seasons[index + 1],
+    clientStore.seasons[index + 1]
   ];
-}
-const handleSeasonEditSubmit = (updatedSeason: SchoolSeason) => {
-  const seasonsToCheck = getSeasonWithNeighborsById(updatedSeason).filter(season => season !== undefined);
-  const collapsingSeasonIds = getCollapsingSeasonIds(seasonsToCheck)
-  if (collapsingSeasonIds) {
-    const otherSeasonName = seasonsToCheck.find((season) => collapsingSeasonIds.includes(season.id) && season.id !== updatedSeason.id)?.name;
-    toast.add({ severity: 'error', summary: 'خطأ في التواريخ', detail: `التواريخ التي أدخلتها تتداخل مع الموسم الدراسي "${otherSeasonName}"، يرجى تعديل التواريخ.`, life: 7000 });
-    return;
-  }
-  try {
-    backend.updateSeasons(updatedSeason).then(() => {
-      toast.add({ severity: 'success', summary: toastMessages.updateSuccess,life: 3000 });
-      clientStore.populateSeasons();
-      showEditSeasonDialog.value = false;
-    });
-  }
-  catch (error) {
-           toast.add(getToastErrorObject(error, toastMessages.updateFailed))
+};
 
+//returns true if there is a date collision between the season being edited and its neighbors 
+const hasSeasonCollision = (updatedSeason: SchoolSeason) => {
+
+  const seasonsToCheck = getSeasonWithNeighborsById(
+    updatedSeason
+  ).filter(season => season !== undefined);
+
+  const collapsingSeasonIds =
+    getCollapsingSeasonIds(seasonsToCheck);
+
+  if (collapsingSeasonIds) {
+    const otherSeasonName = seasonsToCheck.find(
+      (season) =>
+        collapsingSeasonIds.includes(season.id) &&
+        season.id !== updatedSeason.id
+    )?.name;
+
+    toast.add({
+      severity: 'error',
+      summary: 'خطأ في التواريخ',
+      detail: `التواريخ التي أدخلتها تتداخل مع الموسم الدراسي "${otherSeasonName}"، يرجى تعديل التواريخ.`,
+      life: 7000
+    });
+
+    return true
   }
+  return false;
 }
+const handleSeasonEditSubmit = async (
+  updatedSeason: SchoolSeason
+) => {
+  if (hasSeasonCollision(updatedSeason)) return;
+  try {
+    await backend.updateSeasons(updatedSeason)
+    toast.add({
+      severity: 'success',
+      summary: toastMessages.updateSuccess,
+      life: 3000
+    })
+
+    clientStore.populateSeasons();
+
+    showEditSeasonDialog.value = false;
+  } catch (error) {
+    toast.add(
+      getToastErrorObject(error, toastMessages.updateFailed)
+    );
+  }
+};
 
 const testPayload: NewSeasonPayload = {
   "terminateCurrentSeason": true,
@@ -170,7 +279,7 @@ const testPayload: NewSeasonPayload = {
     "2": 3,
     "3": -1
   },
-  "repeaters": [12,4,5]
+  "repeaters": [12, 4, 5]
 }
 const handleTestSeasonCreation = async () => {
   handleSeasonCreation(testPayload)
