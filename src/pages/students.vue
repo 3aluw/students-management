@@ -224,10 +224,10 @@ const transferStudents = async (
         class_id: classId,
         ids: studentIds
     };
-        await backend.updateStudents(reqBody);
+    await backend.updateStudents(reqBody);
 
-        studentStore.populateStudents();
-        resetSelectedStudents();
+    studentStore.populateStudents();
+    resetSelectedStudents();
 
 };
 
@@ -241,16 +241,13 @@ const showStudentDialog = ref(false);
 const studentToEdit = ref<Student>();
 
 const handleStudentEditClick = () => {
-    if (
-        !selectedStudents.value.length ||
-        selectedStudents.value.length > 1
-    ) {
-        return;
-    }
+    if (selectedStudents.value.length !== 1) return;
+
+
 
     studentToEdit.value = studentsToShow.value.find(
         (student) =>
-            student.id === selectedStudents.value[0].id
+            student.id === selectedStudents.value[0]!.id
     );
 
     showStudentDialog.value = true;

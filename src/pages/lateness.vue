@@ -190,7 +190,7 @@ const handleLatenessSubmit = async (
   const payload: BatchEditLateness | EditLateness =
     selectedLateness.value.length === 1
       ? {
-          id: selectedLateness.value[0].id,
+          id: selectedLateness.value[0]!.id,
           ...latenessInfo
         }
       : {

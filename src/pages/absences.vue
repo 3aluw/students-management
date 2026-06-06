@@ -164,7 +164,7 @@ const updatePage = (event: DataTablePageEvent) => {
 /* -------------------------------------------------------------------------- */
 
 const handleEditClick = () => {
-  const absence = selectedAbsences.value[0];
+  const absence = selectedAbsences.value[0]!;
 
   absenceToEdit.value = {
     date: absence.date,
@@ -179,7 +179,7 @@ const handleEditClick = () => {
 const handleAbsenceSubmit = async (absenceInfo: AbsenceInfo) => {
   const payload: BatchEditAbsence | EditAbsence =
     selectedAbsences.value.length === 1
-      ? { id: selectedAbsences.value[0].id, ...absenceInfo }
+      ? { id: selectedAbsences.value[0]!.id, ...absenceInfo }
       : {
           ...absenceInfo,
           ids: selectedAbsences.value.map((a) => a.id)

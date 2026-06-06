@@ -27,11 +27,11 @@ const getUniqueZodIssues = (issues: ZodError["issues"]) => {
 //generates readable message from Zod issues array
 const formatZodValidationError = (issues: ZodError["issues"]) => {
     const uniqueIssues = getUniqueZodIssues(issues)
-    if (uniqueIssues.length === 1) {
+    if (uniqueIssues.length === 1 && uniqueIssues[0]) {
         return uniqueIssues[0].message
     }
     // if there are at most 4 errors : log the first message and advise the user to check other fields
-    else if (uniqueIssues.length < 4) {
+    else if (uniqueIssues.length < 4 && uniqueIssues[0]) {
         uniqueIssues.shift()
         const fields = uniqueIssues.filter(errObj => (getPropertyArabicName(errObj.path[0] as string)))
         return uniqueIssues[0].message + (fields.length ? ` \n كما يجب التحقق من : ${fields.join(' ، ')}` : "\n كما يرجى التحقق من المعلومات الأخرى المدخلة   ")
