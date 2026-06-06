@@ -6,28 +6,38 @@
             :resolver="resolver" @submit="onFormSubmit" class="flex flex-col gap-4 w-full sm:w-80">
             <!-- absence Date -->
             <div class="flex flex-col gap-1">
-                <DatePicker name="date" placeholder="تاريخ الغياب" fluid showIcon />
+                <FloatLabel variant="on">
+                    <DatePicker name="date" fluid showIcon />
+                    <label>تاريخ الغياب</label>
+                </FloatLabel>
                 <Message v-if="$form.date?.invalid" severity="error" size="small" variant="simple">
                     {{ $form.date.error?.message }}
                 </Message>
             </div>
             <div class="flex flex-col gap-1">
-                <DatePicker name="start_time" placeholder="بداية الحصة" fluid timeOnly />
+                <FloatLabel variant="on">
+                    <DatePicker name="start_time" fluid timeOnly />
+                    <label> بداية الحصة</label>
+                </FloatLabel>
                 <Message v-if="$form.start_time?.invalid" severity="error" size="small" variant="simple">
                     {{ $form.start_time.error?.message }}
                 </Message>
             </div>
             <!-- Reason -->
             <div class="flex flex-col gap-1">
-                <InputText name="reason" type="text" placeholder="سبب الغياب" fluid />
+                <FloatLabel variant="on">
+                    <InputText name="reason" type="text" fluid />
+                    <label>سبب الغياب</label>
+                </FloatLabel>
                 <Message v-if="$form.reason?.invalid" severity="error" size="small" variant="simple">{{
                     $form.reason.error.message }}</Message>
-
             </div>
 
             <!-- reason accepted -->
             <div class="flex flex-col gap-1">
-                <SelectButton name="reason_accepted" :options="sqliteBoolean" optionLabel="label" optionValue="value" />
+                 <span class="gray">قبول العذر: </span>
+                    <SelectButton name="reason_accepted" :options="sqliteBoolean" optionLabel="label"
+                        optionValue="value" />
                 <Message v-if="$form.reason_accepted?.invalid" severity="error" size="small" variant="simple">
                     {{ $form.reason_accepted.error?.message }}
                 </Message>
@@ -42,19 +52,30 @@
             :resolver="resolver" @submit="onFormSubmit" class="flex flex-col gap-4 w-full sm:w-80">
             <!-- lateness Date -->
             <div class="flex flex-col gap-1">
-                <DatePicker name="date" placeholder="تاريخ التأخر" fluid showIcon />
+                <FloatLabel variant="on">
+                <DatePicker name="date" fluid showIcon />
+                <label>تاريخ التأخر</label>
+                </FloatLabel>
                 <Message v-if="$form.date?.invalid" severity="error" size="small" variant="simple">
                     {{ $form.date.error?.message }}
                 </Message>
             </div>
+
             <div class="flex flex-col gap-1">
-                <DatePicker name="start_time" placeholder="بداية الحصة" fluid timeOnly />
+                <FloatLabel variant="on">
+                <DatePicker name="start_time" fluid timeOnly />
+                <label>بداية الحصة</label>
+                </FloatLabel>
                 <Message v-if="$form.start_time?.invalid" severity="error" size="small" variant="simple">
                     {{ $form.start_time.error?.message }}
                 </Message>
             </div>
+
             <div class="flex flex-col gap-1">
-                <DatePicker name="late_by" placeholder="وقت الدخول" fluid timeOnly />
+                <FloatLabel variant="on">
+                <DatePicker name="late_by" fluid timeOnly />
+                <label>وقت الدخول</label>
+                </FloatLabel>
                 <Message v-if="$form.late_by?.invalid" severity="error" size="small" variant="simple">
                     {{ $form.late_by.error?.message }}
                 </Message>
@@ -65,13 +86,17 @@
                 <!-- Activate after primevue autocomplete issue #7633 is resolved
                   <AutoComplete :forceSelection="false" name="reason"  :suggestions="filteredReasons" @complete="searchReasons"
                     placeholder="سبب الغياب" :showEmptyMessage="false" fluid /> -->
-                <InputText name="reason" type="text" placeholder="سبب الغياب" fluid />
+                <FloatLabel variant="on">
+                <InputText name="reason" type="text" fluid />
+                <label>سبب التأخر</label>
+                </FloatLabel>
                 <Message v-if="$form.reason?.invalid" severity="error" size="small" variant="simple">{{
                     $form.reason.error.message }}</Message>
             </div>
 
             <!-- reason accepted -->
             <div class="flex flex-col gap-1">
+                <span>قبول العذر: </span>
                 <SelectButton name="reason_accepted" :options="sqliteBoolean" optionLabel="label" optionValue="value" />
                 <Message v-if="$form.reason_accepted?.invalid" severity="error" size="small" variant="simple">
                     {{ $form.reason_accepted.error?.message }}
@@ -92,10 +117,11 @@ import { z } from 'zod';
 import { useToast } from 'primevue/usetoast';
 import type { NewAbsence, NewLateness, AbsenceInfo, LatenessInfo, EventTypes } from '~/data/types';
 import type { FormSubmitEvent } from "@primevue/forms"
-const absenceSchema = absenceSchemas.absenceSchema 
+const absenceSchema = absenceSchemas.absenceSchema
 const latenessSchema = latenessSchemas.latenessSchema
 const toast = useToast();
 
+//Format the object received from parent component to match the form initial values structure (to coincide with zod schemas)
 const formatEventObject = () => {
     const entityObj = props.entityObject
     const { start_time, date } = entityObj
@@ -140,10 +166,10 @@ const absenceInfoZodSchema = absenceSchema
     .transform((data) => ({
         ...data,
         start_time: minutesAfterMidnight(data.start_time),
-    }))  satisfies z.ZodType<AbsenceInfo>
+    })) satisfies z.ZodType<AbsenceInfo>
 
 
-    const latenessInfoZodSchema = latenessSchema
+const latenessInfoZodSchema = latenessSchema
     .omit({ id: true, student_id: true })
     .extend({
         date: z.date().transform(d => d.getTime()),
@@ -178,41 +204,4 @@ function searchReasons(e: { query: string }) {
         return reasons.startsWith(query)
     })
 }
-
-/*
-// Complete zod schemas (used before extending zodSchemas in zod composable)
-const absenceZodSchema = z.object({
-    date: z.date().transform(d => d.getTime()),
-    start_time: z.date().transform(d => d.getTime()),
-    reason: z.string().min(5, { message: 'يجب إدخال سبب الغياب' }),
-    reason_accepted: z.literal([0, 1])
-})
-    .transform((data) => {
-        return {
-            ...data,
-            start_time: minutesAfterMidnight(data.start_time)
-        }
-    }) satisfies z.ZodType<AbsenceInfo>
-
-    
-const latenessZodSchema = z.object({
-    date: z.date().transform(d => d.getTime()),
-    reason: z.string().min(5, { message: 'يجب إدخال سبب الغياب' }),
-    reason_accepted: z.literal([0, 1]),
-    late_by: z.date().transform(d => d.getTime()),      // it will be used to insert the time of enter then transformed to minutes after shift start
-    start_time: z.date().transform(d => d.getTime()),
-}) 
-    .refine(
-        (data) => data.late_by > data.start_time,
-        { message: "وقت الدخول يجب أن يكون بعد بداية الحصة", path: ["late_by"] }
-    )
-    .transform((data) => {
-        return {
-            ...data,
-            late_by: minutesAfterMidnight(data.late_by) - minutesAfterMidnight(data.start_time),
-            start_time: minutesAfterMidnight(data.start_time)
-        }
-    }) satisfies z.ZodType<LatenessInfo>
-
-*/
 </script>
