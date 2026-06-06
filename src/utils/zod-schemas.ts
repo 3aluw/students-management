@@ -6,15 +6,15 @@ import { getRequiredFieldMessage } from "~/utils/arabic-properties"
 const studentSchema = z.object({
     id: z.number({ error: getRequiredFieldMessage("id") }),
     status: z.enum(['active', 'graduated', 'dropped', 'transferred'], { error: getRequiredFieldMessage("status") }),
-    first_name: z.string({ error: getRequiredFieldMessage("first_name") }).min(3, { message: 'يجب إدخال اسم الطالب كاملا' }),
-    last_name: z.string({ error: getRequiredFieldMessage("last_name") }).min(3, { message: 'يجب إدخال اللقب كاملا ' }),
-    father_name: z.string({ error: getRequiredFieldMessage("father_name") }).min(3, { message: 'يجب استكمال اسم الأب ' }),
-    grandfather_name: z.string({ error: getRequiredFieldMessage("grandfather_name") }).min(3, { message: 'يجب استكمال اسم الجد ' }),
+    first_name: z.string({ error: getRequiredFieldMessage("first_name") }).min(3, { message: 'يجب إدخال اسم الطالب كاملا' }).max(15),
+    last_name: z.string({ error: getRequiredFieldMessage("last_name") }).min(3, { message: 'يجب إدخال اللقب كاملا ' }).max(15),
+    father_name: z.string({ error: getRequiredFieldMessage("father_name") }).min(3, { message: 'يجب استكمال اسم الأب ' }).max(15),
+    grandfather_name: z.string({ error: getRequiredFieldMessage("grandfather_name") }).min(3, { message: 'يجب استكمال اسم الجد ' }).max(15),
     class_id: z.number({ error: getRequiredFieldMessage("class_id") }),
     sex: z.literal(['F', 'M'], { error: getRequiredFieldMessage("sex") }),
     phone_number: z.string({ error: getRequiredFieldMessage("phone_number") }).length(10, { message: 'يجب إدخال رقم هاتف صحيح ' }),
     birth_date: z.number({ error: getRequiredFieldMessage("birth_date") }),
-    address: z.string({ error: getRequiredFieldMessage("address") }).min(5, { message: 'يجب إدخال العنوان بدقة ' }),
+    address: z.string({ error: getRequiredFieldMessage("address") }).min(5, { message: 'يجب إدخال العنوان بدقة ' }).max(30),
 }) satisfies z.ZodType<Student>
 
 const newStudentSchema = studentSchema.omit({ id: true }) satisfies z.ZodType<NewStudent>
