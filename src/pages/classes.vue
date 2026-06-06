@@ -36,78 +36,127 @@
 
 </template>
 <script setup lang="ts">
-
-import type { Class, NewClass,DataTableSlot } from '~/data/types'
-import { useStudentStore } from '~/store/studentStore';
+import type { Class, NewClass, DataTableSlot } from '~/data/types';
 import { ArabicSchoolLevels } from '~/data/static';
-import { userFeedbackMessages, } from '~/data/static';
-const { class: toastMessages } = userFeedbackMessages
+import { useStudentStore } from '~/store/studentStore';
+import { userFeedbackMessages } from '~/data/static';
 
-const studentStore = useStudentStore()
-const backend = useBackend()
+const { class: toastMessages } = userFeedbackMessages;
+
+const studentStore = useStudentStore();
+const backend = useBackend();
 const toast = useToast();
 
+/* -------------------------------------------------------------------------- */
+/*                              Dialog State                                  */
+/* -------------------------------------------------------------------------- */
 
-const showClassDialog = ref(false)
-const classToEdit = ref<Class | undefined>(undefined)
-const classIdToDelete = ref<number | undefined>(undefined)
+const showClassDialog = ref(false);
+const showConfirmDialog = ref(false);
+
+const classToEdit = ref<Class>();
+const classIdToDelete = ref<number>();
+
+/* -------------------------------------------------------------------------- */
+/*                              Actions                                       */
+/* -------------------------------------------------------------------------- */
 
 const handleEditClick = (classObj: Class) => {
   classToEdit.value = classObj;
   showClassDialog.value = true;
-}
+};
+
 const handleDeleteClick = (classObj: Class) => {
-  classIdToDelete.value = classObj.id
-  showConfirmDialog.value = true
-}
-const showConfirmDialog = ref(false)
+  classIdToDelete.value = classObj.id;
+  showConfirmDialog.value = true;
+};
 
 const handleConfirmDelete = (confirmed: boolean) => {
   if (!confirmed || !classIdToDelete.value) {
-    classIdToDelete.value = undefined
-    return
+    classIdToDelete.value = undefined;
+    return;
   }
-  executeDelete(classIdToDelete.value)
-}
+
+  executeDelete(classIdToDelete.value);
+};
+
+/* -------------------------------------------------------------------------- */
+/*                              API Calls                                     */
+/* -------------------------------------------------------------------------- */
 
 const executeDelete = async (classId: number) => {
   try {
-    await backend.deleteClass(classId)
-    await studentStore.populateClasses()
-    classIdToDelete.value = undefined
-    toast.add({ severity: 'success', summary: toastMessages.deleteSuccess, life: 3000 })
+    await backend.deleteClass(classId);
+    await studentStore.populateClasses();
+
+    classIdToDelete.value = undefined;
+
+    toast.add({
+      severity: 'success',
+      summary: toastMessages.deleteSuccess,
+      life: 3000
+    });
+
   } catch (error) {
-    toast.add({ severity: 'error', summary: 'حدث خطأ أثناء حذف القسم', life: 3000 })
-        toast.add(getToastErrorObject(error, toastMessages.deleteFailed))
+    toast.add({
+      severity: 'error',
+      summary: 'حدث خطأ أثناء حذف القسم',
+      life: 3000
+    });
 
-
+    toast.add(getToastErrorObject(error, toastMessages.deleteFailed));
   }
-}
-const handleSubmit = (newClass: NewClass) => {
-  classToEdit.value ? EditClass({ ...newClass, id: classToEdit.value.id }) : createNewClass(newClass)
-}
+};
 
 const EditClass = async (classObj: Class) => {
   try {
-    await backend.updateClass(classObj)
-    await studentStore.populateClasses()
-    showClassDialog.value = false
-    toast.add({ severity: 'success', summary: toastMessages.updateSuccess, life: 3000 })
+    await backend.updateClass(classObj);
+    await studentStore.populateClasses();
+
+    showClassDialog.value = false;
+
+    toast.add({
+      severity: 'success',
+      summary: toastMessages.updateSuccess,
+      life: 3000
+    });
 
   } catch (error) {
-    toast.add(getToastErrorObject(error, toastMessages.updateFailed))
+    toast.add(getToastErrorObject(error, toastMessages.updateFailed));
   }
-}
+};
+
 const createNewClass = async (newClass: NewClass) => {
   try {
-    await backend.createClass(newClass)
-    await studentStore.populateClasses()
-    showClassDialog.value = false
-    toast.add({ severity: 'success', summary: toastMessages.addSuccess, life: 3000 })
+    await backend.createClass(newClass);
+    await studentStore.populateClasses();
+
+    showClassDialog.value = false;
+
+    toast.add({
+      severity: 'success',
+      summary: toastMessages.addSuccess,
+      life: 3000
+    });
 
   } catch (error) {
-    toast.add(getToastErrorObject(error, toastMessages.addFailed))
+    toast.add(getToastErrorObject(error, toastMessages.addFailed));
   }
-}
+};
+
+/* -------------------------------------------------------------------------- */
+/*                              Form Handler                                  */
+/* -------------------------------------------------------------------------- */
+
+const handleSubmit = (newClass: NewClass) => {
+  if (classToEdit.value) {
+    EditClass({
+      ...newClass,
+      id: classToEdit.value.id
+    });
+    return;
+  }
+
+  createNewClass(newClass);
+};
 </script>
-<style scoped></style>

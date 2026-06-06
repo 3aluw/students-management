@@ -16,7 +16,7 @@ export function useConfirmHandler<
   const loading = ref(false)
 
   const argsRefAction = ref<A1 | []>([])  // separate args
-  const argsRefAfter  = ref<A2 | []>([])
+  const argsRefAfter = ref<A2 | []>([])
 
   const requestAction = (
     item: T,
@@ -39,8 +39,13 @@ export function useConfirmHandler<
         await onAfterAction(...argsRefAfter.value)
 
       toast.add({ severity: 'success', summary: successMsg, life: 3000 })
-    } catch {
-      toast.add({ severity: 'error', summary: errorMsg, life: 3000 })
+    } catch (error) {
+      toast.add(
+        getToastErrorObject(
+          error,
+          errorMsg
+        )
+      );
     } finally {
       loading.value = false
       reset()

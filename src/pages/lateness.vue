@@ -65,119 +65,198 @@
     </div>
 </template>
 <script setup lang="ts">
-
 import { useToast } from 'primevue/usetoast';
-import type { DataTableSlot, EventQueryFilters, LocalLateness, EditLateness, BatchEditLateness, LatenessInfo } from '~/data/types'
+
+import type {
+  EventQueryFilters,
+  LocalLateness,
+  EditLateness,
+  BatchEditLateness,
+  LatenessInfo,
+  DataTableSlot
+} from '~/data/types';
+
 import { userFeedbackMessages } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
 import { useEventStore } from '~/store/eventStore';
+
 import type { DataTablePageEvent } from 'primevue';
 
-// ========== STORES & SERVICES ==========
-const studentStore = useStudentStore();
-const eventStore = useEventStore()
-const backend = useBackend()
-const toast = useToast();
-// ========== TOAST & MESSAGES ==========
-const { lateness: toastMessages } = userFeedbackMessages
+/* -------------------------------------------------------------------------- */
+/*                                Stores                                      */
+/* -------------------------------------------------------------------------- */
 
+const studentStore = useStudentStore();
+const eventStore = useEventStore();
+
+const backend = useBackend();
+const toast = useToast();
+
+/* -------------------------------------------------------------------------- */
+/*                              Messages                                      */
+/* -------------------------------------------------------------------------- */
+
+const { lateness: toastMessages } = userFeedbackMessages;
+
+/* -------------------------------------------------------------------------- */
+/*                                State                                       */
+/* -------------------------------------------------------------------------- */
+
+// Dialog
+const showLatenessDialog = ref(false);
+const latenessToEdit = ref<LatenessInfo>();
+
+// Table
+const dt = ref();
+const totalRecords = ref(0);
+
+const selectedLateness = ref<LocalLateness[]>([]);
+
+const dbFilters = ref<EventQueryFilters>({
+  limit: 20,
+  offset: 0
+});
+
+/* -------------------------------------------------------------------------- */
+/*                              Lifecycle                                     */
+/* -------------------------------------------------------------------------- */
+
+onMounted(async () => {
+  totalRecords.value = await eventStore.populateLateness(
+    dbFilters.value
+  );
+});
+
+/* -------------------------------------------------------------------------- */
+/*                                Filters                                     */
+/* -------------------------------------------------------------------------- */
 
 const updateFilters = (filtersObj: EventQueryFilters) => {
-    const { limit, offset } = dbFilters.value
-    dbFilters.value = { limit, offset, ...filtersObj }
-    eventStore.populateLateness(dbFilters.value)
-}
+  const { limit, offset } = dbFilters.value;
 
-// ========== LIFECYCLE HOOKS ==========
-onMounted(async () => {
-    totalRecords.value = await eventStore.populateLateness(dbFilters.value)
-})
+  dbFilters.value = {
+    limit,
+    offset,
+    ...filtersObj
+  };
 
-// ========== REACTIVE REFERENCES ==========
-// Dialog states
-const showLatenessDialog = ref(false)
-const latenessToEdit = ref<LatenessInfo | undefined>(undefined)
+  eventStore.populateLateness(dbFilters.value);
+};
 
-// Data table references
-const dt = ref(); //dataTable Ref
-const totalRecords = ref(0)
-const selectedLateness = ref<LocalLateness[]>([]);
-const dbFilters = ref<EventQueryFilters>({
-    limit: 20,
-    offset: 0,
-})
+/* -------------------------------------------------------------------------- */
+/*                              Selection                                     */
+/* -------------------------------------------------------------------------- */
 
-// ========== EVENT HANDLERS ==========
+const resetSelected = () => {
+  selectedLateness.value = [];
+};
 
-// Lateness management handlers
-const handleLatenessSubmit = async (latenessInfo: LatenessInfo) => {
-    let lateness: BatchEditLateness | EditLateness;
+/* -------------------------------------------------------------------------- */
+/*                              Pagination                                    */
+/* -------------------------------------------------------------------------- */
 
-    if (selectedLateness.value.length === 1) {
-        lateness = { id: selectedLateness.value[0].id, ...latenessInfo }
-    }
-    else {
-        const ids = selectedLateness.value.map((lateness) => lateness.id)
-        lateness = { ...latenessInfo, ids }
-    }
-    editLateness(lateness)
-}
+const updatePage = (event: DataTablePageEvent) => {
+  const { page, rows } = event;
+
+  dbFilters.value.offset = page * rows;
+  dbFilters.value.limit = rows;
+
+  eventStore.populateLateness(dbFilters.value);
+};
+
+/* -------------------------------------------------------------------------- */
+/*                            Lateness Click Actions                                */
+/* -------------------------------------------------------------------------- */
 
 const handleEditClick = () => {
-    const lateness = selectedLateness.value[0] // pass the first selected lateness
-    if (!lateness) return;
-    latenessToEdit.value = {
-        date: lateness.date,
-        reason: lateness.reason,
-        reason_accepted: lateness.reason_accepted,
-        late_by: lateness.late_by,
-        start_time: lateness.start_time,
-    }
-    showLatenessDialog.value = true
-}
-//selection handlers
-const resetSelected = () => { selectedLateness.value = [] }
+  const lateness = selectedLateness.value[0];
 
-// Data table handlers
-const updatePage = (event: DataTablePageEvent) => {
-    const { page, rows } = event
-    dbFilters.value.offset = page * rows
-    dbFilters.value.limit = rows
-    eventStore.populateLateness(dbFilters.value)
-}
+  if (!lateness) return;
 
+  latenessToEdit.value = {
+    date: lateness.date,
+    reason: lateness.reason,
+    reason_accepted: lateness.reason_accepted,
+    late_by: lateness.late_by,
+    start_time: lateness.start_time
+  };
 
+  showLatenessDialog.value = true;
+};
 
-// ========== BUSINESS LOGIC ==========
+const handleLatenessSubmit = async (
+  latenessInfo: LatenessInfo
+) => {
+  const payload: BatchEditLateness | EditLateness =
+    selectedLateness.value.length === 1
+      ? {
+          id: selectedLateness.value[0].id,
+          ...latenessInfo
+        }
+      : {
+          ...latenessInfo,
+          ids: selectedLateness.value.map((l) => l.id)
+        };
 
-const editLateness = async (lateness: BatchEditLateness | EditLateness) => {
-    try {
-        await backend.updateLateness(lateness)
-        toast.add({ severity: 'success', summary: toastMessages.updateSuccess, life: 3000 });
-        showLatenessDialog.value = false
-        latenessToEdit.value = undefined
-        resetSelected()
-    }
-    catch (error) {
-         toast.add(getToastErrorObject(error, toastMessages.updateFailed))
-        return
-    }
-    await eventStore.populateLateness(dbFilters.value)
+   editLateness(payload);
+};
 
-}
+/* -------------------------------------------------------------------------- */
+/*                                API Logic                                   */
+/* -------------------------------------------------------------------------- */
 
-const deleteLateness = async (lateness: LocalLateness[]) => {
-    const studentIds = lateness.map((lateness) => lateness.id)
-    await backend.deleteLateness(studentIds);
-    resetSelected()
-}
+const editLateness = async (
+  lateness: BatchEditLateness | EditLateness
+) => {
+  try {
+    await backend.updateLateness(lateness);
 
-// ========== CONFIRMATION DIALOG ==========
-const useDeleteConfirm = useConfirmHandler(() => deleteLateness(selectedLateness.value), () => eventStore.populateLateness(dbFilters.value), toastMessages.deleteSuccess, toastMessages.deleteFailed)
+    toast.add({
+      severity: 'success',
+      summary: toastMessages.updateSuccess,
+      life: 3000
+    });
 
-// ========== UTILITY FUNCTIONS ==========
+    showLatenessDialog.value = false;
+    latenessToEdit.value = undefined;
+
+    resetSelected();
+
+    await eventStore.populateLateness(dbFilters.value);
+
+  } catch (error) {
+    toast.add(
+      getToastErrorObject(error, toastMessages.updateFailed)
+    );
+  }
+};
+
+const deleteLateness = async (
+  lateness: LocalLateness[]
+) => {
+  const ids = lateness.map((l) => l.id);
+
+  await backend.deleteLateness(ids);
+
+  resetSelected();
+};
+
+/* -------------------------------------------------------------------------- */
+/*                              Confirm Handler                               */
+/* -------------------------------------------------------------------------- */
+
+const useDeleteConfirm = useConfirmHandler(
+  () => deleteLateness(selectedLateness.value),
+  () => eventStore.populateLateness(dbFilters.value),
+  toastMessages.deleteSuccess,
+  toastMessages.deleteFailed
+);
+
+/* -------------------------------------------------------------------------- */
+/*                                Export                                      */
+/* -------------------------------------------------------------------------- */
+
 function exportCSV() {
-    dt.value.exportCSV();
+  dt.value.exportCSV();
 }
-
 </script>

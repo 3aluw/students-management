@@ -141,6 +141,8 @@ export const userFeedbackMessages = {
     addFailed: "حدث خطأ أثناء إضافة التلميذ",
     fetchSuccess: "تم تحميل بيانات التلاميذ بنجاح",
     fetchFailed: "حدث خطأ أثناء تحميل بيانات التلاميذ",
+    transferSuccess: "تم نقل التلاميذ المحددين بنجاح",
+    transferFailed: "حدث خطأ أثناء نقل التلاميذ",
     updateSuccess: "تم تحديث بيانات التلميذ بنجاح",
     updateFailed: "حدث خطأ أثناء تحديث بيانات التلميذ",
     deleteSuccess: "تم حذف التلميذ بنجاح",
