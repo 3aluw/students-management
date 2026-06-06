@@ -127,147 +127,54 @@
 
     </div>
 </template>
-<script setup lang="ts">
-import { FilterMatchMode } from '@primevue/core/api';
+<script setup lang="ts">import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
-import type { Student, DataTableSlot, PlaygroundSettings, EventTypes, AbsenceInfo, LatenessInfo, NewLateness, NewAbsence } from '~/data/types'
+
+import type {
+    Student,
+    PlaygroundSettings,
+    EventTypes,
+    AbsenceInfo,
+    LatenessInfo,
+    NewLateness,
+    NewAbsence,
+    DataTableSlot
+} from '~/data/types';
+
 import { userFeedbackMessages } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
+
+/* -------------------------------------------------------------------------- */
+/*                                Stores                                      */
+/* -------------------------------------------------------------------------- */
+
 const studentStore = useStudentStore();
-const backend = useBackend()
+const backend = useBackend();
 const toast = useToast();
-const { absence: absenceToastMessages, lateness: latenessToastMessages } = userFeedbackMessages
-type EventInfo<T extends EventTypes> = T extends 'absence' ? AbsenceInfo : LatenessInfo
-type NewEvent<T extends EventTypes> = T extends 'absence' ? NewAbsence : NewLateness
-const showEventDialog = ref(false);
-const eventDialogHeader = computed(() => `أدخل معلومات ${selectedEventType.value === 'lateness' ? 'التأخر' : 'الغياب'}`)
-const selectedEventType = ref<EventTypes>('lateness');
-const lastEventValues = ref<Pick<EventInfo<'absence'> | EventInfo<'lateness'>, 'reason' | 'reason_accepted'>>({
-    reason: '',
-    reason_accepted: 0
-})
-const createEvent = <T extends EventTypes>(eventType: T, ids: number[], data?: EventInfo<T>) => {
-    //check if data is absent and fast mode is on => create event with defaults
-    if (playgroundSettings.value.fastMode) {
-        data = createDefaultEventData(eventType)
-        postEvent(eventType, ids, data)
-    }
-    //if the fast mode is off => open dialog to fill data
-    else {
-        selectedEventType.value = eventType
-        showEventDialog.value = true
-        selectedStudentsIds.value = ids
-    }
-}
-const handleEventSubmit = <T extends EventTypes>(data: EventInfo<T>) => {
-    const eventType = selectedEventType.value as T
-    postEvent(eventType, selectedStudentsIds.value, data)
-    lastEventValues.value = {
-        reason: data.reason,
-        reason_accepted: data.reason_accepted
-    }
-    showEventDialog.value = false
-}
-const postEvent = async<T extends EventTypes>(eventType: T, ids: number[], data: EventInfo<T>) => {
-    const rowsToInsert = bindStudentIdToEventInfo(eventType, ids, data);
-    let toastMessage = '';
-    let severity: 'success' | 'error' = 'success';
-    let skippedIds: number[] = []
-    let insertedCount = 0;
-    try {
-        if (eventType === 'absence') {
-            const result = await backend.insertAbsences(rowsToInsert);
-            skippedIds = result.skippedIds;
-            insertedCount = result.insertedCount;
-            toastMessage = absenceToastMessages.addSuccess;
-        } else if (eventType === 'lateness') {
-            const result = await backend.insertLateness(rowsToInsert as NewLateness[]);
-            skippedIds = result.skippedIds;
-            insertedCount = result.insertedCount;
-            toastMessage = latenessToastMessages.addSuccess;
-        }
-            toast.add({ severity, summary: toastMessage, life: 3000 });
 
-    } catch (error) {
-        severity = 'error';
-        toastMessage =
-            eventType === 'absence'
-                ? absenceToastMessages.addFailed
-                : latenessToastMessages.addFailed;
-        toast.add(getToastErrorObject(error, toastMessage))
-    } finally {
-        if (severity === 'error') return
-        else if (skippedIds.length > 0) {
-            createPartialAddToastMessage(eventType, insertedCount, skippedIds);
-        }
-        resetSelectedStudents();
-    }
-}
-const createPartialAddToastMessage = (eventType: EventTypes, insertedCount: number, skippedIds: number[]) => {
-    if (insertedCount) {
-        const summary = eventType === 'absence' ? absenceToastMessages.partialAddSuccess : latenessToastMessages.partialAddSuccess
-        toast.add({ severity: 'success', summary: `${summary} ${insertedCount}`, life: 3000 });
-    }
-    const summary = eventType === 'absence' ? absenceToastMessages.partialAddFailed : latenessToastMessages.partialAddFailed
-    const studentNames = skippedIds.map((id) => {
-        const student = selectedStudents.value.find((student) => student.id === id);
-        const className = studentStore.classOptions.find((classObj) => classObj.value ===
-            student?.class_id)?.label
-        return student ? `${student.first_name} ${student.last_name} من قسم :   ${className}` : undefined;
+/* -------------------------------------------------------------------------- */
+/*                              Messages                                      */
+/* -------------------------------------------------------------------------- */
 
-    }).join('\n');
-    toast.add({ severity: 'error', summary: `${summary}`, detail: studentNames });
-}
+const {
+    absence: absenceToastMessages,
+    lateness: latenessToastMessages
+} = userFeedbackMessages;
 
-const bindStudentIdToEventInfo = <T extends EventTypes>(eventType: T, ids: number[], data: EventInfo<T>): NewEvent<T>[] => {
-    if (eventType === 'absence') {
-        const absencesToInsert = ids.map((student_id) => ({
-            student_id,
-            date: data.date,
-            start_time : data.start_time,
-            reason: data.reason,
-            reason_accepted: data.reason_accepted
-        }))
-        return absencesToInsert as NewEvent<T>[];
-    }
-    else {
-        const latenessToInsert = ids.map((student_id) => ({
-            student_id,
-            date: data.date,
-            reason: data.reason,
-            reason_accepted: data.reason_accepted,
-            late_by: (data as LatenessInfo).late_by,
-            start_time: (data as LatenessInfo).start_time
-        }))
-        return latenessToInsert as NewEvent<T>[];
-    }
-}
+/* -------------------------------------------------------------------------- */
+/*                              Types helpers                                 */
+/* -------------------------------------------------------------------------- */
 
-const createDefaultEventData = <T extends EventTypes>(eventType: T): EventInfo<T> => {
-    const { fastMode, defaultReason, reasonAcceptedByDefault, dynamicTime, defaultStartTime, defaultLateBy } = playgroundSettings.value
-    let base = {
-        date: new Date().setMinutes(0, 0, 0),
-        start_time: defaultStartTime,
-        reason: !fastMode && lastEventValues.value.reason?.length ? lastEventValues.value.reason : defaultReason,
-        reason_accepted: !fastMode && lastEventValues.value.reason?.length ? lastEventValues.value.reason_accepted : reasonAcceptedByDefault
-    } as EventInfo<T>
-    if (eventType === 'lateness') {
-        base = {
-            ...base,         
-            late_by: dynamicTime ? minutesAfterMidnight(new Date()) - defaultStartTime : defaultLateBy
-        }
-    }
-    return base as EventInfo<T>
-}
-//table logic
-const dt = ref(); //dataTable Ref
-const filters = ref({
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS }
-});
-const studentsToShow = computed(() => globalSearchInput.value.trim().length ? studentStore.searchedStudents : studentStore.students)
-const changeClass = (classId: number) => {
-    studentStore.populateStudents(classId)
-}
+type EventInfo<T extends EventTypes> =
+    T extends 'absence' ? AbsenceInfo : LatenessInfo;
+
+type NewEvent<T extends EventTypes> =
+    T extends 'absence' ? NewAbsence : NewLateness;
+
+/* -------------------------------------------------------------------------- */
+/*                              Settings                                      */
+/* -------------------------------------------------------------------------- */
+
 const playgroundSettings = ref<PlaygroundSettings>({
     defaultStartTime: 480,
     dynamicTime: false,
@@ -275,31 +182,295 @@ const playgroundSettings = ref<PlaygroundSettings>({
     fastMode: false,
     defaultReason: 'غير محدد',
     reasonAcceptedByDefault: 0
-})
-const applyNewSettings = (newSettings: PlaygroundSettings) => {
-    playgroundSettings.value = newSettings
-    showSettingsDialog.value = false
-    toast.add({ severity: 'success', summary: 'تم تطبيق الإعدادات الجديدة بنجاح', life: 3000 })
-}
-// global search logic
-const globalSearchInput = ref('')
-watchDebounced(globalSearchInput, () => {
-    studentStore.populateSearchedStudents(globalSearchInput.value)
-}, { debounce: 500, maxWait: 2000 },)
+});
 
-//selected students dialog logic
+const applyNewSettings = (newSettings: PlaygroundSettings) => {
+    playgroundSettings.value = newSettings;
+    showSettingsDialog.value = false;
+
+    toast.add({
+        severity: 'success',
+        summary: 'تم تطبيق الإعدادات الجديدة بنجاح',
+        life: 3000
+    });
+};
+
+/* -------------------------------------------------------------------------- */
+/*                              UI State                                      */
+/* -------------------------------------------------------------------------- */
+
+const dt = ref();
+const filters = ref({
+    global: { value: null, matchMode: FilterMatchMode.CONTAINS }
+});
+
+const globalSearchInput = ref('');
+const selectedStudents = ref<Student[]>([]);
+const selectedStudentsIds = ref<number[]>([]);
+
+const showSettingsDialog = ref(false);
 const displaySelectedStudentsDialog = ref(false);
 
+/* -------------------------------------------------------------------------- */
+/*                              Event Dialog                                  */
+/* -------------------------------------------------------------------------- */
 
-// select students logic
-const selectedStudents = ref<Student[]>([])
-const selectedStudentsIds = ref<number[]>([])
+const showEventDialog = ref(false);
+const selectedEventType = ref<EventTypes>('lateness');
+
+const eventDialogHeader = computed(() =>
+    `أدخل معلومات ${selectedEventType.value === 'lateness' ? 'التأخر' : 'الغياب'}`
+);
+
+const lastEventValues = ref<Pick<
+    AbsenceInfo | LatenessInfo,
+    'reason' | 'reason_accepted'
+>>({
+    reason: '',
+    reason_accepted: 0
+});
+
+/* -------------------------------------------------------------------------- */
+/*                              Students                                      */
+/* -------------------------------------------------------------------------- */
+
+const studentsToShow = computed(() =>
+    globalSearchInput.value.trim().length
+        ? studentStore.searchedStudents
+        : studentStore.students
+);
+
+const changeClass = (classId: number) => {
+    studentStore.populateStudents(classId);
+};
+
 const deleteFromSelectedStudents = (studentId: number) => {
-    selectedStudents.value = selectedStudents.value.filter((student) => student.id !== studentId)
-}
-const resetSelectedStudents = () => { selectedStudents.value = [] }
-// playground settings
-const showSettingsDialog = ref(false);
+    selectedStudents.value = selectedStudents.value.filter(
+        (s) => s.id !== studentId
+    );
+};
 
+const resetSelectedStudents = () => {
+    selectedStudents.value = [];
+};
 
+/* -------------------------------------------------------------------------- */
+/*                              Search                                        */
+/* -------------------------------------------------------------------------- */
+
+watchDebounced(
+    globalSearchInput,
+    () => {
+        studentStore.populateSearchedStudents(globalSearchInput.value);
+    },
+    { debounce: 500, maxWait: 2000 }
+);
+
+/* -------------------------------------------------------------------------- */
+/*                              Event Flow                                    */
+/* -------------------------------------------------------------------------- */
+
+const createEvent = <T extends EventTypes>(
+    eventType: T,
+    ids: number[]
+) => {
+    //check if data is absent and fast mode is on => create event with defaults
+    if (playgroundSettings.value.fastMode) {
+        const data = createDefaultEventData(eventType);
+        postEvent(eventType, ids, data);
+        return;
+    }
+    //if the fast mode is off => open dialog to fill data
+    selectedEventType.value = eventType;
+    selectedStudentsIds.value = ids;
+    showEventDialog.value = true;
+};
+
+const handleEventSubmit = <T extends EventTypes>(
+    data: EventInfo<T>
+) => {
+    const eventType = selectedEventType.value as T;
+
+    postEvent(eventType, selectedStudentsIds.value, data);
+
+    lastEventValues.value = {
+        reason: data.reason,
+        reason_accepted: data.reason_accepted
+    };
+
+    showEventDialog.value = false;
+};
+
+/* -------------------------------------------------------------------------- */
+/*                              Core API                                      */
+/* -------------------------------------------------------------------------- */
+
+const postEvent = async <T extends EventTypes>(
+    eventType: T,
+    ids: number[],
+    data: EventInfo<T>
+) => {
+    const rows = bindStudentIdToEventInfo(eventType, ids, data);
+
+    let skippedIds: number[] = [];
+    let insertedCount = 0;
+    let severity: 'success' | 'error' = 'success';
+    let message = '';
+
+    try {
+        if (eventType === 'absence') {
+            const res = await backend.insertAbsences(rows);
+            skippedIds = res.skippedIds;
+            insertedCount = res.insertedCount;
+            message = absenceToastMessages.addSuccess;
+        } else {
+            const res = await backend.insertLateness(rows as NewLateness[]);
+            skippedIds = res.skippedIds;
+            insertedCount = res.insertedCount;
+            message = latenessToastMessages.addSuccess;
+        }
+
+        toast.add({ severity: 'success', summary: message, life: 3000 });
+    } catch (error) {
+        severity = 'error';
+
+        const errMsg =
+            eventType === 'absence'
+                ? absenceToastMessages.addFailed
+                : latenessToastMessages.addFailed;
+
+        toast.add(getToastErrorObject(error, errMsg));
+    } finally {
+        if (severity === 'error') return;
+
+        if (skippedIds.length > 0) {
+            createPartialAddToastMessage(
+                eventType,
+                insertedCount,
+                skippedIds
+            );
+        }
+        else {
+            resetSelectedStudents();
+
+        }
+
+    }
+};
+
+/* -------------------------------------------------------------------------- */
+/*                              Helpers                                       */
+/* -------------------------------------------------------------------------- */
+
+const bindStudentIdToEventInfo = <T extends EventTypes>(
+    eventType: T,
+    ids: number[],
+    data: EventInfo<T>
+): NewEvent<T>[] => {
+    if (eventType === 'absence') {
+        return ids.map((student_id) => ({
+            student_id,
+            date: data.date,
+            start_time: data.start_time,
+            reason: data.reason,
+            reason_accepted: data.reason_accepted
+        })) as NewEvent<T>[];
+    }
+
+    return ids.map((student_id) => ({
+        student_id,
+        date: data.date,
+        reason: data.reason,
+        reason_accepted: data.reason_accepted,
+        late_by: (data as LatenessInfo).late_by,
+        start_time: (data as LatenessInfo).start_time
+    })) as NewEvent<T>[];
+};
+
+const createDefaultEventData = <T extends EventTypes>(
+    eventType: T
+): EventInfo<T> => {
+    const {
+        fastMode,
+        defaultReason,
+        reasonAcceptedByDefault,
+        dynamicTime,
+        defaultStartTime,
+        defaultLateBy
+    } = playgroundSettings.value;
+
+    const base = {
+        date: new Date().setMinutes(0, 0, 0),
+        start_time: defaultStartTime,
+        reason:
+            !fastMode && lastEventValues.value.reason
+                ? lastEventValues.value.reason
+                : defaultReason,
+        reason_accepted:
+            !fastMode && lastEventValues.value.reason
+                ? lastEventValues.value.reason_accepted
+                : reasonAcceptedByDefault
+    } as EventInfo<T>;
+
+    if (eventType === 'lateness') {
+        return {
+            ...base,
+            late_by: dynamicTime
+                ? minutesAfterMidnight(new Date()) - defaultStartTime
+                : defaultLateBy
+        } as EventInfo<T>;
+    }
+
+    return base;
+};
+
+/* -------------------------------------------------------------------------- */
+/*                              Partial Toast                                 */
+/* -------------------------------------------------------------------------- */
+
+const createPartialAddToastMessage = (
+    eventType: EventTypes,
+    insertedCount: number,
+    skippedIds: number[]
+) => {
+    if (insertedCount) {
+        const summary =
+            eventType === 'absence'
+                ? absenceToastMessages.partialAddSuccess
+                : latenessToastMessages.partialAddSuccess;
+
+        toast.add({
+            severity: 'success',
+            summary: `${summary} ${insertedCount}`,
+            life: 3000
+        });
+    }
+
+    const summary =
+        eventType === 'absence'
+            ? absenceToastMessages.partialAddFailed
+            : latenessToastMessages.partialAddFailed;
+
+    const detail = skippedIds
+        .map((id) => {
+            const student = selectedStudents.value.find(
+                (s) => s.id === id
+            );
+
+            const className = studentStore.classOptions.find(
+                (c) => c.value === student?.class_id
+            )?.label;
+
+            return student
+                ? `${student.first_name} ${student.last_name} من قسم : ${className}`
+                : undefined;
+        })
+        .join('\n');
+
+    toast.add({
+        severity: 'error',
+        summary,
+        detail
+    });
+};
 </script>
