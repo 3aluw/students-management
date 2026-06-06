@@ -2,7 +2,7 @@ import { join } from "path";
 import Database from "better-sqlite3";
 
 // Create or connect to the database
-const dbPath = join(process.cwd(), "src/db/mydb.sqlite");
+const dbPath = join(process.cwd(), "src/db/db.sqlite");
 
 const db = new Database(dbPath);
 
