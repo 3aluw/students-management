@@ -9,7 +9,8 @@ import type {
   SchoolSeason,
   Lateness,
   SchoolTerm,
-  AllEntitiesKeys
+  AllEntitiesKeys,
+  StudentStatus
 } from "./types";
 
 export const genderOptions = [
@@ -58,6 +59,7 @@ export const ArabicStudentProperties: Record<keyof Student, string> = {
   phone_number: "رقم الهاتف",
   birth_date: "تاريخ الميلاد",
   address: "العنوان",
+  exited_at : "تاريخ المغادرة"
 };
 export const ArabicClassProperties: Record<keyof Class, string> = {
   id: "المعرف",
@@ -104,7 +106,12 @@ export const arabicProperties: Record<AllEntitiesKeys, string> = {
   ...ArabicSchoolSeasonProperties,
   ...ArabicSchoolTermProperties,
 }
-
+export const ArabicStudentStatus : Record<StudentStatus, string>={
+  active: "نشط",
+  graduated: "متخرج",
+  transferred: "محوّل",
+  dropped: "منسحب",
+}
 export const ArabicSchoolLevels: Record<SchoolLevel, string> = {
   primary: "ابتدائي",
   middle: "متوسط",
