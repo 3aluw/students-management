@@ -93,9 +93,9 @@
         </div>
         <Dialog header="أدخل معلومات القسم" @hide="studentToEdit = undefined" v-model:visible="showStudentDialog"
             :style="{ width: '350px' }" :modal="true">
-
             <UtilsEntityForm entityType="student" :entityObject="studentToEdit" @submit="handleStudentSubmit" />
         </Dialog>
+        
         <UtilsConfirmDialog header="حذف الطلبة" :danger="true" v-model="useDeleteConfirm.showConfirm.value"
             @confirm="useDeleteConfirm.confirmAction" />
         <UtilsConfirmDialog header="تحويل الطلبة" message="هل أنت متأكد من رغبتك في  التحويل إلى قسم آخر ؟"
@@ -242,8 +242,6 @@ const studentToEdit = ref<Student>();
 
 const handleStudentEditClick = () => {
     if (selectedStudents.value.length !== 1) return;
-
-
 
     studentToEdit.value = studentsToShow.value.find(
         (student) =>
