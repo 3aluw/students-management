@@ -37,8 +37,8 @@ db.prepare(
     status TEXT NOT NULL CHECK (status IN ('active', 'graduated' , 'dropped' , 'transferred')) DEFAULT 'active',
     exited_at INT DEFAULT NULL,
     CHECK (
-    (status = 'active' AND exited_at IS NULL) OR 
-    (status != 'active' AND exited_at IS NOT NULL)
+    (status = 'active' AND exited_at IS NULL AND class_id IS NOT NULL) OR 
+    (status != 'active' AND exited_at IS NOT NULL AND class_id IS NULL)
      )
     FOREIGN KEY (class_id) REFERENCES class(id)
     ON UPDATE CASCADE

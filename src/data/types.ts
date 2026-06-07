@@ -30,7 +30,7 @@ export interface Class {
  */
 export interface Student {
   id: number; // PRIMARY KEY AUTOINCREMENT
-  class_id: number; // FOREIGN KEY -> class.id (nullable)
+  class_id?: number; // FOREIGN KEY -> class.id (nullable in case of studnt quit)
   status : StudentStatus; // CHECK (status IN ('active', 'graduated', 'dropped', 'transferred')) DEFAULTS TO active
   first_name: string; // TEXT NOT NULL
   last_name: string; // TEXT NOT NULL
