@@ -15,6 +15,7 @@ const studentSchema = z.object({
     phone_number: z.string({ error: getRequiredFieldMessage("phone_number") }).length(10, { message: 'يجب إدخال رقم هاتف صحيح ' }),
     birth_date: z.number({ error: getRequiredFieldMessage("birth_date") }),
     address: z.string({ error: getRequiredFieldMessage("address") }).min(5, { message: 'يجب إدخال العنوان بدقة ' }).max(30),
+    exited_at: z.number({ error: getRequiredFieldMessage("exited_at") }).optional()
 }) satisfies z.ZodType<Student>
 
 const newStudentSchema = studentSchema.omit({ id: true }) satisfies z.ZodType<NewStudent>
@@ -64,7 +65,7 @@ const absenceSchema = z.object({
 }) satisfies z.ZodType<Absence>
 const newAbsenceSchema = absenceSchema.omit({ id: true }) satisfies z.ZodType<NewAbsence>
 const editAbsenceSchema = absenceSchema.partial().required({ id: true }) satisfies z.ZodType<EditStudent>
-const batchEditAbsenceSchema = editAbsenceSchema.omit({ id: true }).extend({ ids: z.array(z.number()) })  satisfies z.ZodType<BatchEditAbsence>
+const batchEditAbsenceSchema = editAbsenceSchema.omit({ id: true }).extend({ ids: z.array(z.number()) }) satisfies z.ZodType<BatchEditAbsence>
 
 export const absenceSchemas = { absenceSchema, newAbsenceSchema, editAbsenceSchema, batchEditAbsenceSchema }
 
