@@ -40,6 +40,7 @@ export interface Student {
   phone_number: string; // TEXT NOT NULL
   birth_date: number; // INT (timestamp)
   address: string; // TEXT NOT NULL
+  exited_at?: number // INT used for dropped - graduated - traansferred students
 }
 
 /**
