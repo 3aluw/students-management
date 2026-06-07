@@ -8,7 +8,7 @@ const db = new Database(dbPath);
 
 // Example: create a table if it doesn't exist
 
- //Create class table if not existent 
+//Create class table if not existent 
 db.prepare(`
   CREATE TABLE IF NOT EXISTS class (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -17,9 +17,9 @@ db.prepare(`
     section TEXT NOT NULL,
     UNIQUE (school_level, grade, section)
   )
-`).run(); 
+`).run();
 
-  
+
 //Create student table if not existent
 db.prepare(
   `
@@ -34,6 +34,12 @@ db.prepare(
     phone_number TEXT NOT NULL,
     birth_date INT NOT NULL,
     address TEXT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('active', 'graduated' , 'dropped' , 'transferred')) DEFAULT 'active',
+    exited_at INT DEFAULT NULL,
+    CHECK (
+    (status = 'active' AND exited_at IS NULL) OR 
+    (status != 'active' AND exited_at IS NOT NULL)
+     )
     FOREIGN KEY (class_id) REFERENCES class(id)
     ON UPDATE CASCADE
     ON DELETE CASCADE,
@@ -41,9 +47,9 @@ db.prepare(
   )
 `
 ).run();
- 
 
- db.prepare(
+
+db.prepare(
   `
   CREATE TABLE IF NOT EXISTS lateness (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -57,7 +63,7 @@ db.prepare(
     UNIQUE(student_id, date, late_by, start_time)
   )
 `
-).run(); 
+).run();
 
 
 db.prepare(
@@ -75,7 +81,7 @@ db.prepare(
 `
 ).run();
 
- db.prepare(
+db.prepare(
   `
 CREATE TABLE IF NOT EXISTS season (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -85,32 +91,32 @@ CREATE TABLE IF NOT EXISTS season (
 );
 `
 ).run();
- 
+
 
 /* db.prepare(
-    `INSERT INTO student (
+`INSERT INTO student (
   class_id, first_name, last_name, father_name, grandfather_name,
-  sex, phone_number, birth_date, address
+  sex, phone_number, birth_date, address, status, exited_at
 ) VALUES
-(1, 'أحمد', 'العسري', 'محمد', 'عبدالله', 'M', '0612345678', 20090115, 'الرباط'),
-(1, 'سارة', 'الطاهري', 'خالد', 'يوسف', 'F', '0611122233', 20100421, 'الدار البيضاء'),
-(1, 'مروان', 'بن علي', 'سعيد', 'عبد الكريم', 'M', '0678901234', 20081210, 'مراكش'),
-(1, 'ليلى', 'المغربي', 'حسن', 'عبد القادر', 'F', '0698765432', 20091107, 'فاس'),
-(1, 'يوسف', 'العمري', 'إدريس', 'مصطفى', 'M', '0654321987', 20080130, 'طنجة'),
+(1, 'أحمد', 'العسري', 'محمد', 'عبدالله', 'M', '0612345678', 20090115, 'الرباط', 'active', NULL),
+(1, 'سارة', 'الطاهري', 'خالد', 'يوسف', 'F', '0611122233', 20100421, 'الدار البيضاء', 'active', NULL),
+(1, 'مروان', 'بن علي', 'سعيد', 'عبد الكريم', 'M', '0678901234', 20081210, 'مراكش', 'active', NULL),
+(1, 'ليلى', 'المغربي', 'حسن', 'عبد القادر', 'F', '0698765432', 20091107, 'فاس', 'active', NULL),
+(1, 'يوسف', 'العمري', 'إدريس', 'مصطفى', 'M', '0654321987', 20080130, 'طنجة', 'active', NULL),
 
-(2, 'خديجة', 'السباعي', 'أمين', 'عبدالسلام', 'F', '0645678123', 20090225, 'القنيطرة'),
-(2, 'عمر', 'العربي', 'سليمان', 'الحسين', 'M', '0667890123', 20080514, 'سلا'),
-(2, 'نور', 'بن صالح', 'كمال', 'عبدالرحيم', 'F', '0634567890', 20090312, 'مكناس'),
-(2, 'أنس', 'الزهراء', 'طارق', 'عبد الجليل', 'M', '0610987654', 20100105, 'أكادير'),
-(2, 'هبة', 'العلوي', 'نزار', 'عبد المجيد', 'F', '0623456789', 20090618, 'وجدة');
+(2, 'خديجة', 'السباعي', 'أمين', 'عبدالسلام', 'F', '0645678123', 20090225, 'القنيطرة', 'active', NULL),
+(2, 'عمر', 'العربي', 'سليمان', 'الحسين', 'M', '0667890123', 20080514, 'سلا', 'active', NULL),
+(2, 'نور', 'بن صالح', 'كمال', 'عبدالرحيم', 'F', '0634567890', 20090312, 'مكناس', 'active', NULL),
+(2, 'أنس', 'الزهراء', 'طارق', 'عبد الجليل', 'M', '0610987654', 20100105, 'أكادير', 'active', NULL),
+(2, 'هبة', 'العلوي', 'نزار', 'عبد المجيد', 'F', '0623456789', 20090618, 'وجدة', 'active', NULL);
 `
-).run() */
+).run(); */
 
-/* 
+ 
 // DROP TABLES
- db.prepare('DROP TABLE class').run()
-db.prepare('DROP TABLE student').run()
-db.prepare('DROP TABLE Lateness').run()
-db.prepare('DROP TABLE absence').run() */
+//db.prepare('DROP TABLE class').run()
+//db.prepare('DROP TABLE student').run()
+//db.prepare('DROP TABLE Lateness').run()
+//db.prepare('DROP TABLE absence').run() 
 
 export default db;
