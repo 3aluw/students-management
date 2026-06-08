@@ -33,11 +33,11 @@ import { ArabicStudentStatus } from "~/data/static"
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import type { FormSubmitEvent } from "@primevue/forms"
 import { z } from 'zod';
-import type { Student, StudentStatus } from "~/data/types";
+import type { InactiveStudent, StudentStatus } from "~/data/types";
 
 const emit = defineEmits<{
     (e: 'delete'): void;
-    (e: 'change-status', student: Pick<Student, "status" | "exited_at">): void;
+    (e: 'change-status', student: Pick<InactiveStudent, "status" | "exited_at">): void;
 }>()
 
 const getFormInitialValue = () => {
@@ -48,7 +48,7 @@ const getFormInitialValue = () => {
 }
 
 
-const studentQuitStatus = ["dropped", "transferred", "graduated"] as const;
+
 const selectOptions = Object.entries(ArabicStudentStatus).filter((i) => i[0] !== "active").map(([key, arabicTxt]) => ({
     label: "تسجيل التلميذ كـ" + arabicTxt,
     value: key,
@@ -65,7 +65,6 @@ const deleteStudentsSchema = z.object({
 const resolver = zodResolver(deleteStudentsSchema);
 
 const onFormSubmit = (event: FormSubmitEvent) => {
-    console.log(event);
     if (event.values.status === "delete") {
         emit("delete");
     } else {
