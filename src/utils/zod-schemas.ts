@@ -1,26 +1,48 @@
 import { z } from 'zod';
-import type { Absence, BatchEditAbsence, BatchEditLateness, BatchEditStudent, Class, EditClass, EditLateness, EditSchoolSeason, EditStudent, Lateness, NewAbsence, NewClass, NewLateness, NewSchoolSeason, NewSeasonPayload, NewStudent, SchoolSeason, Student, } from '~/data/types';
+import type { Absence, ActiveStudent, BaseStudent, BatchEditAbsence, BatchEditLateness, BatchEditStudent, Class, EditClass, EditLateness, EditSchoolSeason, EditStudent, InactiveStudent, Lateness, NewAbsence, NewClass, NewLateness, NewSchoolSeason, NewSeasonPayload, NewStudent, SchoolSeason, Student, } from '~/data/types';
 import { getRequiredFieldMessage } from "~/utils/arabic-properties"
 
 // ========== Student schemas ==========
-const studentSchema = z.object({
+const studentBaseSchema = z.object({
     id: z.number({ error: getRequiredFieldMessage("id") }),
-    status: z.enum(['active', 'graduated', 'dropped', 'transferred'], { error: getRequiredFieldMessage("status") }),
     first_name: z.string({ error: getRequiredFieldMessage("first_name") }).min(3, { message: 'يجب إدخال اسم الطالب كاملا' }).max(15),
     last_name: z.string({ error: getRequiredFieldMessage("last_name") }).min(3, { message: 'يجب إدخال اللقب كاملا ' }).max(15),
     father_name: z.string({ error: getRequiredFieldMessage("father_name") }).min(3, { message: 'يجب استكمال اسم الأب ' }).max(15),
     grandfather_name: z.string({ error: getRequiredFieldMessage("grandfather_name") }).min(3, { message: 'يجب استكمال اسم الجد ' }).max(15),
-    class_id: z.number({ error: getRequiredFieldMessage("class_id") }),
     sex: z.literal(['F', 'M'], { error: getRequiredFieldMessage("sex") }),
     phone_number: z.string({ error: getRequiredFieldMessage("phone_number") }).length(10, { message: 'يجب إدخال رقم هاتف صحيح ' }),
     birth_date: z.number({ error: getRequiredFieldMessage("birth_date") }),
     address: z.string({ error: getRequiredFieldMessage("address") }).min(5, { message: 'يجب إدخال العنوان بدقة ' }).max(30),
-    exited_at: z.number({ error: getRequiredFieldMessage("exited_at") }).optional()
-}) satisfies z.ZodType<Student>
+}) satisfies z.ZodType<BaseStudent>
 
-const newStudentSchema = studentSchema.omit({ id: true }) satisfies z.ZodType<NewStudent>
-const editStudentSchema = studentSchema.partial().required({ id: true }) satisfies z.ZodType<EditStudent>
-const batchEditStudentSchema = editStudentSchema.omit({ id: true }).extend({ ids: z.array(z.number()) }) satisfies z.ZodType<BatchEditStudent>
+const activeStudentSchema = studentBaseSchema.extend({
+    class_id: z.number({ error: getRequiredFieldMessage("class_id") }),
+    status: z.literal('active', { error: getRequiredFieldMessage("status") }),
+    exited_at: z.null().optional()
+}) satisfies z.ZodType<ActiveStudent>
+
+const inactiveStudentSchema = studentBaseSchema.extend({
+    class_id: z.null({ error: getRequiredFieldMessage("class_id") }),
+    status: z.enum(['dropped', 'transferred', 'graduated'], { error: getRequiredFieldMessage("status") }),
+    exited_at: z.number({ error: getRequiredFieldMessage("exited_at") })
+}) satisfies z.ZodType<InactiveStudent>
+
+const studentSchema = z.discriminatedUnion("status", [
+    activeStudentSchema,
+    inactiveStudentSchema,
+]) satisfies z.ZodType<Student>
+
+const newStudentSchema = activeStudentSchema.omit({ id: true }) satisfies z.ZodType<NewStudent>
+
+const editStudentSchema = z.union([
+    activeStudentSchema.partial().required({ id: true }),
+    inactiveStudentSchema.partial().required({ id: true }),
+]) satisfies z.ZodType<EditStudent>
+
+const batchEditStudentSchema = z.union([
+    activeStudentSchema.partial().omit({ id: true }).extend({ ids: z.array(z.number()) }),
+    inactiveStudentSchema.partial().omit({ id: true }).extend({ ids: z.array(z.number()) }),
+]) satisfies z.ZodType<BatchEditStudent>
 
 export const studentSchemas = { studentSchema, newStudentSchema, editStudentSchema, batchEditStudentSchema }
 
