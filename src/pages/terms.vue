@@ -51,7 +51,7 @@
     </Dialog>
 
     <Dialog class="max-w-128" header="موسم دراسي جديد" v-model:visible="showNewSeasonDialog" :modal="true">
-      <NewSchoolSeasonForm :isLastSeasonCurrent @create-season="handleSeasonCreation" />
+      <NewSchoolSeasonForm :isLatestSeasonCurrent @create-season="handleSeasonCreation" />
     </Dialog>
   </div>
 </template>
@@ -132,20 +132,19 @@ const formatSeasonBadgeProps = (
 /*                            Season Creation                                 */
 /* -------------------------------------------------------------------------- */
 
-const lastSeasonStatus = computed(() => {
-  const lastNode = nodes.value.at(-1);
-
-  return lastNode?.data.status;
+const latestSeasonStatus = computed(() => {
+  const firstNode = nodes.value[0];
+  return firstNode?.data.status;
 });
 
-const isLastSeasonCurrent = computed(
-  () => lastSeasonStatus.value === 'current'
+const isLatestSeasonCurrent = computed(
+  () => latestSeasonStatus.value === 'current'
 );
 
 const handleSeasonCreation = async (
   payload: NewSeasonPayload
 ) => {
-  if (lastSeasonStatus.value === 'future') {
+  if (latestSeasonStatus.value === 'future') {
     toast.add({
       severity: 'error',
       summary: 'خطأ في إنشاء الموسم الدراسي',

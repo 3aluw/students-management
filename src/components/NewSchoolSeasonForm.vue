@@ -12,7 +12,7 @@
                 <!-- Step 1 : add season data -->
                 <StepPanel v-slot="{ activateCallback }" value="1">
                     <div class="flex flex-col gap-4">
-                        <div class="my-2" v-show="props.isLastSeasonCurrent">
+                        <div class="my-2" v-show="props.isLatestSeasonCurrent">
                             <div class="flex items-center" v-tooltip="terminateCurrentSeasonTooltipText">
                                 <label for="terminateCurrentSeasonCheckbox">
                                     <p class="text-lg font-bold">إنهاء الموسم الدراسي الحالي</p>
@@ -76,7 +76,7 @@
 import type { NewSchoolSeason, NewSeasonPayload, ClassPromotionMap, Student } from '~/data/types';
 /*A prop used to suggest current season termination to the user */
 const props = defineProps<{
-    isLastSeasonCurrent: boolean;
+    isLatestSeasonCurrent: boolean;
 }>();
 
 // ========== MAIN FORM REACTIVE REFERENCES ==========
@@ -123,7 +123,7 @@ const handleNewSeasonValues = (...args: [valid: false] | [valid: true, season: N
     }
 }
 // Step 2 logic 
-const allowStudentPromotion = computed(() => seasonTerminationActive.value || !props.isLastSeasonCurrent)
+const allowStudentPromotion = computed(() => seasonTerminationActive.value || !props.isLatestSeasonCurrent)
 const studentPromotionActive = ref(false)  // whether the user wants to promote students or not; used in the final emitted payload
 const studentPromotionFormRef = ref<null | { promotionMapObject: Record<number, number> }>(null) // a ref to the students promotion component (used to get teh exposed data)
 
