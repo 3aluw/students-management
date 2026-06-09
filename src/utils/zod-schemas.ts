@@ -156,7 +156,7 @@ const NewSeasonPayloadSchema = z.object({
     repeaters: z.array(z.number(), { error: "توجد مشكلة في قائمة المعيدين" })
 }) satisfies z.ZodType<NewSeasonPayload>
 
-export const seasonSchemas = { editSeasonSchema, NewSeasonPayloadSchema }
+export const seasonSchemas = { editSeasonSchema, NewSeasonPayloadSchema,newSeasonSchema }
 
 // ========== Other schemas (to be used across DELETE endpoints)==========
 export const DeleteBodySchema = z.array(z.number().int().positive()).min(1);
