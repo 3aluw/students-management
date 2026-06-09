@@ -25,7 +25,7 @@ db.prepare(
   `
   CREATE TABLE IF NOT EXISTS student (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    class_id INTEGER NOT NULL,
+    class_id INTEGER,
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
     father_name TEXT NOT NULL,
