@@ -2,6 +2,8 @@
     <div class="flex flex-col gap-4" :class="{ card: !isSeasonNew }">
         <Form ref="form" :initialValues="formatSeason()" :resolver="resolver" class="flex flex-col gap-4"
             @submit="onSubmit" v-slot="$form" :key="formKey">
+
+
             <!-- Season name -->
             <div class="flex flex-col gap-1">
                 <InputText name="id" hidden fluid />
@@ -75,6 +77,7 @@
 <script setup lang="ts">
 import type { NewSchoolSeason, SchoolSeason, SeasonStatus } from '~/data/types';
 import { yupResolver } from '@primevue/forms/resolvers/yup';
+import { zodResolver } from '@primevue/forms/resolvers/zod';
 import * as yup from 'yup';
 import type { FormInstance, FormSubmitEvent } from '@primevue/forms';
 
@@ -91,7 +94,8 @@ const isSeasonArchived = computed(() => props.status === 'past')
 const isSeasonNew = computed(() => props.status === 'new')
 const form = ref<FormInstance | null>(null)
 /* Converts timestamps to dates to be usable by PrimeVue datePicker */
-const formatSeason = (season: SchoolSeason | NewSchoolSeason = props.season) => {
+const sObj = ref()
+const formatSeason = (season: SchoolSeason | NewSchoolSeason = sObj.value ?? props.season) => {
     const base = {
         name: season.name,
         terms: season.terms.map(term => formatDatesForTerm(term))
@@ -132,6 +136,8 @@ const formKey = ref(1);
 const season = ref(formatSeason());
 
 const resolver = yupResolver(yupSchema);
+const zodSchema = seasonSchemas.newSeasonSchema
+const zResolver = zodResolver(zodSchema)
 
 const addTerm = () => {
     season.value.terms.push({
@@ -139,11 +145,14 @@ const addTerm = () => {
         startDate: undefined,
         endDate: undefined,
     });
+    sObj.value = season.value
     formKey.value++;
 };
 
 const removeTerm = (index: number) => {
     season.value.terms.splice(index, 1);
+    console.log("model season", season.value)
+    sObj.value = season.value
     formKey.value++;
 };
 
