@@ -7,9 +7,12 @@ import {
   NewSeasonPayload,
   SchoolSeason,
 } from "~/data/types";
-import { getSeasonStatus } from "~/utils/season";
-
-const terminateCurrent =  () => {
+import { getSeasonStatus, getSeasonStartAndEndDates } from "~/utils/season";
+/* -------------------------------------------------------------------------- */
+/*                              Internal Functions                            */
+/* -------------------------------------------------------------------------- */
+// ==========  Termintes current season ==========
+const terminateCurrent = () => {
   const currentSeason = seasonRepo.getCurrentSeason();
   if (!currentSeason) return;
   let terms = JSON.parse(currentSeason.terms) as SchoolSeason["terms"];
@@ -24,9 +27,49 @@ const terminateCurrent =  () => {
   }
   seasonRepo.editSeason({ ...currentSeason, terms });
 }
-const getLastEndedSeason = () =>{
-  const season = seasonRepo.getSeasons()
-}
+
+
+// ==========  validates if the season collides with an existing season ==========
+const validateSeasonCollision = (
+  newSeason: NewSchoolSeason,
+  terminateCurrentSeason: boolean,
+) => {
+  const seasonStart = newSeason.terms[0].startDate;
+  const collapsingSeasonStmt = db.prepare(`
+  SELECT s.*
+  FROM season s
+  WHERE EXISTS (
+      SELECT 1
+      FROM json_each(s.terms) AS t
+      WHERE json_extract(t.value, '$.endDate') > ?
+  )
+`);
+  const collapsingSeason = collapsingSeasonStmt.all(seasonStart) as
+    | SchoolSeason[]
+    | undefined;
+  // if not collision ; return undefined
+  if (!collapsingSeason) return true;
+
+  // check weather the collision is happening with the current season which the user is about terminating or with other season
+  const verifiedCollapsingSeason = collapsingSeason.find((season) => {
+    const status = getSeasonStatus(season);
+
+    // Acceptable collision only if it's the current season AND user is terminating it
+    if (status === "current" && terminateCurrentSeason) return false;
+
+    // Any other season collision is considered verified
+    return true;
+  });
+  console.log("verified collapsing season:", verifiedCollapsingSeason);
+
+  if (verifiedCollapsingSeason) {
+    throw new Error(
+      `الموسم الجديد تتقاطع تواريخه مع الموسم : ${verifiedCollapsingSeason.name}`,
+    );
+  } else {
+    return true;
+  }
+};
 export const seasonService = {
   runNewSeasonWorkflow(payload: NewSeasonPayload) {
     validateSeasonCollision(payload.newSeason, payload.terminateCurrentSeason);
@@ -108,46 +151,13 @@ export const seasonService = {
     return {
       message: "تم حذف الموسم المحدد",
     };
-  }
+  },
+  lastSeasonEndDate  ()  {
+  const seasons = seasonRepo.getSeasons()
+  const lastSeason = seasons.find((s) => getSeasonStatus(s) === "past")
+  return lastSeason ? getSeasonStartAndEndDates(lastSeason).endDate : undefined
+
+}
 };
-// ========== INTERNAL : validates if the season collides with an existing season ==========
-const validateSeasonCollision = (
-  newSeason: NewSchoolSeason,
-  terminateCurrentSeason: boolean,
-) => {
-  const seasonStart = newSeason.terms[0].startDate;
-  const collapsingSeasonStmt = db.prepare(`
-  SELECT s.*
-  FROM season s
-  WHERE EXISTS (
-      SELECT 1
-      FROM json_each(s.terms) AS t
-      WHERE json_extract(t.value, '$.endDate') > ?
-  )
-`);
-  const collapsingSeason = collapsingSeasonStmt.all(seasonStart) as
-    | SchoolSeason[]
-    | undefined;
-  // if not collision ; return undefined
-  if (!collapsingSeason) return true;
 
-  // check weather the collision is happening with the current season which the user is about terminating or with other season
-  const verifiedCollapsingSeason = collapsingSeason.find((season) => {
-    const status = getSeasonStatus(season);
 
-    // Acceptable collision only if it's the current season AND user is terminating it
-    if (status === "current" && terminateCurrentSeason) return false;
-
-    // Any other season collision is considered verified
-    return true;
-  });
-  console.log("verified collapsing season:", verifiedCollapsingSeason);
-
-  if (verifiedCollapsingSeason) {
-    throw new Error(
-      `الموسم الجديد تتقاطع تواريخه مع الموسم : ${verifiedCollapsingSeason.name}`,
-    );
-  } else {
-    return true;
-  }
-};
