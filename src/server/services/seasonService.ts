@@ -9,6 +9,24 @@ import {
 } from "~/data/types";
 import { getSeasonStatus } from "~/utils/season";
 
+const terminateCurrent =  () => {
+  const currentSeason = seasonRepo.getCurrentSeason();
+  if (!currentSeason) return;
+  let terms = JSON.parse(currentSeason.terms) as SchoolSeason["terms"];
+
+  const now = new Date().getTime();
+  terms = terms
+    .filter((term) => term.startDate < now)
+    .sort((a, b) => a.endDate - b.endDate);
+  const lastTerm = terms.at(-1);
+  if (lastTerm) {
+    lastTerm.endDate = new Date().setHours(24, 0, 0, 0);
+  }
+  seasonRepo.editSeason({ ...currentSeason, terms });
+}
+const getLastEndedSeason = () =>{
+  const season = seasonRepo.getSeasons()
+}
 export const seasonService = {
   runNewSeasonWorkflow(payload: NewSeasonPayload) {
     validateSeasonCollision(payload.newSeason, payload.terminateCurrentSeason);
@@ -28,7 +46,7 @@ export const seasonService = {
         // ========== Season functions==========
         {
           name: "إنهاء الموسم الحالي",
-          run: () => seasonRepo.terminateCurrent(),
+          run: () => terminateCurrent(),
           when: () => terminateCurrentSeason,
         },
         {

@@ -69,22 +69,7 @@ export const seasonRepo = {
     return stmt.get(currentDate, currentDate) as sqliteSchoolSeason | undefined;
   },
 
-  terminateCurrent() {
-    console.log('terminating current season at repo level');
-    const currentSeason = this.getCurrentSeason();
-    if (!currentSeason) return;
-    let terms = JSON.parse(currentSeason.terms) as SchoolSeason["terms"];
 
-    const now = new Date().getTime();
-    terms = terms
-      .filter((term) => term.startDate < now)
-      .sort((a, b) => a.endDate - b.endDate);
-    const lastTerm = terms.at(-1);
-    if (lastTerm) {
-      lastTerm.endDate = new Date().setHours(24, 0, 0, 0);
-    }
-    this.editSeason({ ...currentSeason, terms });
-  },
 
 
 };
