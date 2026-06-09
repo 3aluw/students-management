@@ -4,12 +4,22 @@ import db from "~/db/db";
 type sqliteSchoolSeason = Omit<SchoolSeason, "terms"> & { terms: string };
 
 export const seasonRepo = {
-
+//gets season ordered DESC accroding to end date
   getSeasons() {
-    const stmt = db.prepare('SELECT * FROM season');
+    const stmt = db.prepare(`WITH ranked_seasons AS (
+    SELECT s.*,
+           MAX(json_extract(t.value, '$.endDate')) AS latest_end
+    FROM season s
+    JOIN json_each(s.terms) AS t
+    GROUP BY s.id
+    )
+    SELECT id, name, terms
+    FROM ranked_seasons
+    ORDER BY latest_end DESC`);
     const seasons = stmt.all() as (Omit<SchoolSeason, "terms"> & {
       terms: string;
     })[];
+
     const parsedSeasons: SchoolSeason[] = seasons.map((season) => ({
       ...season,
       terms: JSON.parse(season.terms) as SchoolSeason["terms"],
