@@ -5,7 +5,7 @@ import type {
 } from "~/data/types";
 
 // ========== Season functions ==========
-// ========== WARNING: The function getSeasonStatus it used by server; So this files has to be pure JS and free from browsser APIs / Vue reactive peorperties like refs... ==========
+// ========== WARNING: Some functions (getSeasonStatus-getSeasonStartAndEndDates) are used by server; So this files has to be pure JS and free from browsser APIs / Vue reactive peorperties like refs... ==========
 export const getSeasonStatus = (season: SchoolSeason): SeasonStatus => {
     const seasonDates = getSeasonStartAndEndDates(season);
     const now = Date.now();
@@ -17,8 +17,7 @@ export const getSeasonStatus = (season: SchoolSeason): SeasonStatus => {
                 : "current";
     return seasonStatus;
 };
-
-const getSeasonStartAndEndDates = (season: SchoolSeason) => {
+export const getSeasonStartAndEndDates = (season: SchoolSeason) => {
     return {
         name: season.name,
         startDate: season.terms[0].startDate,

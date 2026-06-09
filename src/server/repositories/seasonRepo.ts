@@ -4,7 +4,8 @@ import db from "~/db/db";
 type sqliteSchoolSeason = Omit<SchoolSeason, "terms"> & { terms: string };
 
 export const seasonRepo = {
-//gets season ordered DESC accroding to end date
+//gets season ordered DESC accroding to largest end date in terms array
+// getLastEndedSeason() at season service is dependent on the DESC order
   getSeasons() {
     const stmt = db.prepare(`WITH ranked_seasons AS (
     SELECT s.*,

@@ -1,5 +1,6 @@
 import { BatchEditStudent, ClassPromotionMap, EditStudent, NewStudent, Student } from "~/data/types";
 import db from "~/db/db";
+import { seasonService } from "../services/seasonService";
 
 
 export const studentRepo = {
@@ -88,6 +89,9 @@ export const studentRepo = {
       graduatingClassIds,
       1,
     );
+    // get last season end date to set it as exited_at for garuating students
+    const exited_at = seasonService.lastSeasonEndDate() ?? new Date().setHours(24, 0, 0, 0)
+    const formattedExited_at = generateSqlCTEValues([exited_at], 1)
 
     // get pure promotion map (without graduating classes) then write them in this sql syntax  (1, 4)
     const purePromotionMap = Object.entries(promotionMap).filter(
@@ -106,6 +110,9 @@ graduatingClassIds(class_id) AS (
 promotion_map(from_class_id, to_class_id) AS (
   VALUES ${formattedPromotionMap}
 ),
+exit_dates(exit_date) AS (
+  VALUES ${formattedExited_at}
+),
 repeaters(student_id) AS (
   VALUES ${formattedRepeatersIds}
 )
@@ -122,16 +129,22 @@ SET
     )
   END,
 
-    status = CASE
+  status = CASE
     WHEN id IN (SELECT student_id FROM repeaters) THEN status
     WHEN class_id IN (SELECT class_id FROM graduatingClassIds) THEN 'graduated'
     ELSE status
+  END,
+
+  exited_at = CASE
+    WHEN id IN (SELECT student_id FROM repeaters) THEN exited_at
+    WHEN class_id IN (SELECT class_id FROM graduatingClassIds)
+      THEN (SELECT exit_date FROM exit_dates LIMIT 1)
+    ELSE exited_at
   END
 
-WHERE 
-  id IN (SELECT student_id FROM repeaters)
-  OR class_id IN (SELECT class_id FROM graduatingClassIds)
-  OR class_id IN (SELECT from_class_id FROM promotion_map);
+  WHERE 
+    class_id IN (SELECT class_id FROM graduatingClassIds)
+    OR class_id IN (SELECT from_class_id FROM promotion_map);
 `;
     db.exec(sql);
 
