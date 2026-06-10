@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col gap-4" :class="{ card: !isSeasonNew }">
-        <Form ref="form" :initialValues="formatSeason()" :resolver="resolver" class="flex flex-col gap-4"
+        <Form v-if="season" ref="form" :initialValues="formatSeason()" :resolver="resolver" class="flex flex-col gap-4"
             @submit="onSubmit" v-slot="$form" :key="formKey">
 
 
@@ -98,16 +98,18 @@ const isSeasonArchived = computed(() => props.status === 'past')
 const isSeasonNew = computed(() => props.status === 'new')
 const form = ref<FormInstance | null>(null)
 /* Converts timestamps to dates to be usable by PrimeVue datePicker */
-const sObj = ref()
-const formatSeason = (season: SchoolSeason | NewSchoolSeason = sObj.value ?? props.season) => {
-    const base = {
-        name: season.name,
-        terms: season.terms.map(term => formatDatesForTerm(term))
+const season = ref<FormNewSeason | FormSeason>()
+const formatSeason = (seasonObj: SchoolSeason | NewSchoolSeason | FormNewSeason | FormSeason = season.value ?? props.season): FormNewSeason | FormSeason => {
+    const base: FormNewSeason = {
+        name: seasonObj.name,
+        terms: seasonObj.terms.map(term => formatDatesForTerm(term))
     }
-    return !("id" in season) ? base : { ...base, id: season.id }
+    return !("id" in seasonObj) ? base : { ...base, id: seasonObj.id }
 }
 
-
+onMounted(() => {
+    season.value = formatSeason()
+})
 const yupSchema: yup.ObjectSchema<Omit<SchoolSeason, 'id'>> =
     yup.object().shape({
         name: yup.string().required(getRequiredFieldMessage('اسم السنة الدراسية')).min(4, 'اسم السنة الدراسية يجب أن يكون على الأقل 4 أحرف'),
@@ -137,7 +139,7 @@ const yupSchema: yup.ObjectSchema<Omit<SchoolSeason, 'id'>> =
     })
 
 const formKey = ref(1);
-const season = ref(formatSeason());
+
 
 const resolver = yupResolver(yupSchema);
 const zodSchema = seasonSchemas.newSeasonSchema
@@ -151,19 +153,17 @@ const zResolver = zodResolver(zodSchema)
     };
 };
 const addTerm = () => {
-    season.value.terms.push({
+    season.value?.terms.push({
         name: '',
         startDate: undefined,
         endDate: undefined,
     });
-    sObj.value = season.value
     formKey.value++;
 };
 
 const removeTerm = (index: number) => {
-    season.value.terms.splice(index, 1);
+    season.value?.terms.splice(index, 1);
     console.log("model season", season.value)
-    sObj.value = season.value
     formKey.value++;
 };
 
