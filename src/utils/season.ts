@@ -19,6 +19,7 @@ export const getSeasonStatus = (season: SchoolSeason): SeasonStatus => {
 };
 export const getSeasonStartAndEndDates = (season: SchoolSeason) => {
     return {
+        id: season.id,
         name: season.name,
         startDate: season.terms[0].startDate,
         endDate: season.terms[season.terms.length - 1].endDate,
@@ -26,9 +27,12 @@ export const getSeasonStartAndEndDates = (season: SchoolSeason) => {
 };
 export const getCollapsingSeasonIds = (seasons: SchoolSeason[]) => {
     const seasonDates = seasons.map(getSeasonStartAndEndDates);
-    for (let i = 1; i < seasonDates.length; i++) {
-        if (seasonDates[i].startDate < seasonDates[i - 1].endDate) {
-            return [seasons[i - 1].id, seasons[i].id];
+    for (let i = 0; i < seasonDates.length - 1; i++) {
+        const current = seasonDates[i];
+        const past = seasonDates[i + 1];  //sicne season are ordered DESC; the next item in the array is the previous season
+
+        if (current.startDate < past.endDate) {
+            return [current.id, past.id];
         }
     }
     return undefined;
