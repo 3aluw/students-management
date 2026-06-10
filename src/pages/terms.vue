@@ -5,7 +5,6 @@
       <!-- add season button: shows only If there is no future season -->
       <Button v-if="!nodes.some((seasonNode) => seasonNode.data.status === 'future')" label="موسم دراسي جديد"
         icon="pi pi-plus" iconPos="right" severity="secondary" class="mx-2" @click="showNewSeasonDialog = true" />
-      <Button label="موسم دراسي سريع test" @click="handleTestSeasonCreation" />
     </div>
 
     <TreeTable :value="nodes">
@@ -261,26 +260,4 @@ const handleSeasonEditSubmit = async (
   }
 };
 
-const testPayload: NewSeasonPayload = {
-  "terminateCurrentSeason": true,
-  "newSeason": {
-    "terms": [
-      {
-        "endDate": 1780182000000,
-        "startDate": 1775214569035,
-        "name": "الربيع"
-      }
-    ],
-    "name": "2026 أخيرة"
-  },
-  "classPromotionMap": {
-    "1": 3,
-    "2": 3,
-    "3": -1
-  },
-  "repeaters": [12, 4, 5]
-}
-const handleTestSeasonCreation = async () => {
-  handleSeasonCreation(testPayload)
-}
 </script>
