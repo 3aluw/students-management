@@ -5,7 +5,7 @@ import AppMenuItem from './AppMenuItem.vue';
 
 const model = ref([
     {
-        label: 'الجداول',
+        label: 'الغياب والتأخر',
         items: [
             { label: 'ساحة العمل', icon: 'pi pi-fw pi-briefcase', to: '/playground' },
             { label: 'الإبطاءات', icon: 'pi pi-fw pi-clock', to: '/lateness' },
@@ -20,6 +20,7 @@ const model = ref([
             { label: 'الطلبة', icon: 'pi pi-fw pi-graduation-cap', to: '/students' },
             { label: 'الأقسام', icon: 'pi pi-fw pi-building-columns', to: '/classes' },
             { label: 'المواسم الدراسية', icon: 'pi pi-fw pi-calendar', to: '/terms' },
+            { label: 'أرشيف الطلبة', icon: 'pi pi-fw pi-history', to: '/archive' },
 
         ]
     },
