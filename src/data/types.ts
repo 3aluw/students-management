@@ -5,12 +5,15 @@ import type { ZodError } from "zod";
  */
 export type NewEntity<T extends { id: any }> = Omit<T, "id">;
 
-type PartialExceptId<T extends { id: number }> = Partial<Omit<T, "id">> &
-  Pick<T, "id">;
+type PartialExceptId<T extends { id: number }> = T extends any ? Partial<Omit<T, "id">> &
+  Pick<T, "id"> : never;
 
-type BatchEdit<T extends AllEntitiesUnion> = Partial<Omit<T, "id">> & {
-  ids: number[];
-};
+type BatchEdit<T extends AllEntitiesUnion> =
+  T extends any
+  ? {
+    ids: number[];
+  } & Partial<Omit<T, "id">>
+  : never;
 
 export type DataTableSlot<T> = { data: T };
 
@@ -28,19 +31,44 @@ export interface Class {
 /**
  * Represents a row in the `student` table.
  */
-export interface Student {
+
+type InactiveStudentStatus =
+  | "graduated"
+  | "dropped"
+  | "transferred";
+
+export interface BaseStudent {
   id: number; // PRIMARY KEY AUTOINCREMENT
-  class_id: number; // FOREIGN KEY -> class.id (nullable)
-  status : StudentStatus; // CHECK (status IN ('active', 'graduated', 'dropped', 'transferred')) DEFAULTS TO active
   first_name: string; // TEXT NOT NULL
   last_name: string; // TEXT NOT NULL
   father_name: string; // TEXT NOT NULL
   grandfather_name: string; // TEXT NOT NULL
-  sex: Gender; // CHECK (sex IN ('M', 'F')) DEFAULT 'M'
+  sex: Gender;  // CHECK (sex IN ('M', 'F')) DEFAULT 'M'
   phone_number: string; // TEXT NOT NULL
   birth_date: number; // INT (timestamp)
   address: string; // TEXT NOT NULL
 }
+
+export interface ActiveStudent extends BaseStudent {
+  status: "active";
+
+  class_id: number;
+
+  exited_at?: null;
+}
+
+export interface InactiveStudent extends BaseStudent {
+  status: InactiveStudentStatus;
+
+  class_id: null;
+
+  exited_at: number;
+}
+/**
+ * Represents a row in the `Student` table.
+ */
+export type Student = ActiveStudent | InactiveStudent;
+
 
 /**
  * Represents a row in the `Lateness` table.
@@ -82,7 +110,7 @@ export interface SchoolTerm {
 export type AllEntitiesUnion = Student | Class | Absence | Lateness | SchoolSeason;
 export type AllEntitiesKeys = keyof (Student & Class & Absence & Lateness & SchoolSeason & SchoolTerm)
 
-export type NewStudent = NewEntity<Student>;
+export type NewStudent = NewEntity<ActiveStudent>;
 export type NewClass = NewEntity<Class>;
 export type NewLateness = NewEntity<Lateness>;
 export type NewAbsence = NewEntity<Absence>;
@@ -97,6 +125,7 @@ export type EditSchoolSeason = PartialExceptId<SchoolSeason>;
 export type BatchEditStudent = BatchEdit<Student>;
 export type BatchEditAbsence = BatchEdit<Absence>;
 export type BatchEditLateness = BatchEdit<Lateness>;
+
 
 export type AbsenceInfo = Omit<Absence, "student_id" | "id">;
 export type LatenessInfo = Omit<Lateness, "student_id" | "id">;
@@ -147,20 +176,20 @@ export type ClassPromotionMap = Record<string, number>;
 export type NewSeasonPayload = {
   terminateCurrentSeason: boolean;
   newSeason: NewSchoolSeason;
-  classPromotionMap: ClassPromotionMap 
-  repeaters: Student["id"][] ;
+  classPromotionMap: ClassPromotionMap
+  repeaters: Student["id"][];
 };
 
 // ========== BACKEND ERROR TYPES ==========
 
- type BackendBaseError =  {
+type BackendBaseError = {
   statusCode: number,
-  message : string,
-} 
-export type BackendValidationError =  BackendBaseError & {
-data : {
-  issues : ZodError["issues"]
+  message: string,
 }
+export type BackendValidationError = BackendBaseError & {
+  data: {
+    issues: ZodError["issues"]
+  }
 }
 
 

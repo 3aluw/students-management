@@ -5,7 +5,6 @@
       <!-- add season button: shows only If there is no future season -->
       <Button v-if="!nodes.some((seasonNode) => seasonNode.data.status === 'future')" label="موسم دراسي جديد"
         icon="pi pi-plus" iconPos="right" severity="secondary" class="mx-2" @click="showNewSeasonDialog = true" />
-      <Button label="موسم دراسي سريع test" @click="handleTestSeasonCreation" />
     </div>
 
     <TreeTable :value="nodes">
@@ -51,7 +50,7 @@
     </Dialog>
 
     <Dialog class="max-w-128" header="موسم دراسي جديد" v-model:visible="showNewSeasonDialog" :modal="true">
-      <NewSchoolSeasonForm :isLastSeasonCurrent @create-season="handleSeasonCreation" />
+      <NewSchoolSeasonForm :isLatestSeasonCurrent @create-season="handleSeasonCreation" />
     </Dialog>
   </div>
 </template>
@@ -132,20 +131,19 @@ const formatSeasonBadgeProps = (
 /*                            Season Creation                                 */
 /* -------------------------------------------------------------------------- */
 
-const lastSeasonStatus = computed(() => {
-  const lastNode = nodes.value.at(-1);
-
-  return lastNode?.data.status;
+const latestSeasonStatus = computed(() => {
+  const firstNode = nodes.value[0];
+  return firstNode?.data.status;
 });
 
-const isLastSeasonCurrent = computed(
-  () => lastSeasonStatus.value === 'current'
+const isLatestSeasonCurrent = computed(
+  () => latestSeasonStatus.value === 'current'
 );
 
 const handleSeasonCreation = async (
   payload: NewSeasonPayload
 ) => {
-  if (lastSeasonStatus.value === 'future') {
+  if (latestSeasonStatus.value === 'future') {
     toast.add({
       severity: 'error',
       summary: 'خطأ في إنشاء الموسم الدراسي',
@@ -262,26 +260,4 @@ const handleSeasonEditSubmit = async (
   }
 };
 
-const testPayload: NewSeasonPayload = {
-  "terminateCurrentSeason": true,
-  "newSeason": {
-    "terms": [
-      {
-        "endDate": 1780182000000,
-        "startDate": 1775214569035,
-        "name": "الربيع"
-      }
-    ],
-    "name": "2026 أخيرة"
-  },
-  "classPromotionMap": {
-    "1": 3,
-    "2": 3,
-    "3": -1
-  },
-  "repeaters": [12, 4, 5]
-}
-const handleTestSeasonCreation = async () => {
-  handleSeasonCreation(testPayload)
-}
 </script>

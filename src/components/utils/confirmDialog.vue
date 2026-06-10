@@ -23,7 +23,6 @@
         icon="pi pi-check"
         @click="onConfirm"
         :severity="danger ? 'danger' : 'primary'"
-        :outlined="danger"
         autofocus
       />
     </template>

@@ -8,6 +8,10 @@
             <div class="flex flex-col gap-1">
                 <InputText name="status" type="text" fluid disabled hidden readonly />
             </div>
+            <!-- Exited_at HIDDEN-->
+            <div class="flex flex-col gap-1">
+                <InputText name="exited_at" type="text" fluid disabled hidden readonly />
+            </div>
 
             <!-- First Name -->
             <div class="flex flex-col gap-1">
@@ -179,7 +183,7 @@ const formattedStudentObject = computed(() => {
     if (props.entityType === 'student') {
         const studentObj = props.entityObject as Student
         const defaultBrithDate = new Date().getTime() - 1000 * 60 * 60 * 24 * 365 * 10 // 10 years ago
-        return { ...studentObj, birth_date: new Date(studentObj?.birth_date || defaultBrithDate), status: studentObj?.status || "active" }
+        return { ...studentObj, birth_date: new Date(studentObj?.birth_date || defaultBrithDate), status: studentObj?.status || "active", exited_at : studentObj?.exited_at || undefined }
     }
 })
 

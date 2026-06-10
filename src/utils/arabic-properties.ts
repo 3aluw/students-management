@@ -19,7 +19,7 @@ import { arabicProperties } from "~/data/static";
     const arabicPropertyName = getPropertyArabicName(fieldName)
     return arabicPropertyName
       ? formatRequiredFieldMessage(arabicPropertyName, type)
-      : `يجب إدخال الحقل التالي: ${fieldName} `;
+      : formatRequiredFieldMessage(fieldName, type)
   };
   export const getPropertyArabicName = (fieldName: string) => fieldName in arabicProperties ? arabicProperties[fieldName as keyof typeof arabicProperties] : undefined
 

@@ -1,7 +1,9 @@
 <template>
     <div class="flex flex-col gap-4" :class="{ card: !isSeasonNew }">
-        <Form ref="form" :initialValues="formatSeason()" :resolver="resolver" class="flex flex-col gap-4"
+        <Form v-if="season" ref="form" :initialValues="formatSeason()" :resolver="resolver" class="flex flex-col gap-4"
             @submit="onSubmit" v-slot="$form" :key="formKey">
+
+
             <!-- Season name -->
             <div class="flex flex-col gap-1">
                 <InputText name="id" hidden fluid />
@@ -73,10 +75,19 @@
 </template>
 
 <script setup lang="ts">
-import type { NewSchoolSeason, SchoolSeason, SeasonStatus } from '~/data/types';
+import type { NewSchoolSeason, SchoolSeason, SeasonStatus, SchoolTerm } from '~/data/types';
 import { yupResolver } from '@primevue/forms/resolvers/yup';
 import * as yup from 'yup';
 import type { FormInstance, FormSubmitEvent } from '@primevue/forms';
+
+/* -------------------------------------------------------------------------- */
+/*                              Types / Props / Emits                         */
+/* -------------------------------------------------------------------------- */
+
+/*Types for the form (use Date instead of number (timestamp) ) */
+type FormSchoolTerm = { name: string | undefined, startDate: Date | undefined, endDate: Date | undefined }
+type FormSeason = Omit<SchoolSeason, 'terms'> & { terms: FormSchoolTerm[] }
+type FormNewSeason = Omit<NewSchoolSeason, 'terms'> & { terms: FormSchoolTerm[] }
 
 const props = defineProps<{
     status: SeasonStatus | 'new',
@@ -87,19 +98,69 @@ const emit = defineEmits<{
     (e: 'create:season', valid: false): void;
     (e: 'update:season', season: SchoolSeason): void;
 }>()
+
+/* -------------------------------------------------------------------------- */
+/*                              State / template refs                         */
+/* -------------------------------------------------------------------------- */
+
+const form = ref<FormInstance | null>(null)
+const season = ref<FormNewSeason | FormSeason>()    // the season object used in the form via v-model
+const formKey = ref(1);
+
+/* -------------------------------------------------------------------------- */
+/*                              Computed                                      */
+/* -------------------------------------------------------------------------- */
 const isSeasonArchived = computed(() => props.status === 'past')
 const isSeasonNew = computed(() => props.status === 'new')
-const form = ref<FormInstance | null>(null)
-/* Converts timestamps to dates to be usable by PrimeVue datePicker */
-const formatSeason = (season: SchoolSeason | NewSchoolSeason = props.season) => {
-    const base = {
-        name: season.name,
-        terms: season.terms.map(term => formatDatesForTerm(term))
+
+
+/* -------------------------------------------------------------------------- */
+/*                              Init / Format season                          */
+/* -------------------------------------------------------------------------- */
+
+/* transforms timestamps to Date for terms */
+const formatDatesForTerm = (term: Partial<SchoolTerm> | Partial<FormSchoolTerm>) => {
+    return {
+        name: term.name,
+        startDate: term.startDate ? new Date(term.startDate) : undefined,
+        endDate: term.endDate ? new Date(term.endDate) : undefined,
+    };
+};
+
+/* transforms timestamps to Date to be usable by PrimeVue datePicker */
+const formatSeason = (seasonObj: SchoolSeason | NewSchoolSeason | FormNewSeason | FormSeason = season.value ?? props.season): FormNewSeason | FormSeason => {
+    const base: FormNewSeason = {
+        name: seasonObj.name,
+        terms: seasonObj.terms.map(term => formatDatesForTerm(term))
     }
-    return !("id" in season) ? base : { ...base, id: season.id }
+    return !("id" in seasonObj) ? base : { ...base, id: seasonObj.id }
 }
 
+onMounted(() => {
+    season.value = formatSeason()
+})
 
+/* -------------------------------------------------------------------------- */
+/*                              Terms Handling                                */
+/* -------------------------------------------------------------------------- */
+
+const addTerm = () => {
+    season.value?.terms.push({
+        name: '',
+        startDate: undefined,
+        endDate: undefined,
+    });
+    formKey.value++;
+};
+
+const removeTerm = (index: number) => {
+    season.value?.terms.splice(index, 1);
+    console.log("model season", season.value)
+    formKey.value++;
+};
+/* -------------------------------------------------------------------------- */
+/*                              Validation                                    */
+/* -------------------------------------------------------------------------- */
 const yupSchema: yup.ObjectSchema<Omit<SchoolSeason, 'id'>> =
     yup.object().shape({
         name: yup.string().required(getRequiredFieldMessage('اسم السنة الدراسية')).min(4, 'اسم السنة الدراسية يجب أن يكون على الأقل 4 أحرف'),
@@ -128,25 +189,11 @@ const yupSchema: yup.ObjectSchema<Omit<SchoolSeason, 'id'>> =
         }).required().min(1, 'يجب أن تحتوي السنة الدراسية على فصل دراسي على الأقل'),
     })
 
-const formKey = ref(1);
-const season = ref(formatSeason());
-
 const resolver = yupResolver(yupSchema);
 
-const addTerm = () => {
-    season.value.terms.push({
-        name: '',
-        startDate: undefined,
-        endDate: undefined,
-    });
-    formKey.value++;
-};
-
-const removeTerm = (index: number) => {
-    season.value.terms.splice(index, 1);
-    formKey.value++;
-};
-
+/* -------------------------------------------------------------------------- */
+/*                              Submit                                        */
+/* -------------------------------------------------------------------------- */
 
 const onSubmit = (validationObject: FormSubmitEvent) => {
     const valid = validationObject.valid
@@ -163,8 +210,11 @@ const onSubmit = (validationObject: FormSubmitEvent) => {
 const submitForm = () => {
     form.value?.submit()
 }
-defineExpose({ submitForm })
+defineExpose({ submitForm }) /* exposed form to parent component (used in season dialog) */
 
+/* -------------------------------------------------------------------------- */
+/*                              UI                                            */
+/* -------------------------------------------------------------------------- */
 const disableDatePicker = (type: 'start' | 'end', termIndex: number) => {
     if (!isSeasonArchived.value) return false;
     return type === 'start' && termIndex === 0 ? true

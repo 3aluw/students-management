@@ -16,9 +16,8 @@
                 <template #start>
                     <Button label="جديد" icon="pi pi-plus" iconPos="right" severity="secondary" class="mx-2"
                         @click="showStudentDialog = true" />
-                    <Button label="حذف" icon="pi pi-trash" iconPos="right" severity="secondary" class="mx-2"
-                        @click="useDeleteConfirm.requestAction(selectedStudents)"
-                        :disabled="!selectedStudents || !selectedStudents.length" />
+                    <Button v-if="selectedStudents.length" label="حذف" icon="pi pi-trash" iconPos="right"
+                        severity="secondary" class="mx-2" @click="showStudentDeleteDialog = true" />
                     <Button label="تعديل" icon="pi pi-pencil" iconPos="right" severity="secondary" class="mx-2"
                         @click="handleStudentEditClick" v-if="selectedStudents.length == 1" />
                     <Button v-if="selectedStudents.length" label="نقل إلى" icon="pi pi-undo"
@@ -31,6 +30,7 @@
                                 }}</Button>
                         </template>
                     </Menu>
+
                 </template>
 
                 <template #end>
@@ -38,7 +38,6 @@
                         @click="exportCSV()" />
                 </template>
             </Toolbar>
-
 
             <DataTable :ref="dt" v-model:selection="selectedStudents" :value="studentsToShow" dataKey="id"
                 :paginator="true" :rows="10" :filters="filters" stripedRows
@@ -93,11 +92,15 @@
         </div>
         <Dialog header="أدخل معلومات القسم" @hide="studentToEdit = undefined" v-model:visible="showStudentDialog"
             :style="{ width: '350px' }" :modal="true">
-
             <UtilsEntityForm entityType="student" :entityObject="studentToEdit" @submit="handleStudentSubmit" />
         </Dialog>
-        <UtilsConfirmDialog header="حذف الطلبة" :danger="true" v-model="useDeleteConfirm.showConfirm.value"
-            @confirm="useDeleteConfirm.confirmAction" />
+
+        <Dialog header="حذف التلاميذ المحددين من القسم" v-model:visible="showStudentDeleteDialog"
+            :style="{ width: '350px' }" :modal="true">
+            <studentDeleteForm @delete="deleteStudents(selectedStudents)"
+                @change-status="payload => handleStudentQuit(payload, selectedStudents)" />
+        </Dialog>
+
         <UtilsConfirmDialog header="تحويل الطلبة" message="هل أنت متأكد من رغبتك في  التحويل إلى قسم آخر ؟"
             :danger="false" v-model="useTransferConfirm.showConfirm.value"
             @confirm="useTransferConfirm.confirmAction" />
@@ -114,7 +117,9 @@ import type {
     Student,
     DataTableSlot,
     NewStudent,
-    BatchEditStudent
+    BatchEditStudent,
+    EditStudent,
+    InactiveStudent
 } from '~/data/types';
 
 import { userFeedbackMessages } from '~/data/static';
@@ -200,7 +205,7 @@ const resetSelectedStudents = () => {
 /* -------------------------------------------------------------------------- */
 // A tempalte ref for the transfer students menu 
 const transferStudentsMenu = ref();
-
+const showStudentDeleteDialog = ref(false);
 const toggleTransferStudentsMenu = (event: Event) => {
     transferStudentsMenu.value.toggle(event);
 };
@@ -224,10 +229,10 @@ const transferStudents = async (
         class_id: classId,
         ids: studentIds
     };
-        await backend.updateStudents(reqBody);
+    await backend.updateStudents(reqBody);
 
-        studentStore.populateStudents();
-        resetSelectedStudents();
+    studentStore.populateStudents();
+    resetSelectedStudents();
 
 };
 
@@ -241,16 +246,11 @@ const showStudentDialog = ref(false);
 const studentToEdit = ref<Student>();
 
 const handleStudentEditClick = () => {
-    if (
-        !selectedStudents.value.length ||
-        selectedStudents.value.length > 1
-    ) {
-        return;
-    }
+    if (selectedStudents.value.length !== 1) return;
 
     studentToEdit.value = studentsToShow.value.find(
         (student) =>
-            student.id === selectedStudents.value[0].id
+            student.id === selectedStudents.value[0]!.id
     );
 
     showStudentDialog.value = true;
@@ -263,7 +263,7 @@ const EditStudent = async (studentObj: Student) => {
         await studentStore.populateStudents(
             studentToEdit.value?.class_id!
         );
-
+        resetSelectedStudents();
         showStudentDialog.value = false;
 
         toast.add({
@@ -326,25 +326,62 @@ const handleStudentSubmit = (
 /*                              Delete Students                               */
 /* -------------------------------------------------------------------------- */
 
-const deleteStudents = async (
-    students: Student[]
-) => {
+const deleteStudents = async (students: Student[]) => {
+
     const studentIds = students.map(
         (student) => student.id
     );
-    await backend.deleteStudents(studentIds);
-    resetSelectedStudents();
+    try {
+        await backend.deleteStudents(studentIds);
+        studentStore.populateStudents();
+        toast.add({
+            severity: 'success',
+            summary: toastMessages.deleteSuccess,
+            life: 3000
+        });
+        resetSelectedStudents();
+        showStudentDeleteDialog.value = false;
+    }
+    catch (error) {
+        toast.add(
+            getToastErrorObject(
+                error,
+                toastMessages.deleteFailed
+            )
+        );
+    }
+
 };
 
+const handleStudentQuit = (newStatus: Pick<InactiveStudent, "status" | "exited_at">, students: Student[]) => {
+    const pyload : BatchEditStudent = {
+        ...newStatus,
+        class_id: null,
+        ids: students.map((s) => s.id),
+    }
+    try {
+        backend.updateStudents(pyload);
+        studentStore.populateStudents();
+        toast.add({
+            severity: 'success',
+            summary: toastMessages.deleteSuccess,
+            life: 3000
+        });
+        resetSelectedStudents();
+        showStudentDeleteDialog.value = false;
+    } catch (error) {
+        toast.add(
+            getToastErrorObject(
+                error,
+                toastMessages.deleteFailed
+            )
+        );
+    }
 
+}
 /* -------------------------------------------------------------------------- */
 /*                              Confirm Dialogs                               */
 /* -------------------------------------------------------------------------- */
-
-const useDeleteConfirm = useConfirmHandler(
-    () => deleteStudents(selectedStudents.value),
-    studentStore.populateStudents
-);
 
 const useTransferConfirm = useConfirmHandler(
     transferStudents,
