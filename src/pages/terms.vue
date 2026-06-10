@@ -38,22 +38,30 @@
       <Column>
         <template #body="{ node }">
           <Button v-if="node.data.type === 'season'" rounded outlined icon="pi pi-pencil" severity="secondary"
-            size="small" @click="handleEditSeasonClick(node)" />
+            size="large" @click="handleEditSeasonClick(node)" />
+          <Button v-if="node.data.status === 'future'" rounded outlined icon="pi pi-trash" severity="danger"
+            size="large" @click="useDeleteConfirm.requestAction(node.data.id)" />
         </template>
       </Column>
     </TreeTable>
-
+    <!-- Edit season dialog -->
     <Dialog header="حدد تفاصيل الموسم الدراسي" @hide="editSeasonProps = undefined"
       v-model:visible="showEditSeasonDialog" :modal="true">
       <EditSchoolSeasonForm v-if="editSeasonProps" :season="editSeasonProps?.season" :status="editSeasonProps?.status"
         @update:season="handleSeasonEditSubmit" />
     </Dialog>
 
+    <!-- New season dialog -->
     <Dialog class="max-w-128" header="موسم دراسي جديد" v-model:visible="showNewSeasonDialog" :modal="true">
       <NewSchoolSeasonForm :isLatestSeasonCurrent @create-season="handleSeasonCreation" />
     </Dialog>
+
+    <!-- confirm dialog for delete season button -->
+    <UtilsConfirmDialog header="حذف الموسم الدراسي" message="هل أنت متأكد من رغبتك في  حذف هذا الموسم الدراسي ؟"
+      :danger="true" v-model="useDeleteConfirm.showConfirm.value" @confirm="useDeleteConfirm.confirmAction" />
   </div>
 </template>
+
 <script setup lang="ts">
 import type {
   NewSeasonPayload,
@@ -174,6 +182,18 @@ const handleSeasonCreation = async (
     );
   }
 };
+
+/* -------------------------------------------------------------------------- */
+/*                              Season Delete                                 */
+/* -------------------------------------------------------------------------- */
+const deleteSeason = async (seasonId: number) => {
+  await backend.deleteSeason(seasonId)
+}
+const useDeleteConfirm = useConfirmHandler(
+  deleteSeason,
+  clientStore.populateSeasons,
+);
+
 
 /* -------------------------------------------------------------------------- */
 /*                              Season Editing                                */

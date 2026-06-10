@@ -149,6 +149,11 @@ export default function () {
       body,
     });
   };
+   const deleteSeason = (seasonId: number) => {
+    return $fetch(`/api/season/?id=${seasonId}`, {
+      method: "DELETE",
+    });
+  };
   return {
     createClass,
     updateClass,
@@ -170,5 +175,6 @@ export default function () {
     getSeasons,
     createSeason,
     updateSeasons,
+    deleteSeason
   };
 }

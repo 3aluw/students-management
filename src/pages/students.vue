@@ -231,11 +231,17 @@ const transferStudents = async (
     };
     await backend.updateStudents(reqBody);
 
-    studentStore.populateStudents();
-    resetSelectedStudents();
+
 
 };
-
+const afterStdentTransfer = async () => {
+    resetSelectedStudents();
+    studentStore.populateStudents;
+}
+const useTransferConfirm = useConfirmHandler(
+    transferStudents,
+    afterStdentTransfer
+);
 
 /* -------------------------------------------------------------------------- */
 /*                          Create / Edit Student                             */
@@ -354,7 +360,7 @@ const deleteStudents = async (students: Student[]) => {
 };
 
 const handleStudentQuit = (newStatus: Pick<InactiveStudent, "status" | "exited_at">, students: Student[]) => {
-    const pyload : BatchEditStudent = {
+    const pyload: BatchEditStudent = {
         ...newStatus,
         class_id: null,
         ids: students.map((s) => s.id),
@@ -379,13 +385,7 @@ const handleStudentQuit = (newStatus: Pick<InactiveStudent, "status" | "exited_a
     }
 
 }
-/* -------------------------------------------------------------------------- */
-/*                              Confirm Dialogs                               */
-/* -------------------------------------------------------------------------- */
 
-const useTransferConfirm = useConfirmHandler(
-    transferStudents,
-    studentStore.populateStudents,
-);
+
 
 </script>
