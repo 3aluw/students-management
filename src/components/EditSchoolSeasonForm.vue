@@ -75,11 +75,15 @@
 </template>
 
 <script setup lang="ts">
-import type { NewSchoolSeason, SchoolSeason, SeasonStatus } from '~/data/types';
+import type { NewSchoolSeason, SchoolSeason, SeasonStatus, SchoolTerm } from '~/data/types';
 import { yupResolver } from '@primevue/forms/resolvers/yup';
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import * as yup from 'yup';
 import type { FormInstance, FormSubmitEvent } from '@primevue/forms';
+
+type FormSchoolTerm = { name: string | undefined, startDate: Date | undefined, endDate: Date | undefined }
+type FormSeason = Omit<SchoolSeason, 'terms'> & { terms: FormSchoolTerm[] }
+type FormNewSeason = Omit<NewSchoolSeason, 'terms'> & { terms: FormSchoolTerm[] }
 
 const props = defineProps<{
     status: SeasonStatus | 'new',
