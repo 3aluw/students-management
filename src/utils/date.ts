@@ -100,13 +100,6 @@ export const getDatesForEventInfo = <
     }
     return base;
 };
-export const formatDatesForTerm = (term: Partial<SchoolTerm>) => {
-    return {
-        name: term.name,
-        startDate: term.startDate ? new Date(term.startDate) : undefined,
-        endDate: term.endDate ? new Date(term.endDate) : undefined,
-    };
-};
 /* Convert dates back to timestamps (Used by Yup / zod for validation)*/
 export const toTimestamp = (
     value: unknown,

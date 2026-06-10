@@ -143,6 +143,13 @@ const resolver = yupResolver(yupSchema);
 const zodSchema = seasonSchemas.newSeasonSchema
 const zResolver = zodResolver(zodSchema)
 
+ const formatDatesForTerm = (term: Partial<SchoolTerm> | Partial<FormSchoolTerm>) => {
+    return {
+        name: term.name,
+        startDate: term.startDate ? new Date(term.startDate) : undefined,
+        endDate: term.endDate ? new Date(term.endDate) : undefined,
+    };
+};
 const addTerm = () => {
     season.value.terms.push({
         name: '',
