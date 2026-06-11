@@ -48,7 +48,7 @@ export default function () {
   const getStudents = (query: StudentsQueryFilters) => {
     const params = new URLSearchParams();
 
-    if (query.name) params.append("name", query.name);
+    if (query.name && query.name.trim().length) params.append("name", query.name);
     if ("class_id" in query && query.class_id !== undefined)
       params.append("class_id", String(query.class_id));
     if (query.status) params.append("status", query.status);
