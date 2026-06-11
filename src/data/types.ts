@@ -186,16 +186,17 @@ export type BackendValidationError = BackendBaseError & {
 }
 
 // ============== Query types====================
-export type StudentsQueryFilters = {
-  name?: string,
-  class_id?: number,
-  status: Extract<StudentStatus, "active">,
-
-} | {
+export type InactiveStudentQueryFilters = {
   name?: string,
   status: Exclude<StudentStatus, "active">
   exited_at_Year?: number
 }
+export type ActiveStudentQueryFilters = {
+  name?: string,
+  class_id?: number,
+  status: Extract<StudentStatus, "active">,
+}
+export type StudentsQueryFilters = ActiveStudentQueryFilters | InactiveStudentQueryFilters
 
 export type EventQueryFilters = Partial<{
   limit: number;
