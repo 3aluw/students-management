@@ -109,17 +109,46 @@ interface SQLPWherearam {
  * Maps a raw filter key/value pair into one or more SQL parameters.
  * Handles complex transformations like date boundaries or multi-column searches.
  */
-const expandFilterToSQLParams = (columnName: string, value: unknown): SQLPWherearam[] => {
-    // Edge Case: Handle Year Boundaries
-    if (columnName === "exited_at_Year" && Number(value)) {
-        const boundaries = getYearBoundaries(Number(value) as number);
-        return [
-            { columnName: "exited_at_Year", sqlExpression: "exited_at >= ?", bindingValue: boundaries.start },
-            { columnName: "exited_at_Year", sqlExpression: "exited_at <= ?", bindingValue: boundaries.end }
-        ];
-    }
+const expandFilterToSQLParams = (columnName: string, value: unknown, table: TableToQuery): SQLPWherearam[] => {
 
-    // Edge Case: Full Name Search
+    if (table == "student") {
+        // Edge Case: Handle Year Boundaries
+        if (columnName === "exited_at_Year" && Number(value)) {
+            const boundaries = getYearBoundaries(Number(value) as number);
+            return [
+                { columnName: "exited_at_Year", sqlExpression: "exited_at >= ?", bindingValue: boundaries.start },
+                { columnName: "exited_at_Year", sqlExpression: "exited_at <= ?", bindingValue: boundaries.end }
+            ];
+        }
+
+    }
+    else {
+        const defaultTableAbbr = table === "absence" ? "a." : "l.";
+        if (columnName === 'minDate') {
+            return [{
+                columnName,
+                sqlExpression: `${defaultTableAbbr}date >= ?`,
+                bindingValue: Number(value)
+
+            }]
+        }
+        if (columnName === 'maxDate') {
+            return [{
+                columnName,
+                sqlExpression: `${defaultTableAbbr}date <= ?`,
+                bindingValue: Number(value)
+
+            }]
+        }
+        if (columnName === 'classId') {
+            return [{
+                columnName,
+                sqlExpression: `s.class_id = ?`,
+                bindingValue: Number(value)
+            }]
+        }
+    }
+    // Edge Case -Common between tables-: Full Name Search
     if (columnName === "name") {
         return [{
             columnName: "name",
@@ -127,7 +156,6 @@ const expandFilterToSQLParams = (columnName: string, value: unknown): SQLPWherea
             bindingValue: `%${value}%`
         }];
     }
-
     // Default Case: Simple exact match
     return [{ columnName, bindingValue: value }];
 };
@@ -135,14 +163,14 @@ const expandFilterToSQLParams = (columnName: string, value: unknown): SQLPWherea
 /**
  * Flattens the raw filter object into a single array of SQL parameters.
  */
-const parseFiltersToSQLParams = (filters: StudentsQueryFilters): SQLPWherearam[] => {
+const parseFiltersToSQLParams = <T extends TableToQuery>(table: T, filters: QueryMap[T]): SQLPWherearam[] => {
     const sqlParams: SQLPWherearam[] = [];
 
     const filterEntries = Object.entries(filters) as [string, unknown][];
 
     for (const [key, value] of filterEntries) {
         if (value !== undefined) { // Guard against undefined values
-            sqlParams.push(...expandFilterToSQLParams(key, value));
+            sqlParams.push(...expandFilterToSQLParams(key, value, table));
         }
     }
 
@@ -167,8 +195,8 @@ const compileWhereClause = (params: SQLPWherearam[]): { whereStmt: string, bindi
     };
 };
 // A coordinator function keeping -transforms query into SQL params then into string/values-
-export const buildWhereFromFilters = (filters: StudentsQueryFilters) => {
-    const params = parseFiltersToSQLParams(filters);
+export const buildWhereFromFilters = <T extends TableToQuery>(table: T, filters: QueryMap[T],) => {
+    const params = parseFiltersToSQLParams(table, filters);
     return compileWhereClause(params);
 };
 
