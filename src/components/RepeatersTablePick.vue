@@ -2,7 +2,7 @@
 
 
 
-        <UtilsStudentsTableNew :global-search-active="false" :settings="{
+        <UtilsStudentsTable :global-search-active="false" :settings="{
             clearSelectionOnClassChange: true, columnsToHide: ['address']
         }" :students="studentsToShow" :table-search-value="tableSearchValue" v-model="selectedStudents">
             <template #toolbar>
@@ -55,7 +55,7 @@
             </template>
 
 
-        </UtilsStudentsTableNew>
+        </UtilsStudentsTable>
     </template>
 <script setup lang="ts">
 import { useStudentStore } from '~/store/studentStore';

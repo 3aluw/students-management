@@ -1,6 +1,6 @@
 <template>
     <div>
-        <UtilsStudentsTableNew :global-search-active="globalSearchInput.length > 0" :settings="{
+        <UtilsStudentsTable :global-search-active="globalSearchInput.length > 0" :settings="{
             clearSelectionOnClassChange: true
         }" :students="studentsToShow" :table-search-value="tableSearchValue" v-model="selectedStudents">
             <template #toolbar>
@@ -83,7 +83,7 @@
                         rounded outlined />
                 </div>
             </template>
-        </UtilsStudentsTableNew>
+        </UtilsStudentsTable>
 
         <Dialog header="إعدادت" v-model:visible="showSettingsDialog" :style="{ width: '350px' }" :modal="true">
             <PlaygroundSettingsForm :settings="playgroundSettings" @submit="applyNewSettings" />

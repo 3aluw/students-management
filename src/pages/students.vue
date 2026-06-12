@@ -1,6 +1,6 @@
 <template>
     <div>
-        <UtilsStudentsTableNew :global-search-active="globalSearchInput.length > 0" :settings="{
+        <UtilsStudentsTable :global-search-active="globalSearchInput.length > 0" :settings="{
             clearSelectionOnClassChange: true
         }" :students="studentsToShow" :table-search-value="tableSearchValue" v-model="selectedStudents">
             <template #toolbar>
@@ -60,7 +60,7 @@
 
                 </div>
             </template>
-        </UtilsStudentsTableNew>
+        </UtilsStudentsTable>
 
         <Dialog header="أدخل معلومات القسم" @hide="studentToEdit = undefined" v-model:visible="showStudentDialog"
             :style="{ width: '350px' }" :modal="true">
