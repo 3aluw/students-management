@@ -1,6 +1,6 @@
 <template>
     <div>
-        <UtilsStudentsTableNew :global-search-active="globalSearchValue.length > 0" :settings="{
+        <UtilsStudentsTableNew :global-search-active="false" :settings="{
             clearSelectionOnClassChange: true, columnsToHide: ['class']
         }" :students="studentsToShow" :table-search-value="tableSearchValue" v-model="selectedStudents">
             <template #toolbar>
@@ -37,7 +37,7 @@
 
 
                     </div>
-                    <IconField v-show="!globalSearchValue.length">
+                    <IconField>
                         <InputIcon>
                             <i class="pi pi-search" />
                         </InputIcon>
@@ -57,7 +57,6 @@
 
 <script setup lang="ts">
 import { watchDebounced } from '@vueuse/core';
-import { useToast } from 'primevue/usetoast';
 
 import {
     statusFilterOptions,
@@ -79,7 +78,7 @@ import { useStudentStore } from '~/store/studentStore';
 const studentStore = useStudentStore();
 
 const backend = useBackend();
-const toast = useToast();
+
 
 /* -------------------------------------------------------------------------- */
 /*                                Messages                                    */
@@ -104,7 +103,6 @@ type ClientFilters = {
 const studentsToShow = ref<Student[]>([]);
 const selectedStudents = ref<Student[]>([]); //passed from the table component
 
-const globalSearchValue = ref('');
 const tableSearchValue = ref('');
 
 const modalFilters = ref<ClientFilters>({
