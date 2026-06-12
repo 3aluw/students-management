@@ -7,7 +7,7 @@
                 <Toolbar class="mb-6">
                     <template #start>
                         <Button :disabled="selectedStudents.length == 0" label="حذف" icon="pi pi-trash" iconPos="right"
-                            severity="secondary" class="mx-2" @click="" />
+                            severity="secondary" class="mx-2" @click="useDeleteConfirm.requestAction(selectedStudents)" />
                         <Button :disabled="selectedStudents.length == 0" label="نقل إلى" icon="pi pi-undo"
                             @click="toggleTransferStudentsMenu" aria-haspopup="true" aria-controls="overlay_menu"
                             iconPos="right" severity="secondary" class="mx-2" />
@@ -51,7 +51,8 @@
     <UtilsConfirmDialog header="استرجاع الطلبة"
         message="هل أنت متأكد من رغبتك في  استرجاع الطلبة المحددين ونقلهم إلى القسم ؟" :danger="true"
         v-model="useTransferConfirm.showConfirm.value" @confirm="useTransferConfirm.confirmAction" />
-    <UtilsConfirmDialog header="استرجاع الطلبة" message="هل أنت متأكد من رغبتك حذف الطلبة المحددين نهائيا  ؟"
+
+    <UtilsConfirmDialog header="حذف نهائي " message="هل أنت متأكد من رغبتك حذف الطلبة المحددين نهائيا  ؟"
         :danger="true" v-model="useDeleteConfirm.showConfirm.value" @confirm="useDeleteConfirm.confirmAction" />
 </template>
 
