@@ -91,7 +91,13 @@ Parameter / Param (The intermediate, normalized key-value pairs).
 Clause (The final SQL string and execution values). 
 */
 
-
+type TableToQuery = 'absence' | 'student' | 'lateness'
+type PureEventQueryFilters = Omit<EventQueryFilters, "limit" | "offset">
+type QueryMap = {
+    student: StudentsQueryFilters;
+    absence: PureEventQueryFilters;
+    lateness: PureEventQueryFilters;
+}
 // "SQLPWherearam" makes it clear this represents a specific column/query blueprint.
 interface SQLPWherearam {
     columnName: string; // Renamed from 'name' to distinguish it from the student's name
