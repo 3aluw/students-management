@@ -1,13 +1,14 @@
 import db from '~/db/db';
-import type {  BatchEditLateness,  EditLateness, EventQueryFilters,  LocalLateness,  NewLateness } from "~/data/types";
+import type { BatchEditLateness, EditLateness, EventQueryFilters, LocalLateness, NewLateness } from "~/data/types";
 
 type TotalRow = { total: number };
 
 
 export const latenessRepo = {
     getLateness: (filters: EventQueryFilters) => {
-        const { limit = 20, offset = 0 } = filters;
-        const { where, params } = buildWhereQuery(filters, "lateness");
+        const { limit = 20, offset = 0, ...otherFilters } = filters;
+        const { whereStmt, bindings } = buildWhereFromFilters("lateness", otherFilters)
+
 
         const stmt = db
             .prepare(
@@ -23,13 +24,13 @@ export const latenessRepo = {
     FROM lateness l
     INNER JOIN student s ON s.id = l.student_id
     INNER JOIN class c ON c.id = s.class_id
-    ${where ? where : ""}
+    ${whereStmt}
     ORDER BY l.date DESC
     LIMIT ? OFFSET ?
     
 `
             )
-            .bind(...params, Number(limit), Number(offset));
+            .bind(...bindings, Number(limit), Number(offset));
         const lateness = stmt.all() as LocalLateness[];
 
         const stmtTotal = db
@@ -39,10 +40,10 @@ export const latenessRepo = {
     FROM lateness l
     INNER JOIN student s ON s.id = l.student_id
     INNER JOIN class c ON c.id = s.class_id
-    ${where ? where : ""}
+    ${whereStmt}
     ORDER BY l.date DESC`
             )
-            .bind(...params);
+            .bind(...bindings);
         const total = (stmtTotal.get() as TotalRow).total;
 
         return { total, lateness };

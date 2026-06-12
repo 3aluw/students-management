@@ -7,7 +7,7 @@ import type { StudentsQueryFilters } from "~/data/types"
 export const studentRepo = {
 
   getStudents(query: StudentsQueryFilters) {
-    const { whereStmt, bindings } = buildWhereFromFilters(query)
+    const { whereStmt, bindings } = buildWhereFromFilters("student", query)
     const stmt = db.prepare(`SELECT * FROM student ${whereStmt}`,
     ).bind(...bindings)
     const students = stmt.all() as Student[]
