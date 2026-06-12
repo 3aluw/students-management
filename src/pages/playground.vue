@@ -1,121 +1,90 @@
 <template>
     <div>
-        <div class="card">
-            <Toolbar class="mb-6">
-                <template #start>
-                    <Button label="إعدادت" icon="pi pi-cog" iconPos="right" severity="secondary" class="mx-2"
-                        @click="showSettingsDialog = true" />
-                </template>
-                <template #end>
-                    <IconField>
-                        <InputIcon>
-                            <i class="pi pi-search" />
-                        </InputIcon>
-                        <InputText v-model.trim="globalSearchInput" placeholder="بحث عام" type="search" />
-                    </IconField>
-                </template>
-            </Toolbar>
-
-            <Toolbar class="mb-6">
-                <template #start>
-                    <Button label="إبطاء" icon="pi pi-clock" iconPos="right" severity="secondary" class="mx-2"
-                        @click="createEvent('lateness', selectedStudents.map(student => student.id))"
-                        :disabled="!selectedStudents || !selectedStudents.length" />
-                    <Button label="غياب" icon="pi pi-ban" iconPos="right" severity="secondary" class="mx-2"
-                        @click="createEvent('absence', selectedStudents.map(student => student.id))"
-                        :disabled="!selectedStudents || !selectedStudents.length" />
-
-                </template>
-                <template #end>
-                    <Button label="طلبة تم تحديدهم" icon="pi pi-check" iconPos="right" severity="secondary"
-                        @click="displaySelectedStudentsDialog = true" :badge="selectedStudents.length.toString()" />
-                    <Dialog header="Dialog" v-model:visible="displaySelectedStudentsDialog"
-                        :breakpoints="{ '960px': '75vw' }" :style="{ width: '40vw' }" :modal="true">
-                        <DataView :value="selectedStudents" dataKey="id">
-                            <template #list="slotProps">
-                                <div class="flex flex-col">
-                                    <div v-for="(student, index) in slotProps.items" :key="index"
-                                        class="flex flex-row justify-between items-center p-1 border-b">
-                                        <p class="w-40">{{ student.first_name + ' ' + student.last_name }}</p>
-                                        <p>{{
-                                            studentStore.classOptions.find((classObj) => classObj.value ===
-                                                student.class_id)?.label}}</p>
-                                        <Button @click="deleteFromSelectedStudents(student.id)" icon="pi pi-times"
-                                            severity="danger" variant="text" rounded aria-label="delete" />
-                                    </div>
-                                </div>
-                            </template>
-                        </DataView>
-                        <template #footer>
-                            <Button label="إغلاق" @click="displaySelectedStudentsDialog = false" />
-                        </template>
-                    </Dialog>
-                </template>
-            </Toolbar>
-
-            <DataTable :ref="dt" v-model:selection="selectedStudents" :value="studentsToShow" dataKey="id"
-                :paginator="true" :rows="10" :filters="filters" stripedRows
-                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                :rowsPerPageOptions="[5, 10, 25]"
-                currentPageReportTemplate="Showing {first} to {last} of {totalRecords} products"
-                :globalFilterFields="['first_name', 'last_name']">
-                <template #header>
-                    <div class="flex flex-wrap gap-2 items-center justify-between">
-                        <div class="flex gap-4">
-                            <h4 class="m-0">قائمة الطلبة</h4>
-                            <Select name="class_id" :options="studentStore.classOptions" optionLabel="label"
-                                optionValue="value" placeholder="اختر الصف" @update:modelValue="changeClass"
-                                v-model="studentStore.selectedClassId" v-show="!globalSearchInput.length" />
-                        </div>
-                        <IconField v-show="!globalSearchInput.length">
+        <UtilsStudentsTable :global-search-active="globalSearchInput.length > 0" :settings="{
+            clearSelectionOnClassChange: true
+        }" :students="studentsToShow" :table-search-value="tableSearchValue" v-model="selectedStudents">
+            <template #toolbar>
+                <Toolbar class="mb-6">
+                    <template #start>
+                        <Button label="إعدادت" icon="pi pi-cog" iconPos="right" severity="secondary" class="mx-2"
+                            @click="showSettingsDialog = true" />
+                    </template>
+                    <template #end>
+                        <IconField>
                             <InputIcon>
                                 <i class="pi pi-search" />
                             </InputIcon>
-                            <InputText v-model="filters['global'].value" placeholder="بحث عن..." />
+                            <InputText v-model.trim="globalSearchInput" placeholder="بحث عام" type="search" />
                         </IconField>
+                    </template>
+                </Toolbar>
 
+                <Toolbar class="mb-6">
+                    <template #start>
+                        <Button label="إبطاء" icon="pi pi-clock" iconPos="right" severity="secondary" class="mx-2"
+                            @click="createEvent('lateness', selectedStudents.map(student => student.id))"
+                            :disabled="!selectedStudents || !selectedStudents.length" />
+                        <Button label="غياب" icon="pi pi-ban" iconPos="right" severity="secondary" class="mx-2"
+                            @click="createEvent('absence', selectedStudents.map(student => student.id))"
+                            :disabled="!selectedStudents || !selectedStudents.length" />
+
+                    </template>
+                    <template #end>
+                        <Button label="طلبة تم تحديدهم" icon="pi pi-check" iconPos="right" severity="secondary"
+                            @click="displaySelectedStudentsDialog = true" :badge="selectedStudents.length.toString()" />
+                        <Dialog header="Dialog" v-model:visible="displaySelectedStudentsDialog"
+                            :breakpoints="{ '960px': '75vw' }" :style="{ width: '40vw' }" :modal="true">
+                            <DataView :value="selectedStudents" dataKey="id">
+                                <template #list="slotProps">
+                                    <div class="flex flex-col">
+                                        <div v-for="(student, index) in slotProps.items" :key="index"
+                                            class="flex flex-row justify-between items-center p-1 border-b">
+                                            <p class="w-40">{{ student.first_name + ' ' + student.last_name }}</p>
+                                            <p>{{
+                                                studentStore.classOptions.find((classObj) => classObj.value ===
+                                                    student.class_id)?.label}}</p>
+                                            <Button @click="deleteFromSelectedStudents(student.id)" icon="pi pi-times"
+                                                severity="danger" variant="text" rounded aria-label="delete" />
+                                        </div>
+                                    </div>
+                                </template>
+                            </DataView>
+                            <template #footer>
+                                <Button label="إغلاق" @click="displaySelectedStudentsDialog = false" />
+                            </template>
+                        </Dialog>
+                    </template>
+                </Toolbar>
+            </template>
+
+            <template #header>
+                <div class="flex flex-wrap gap-2 items-center justify-between">
+                    <div class="flex gap-4">
+                        <h4 class="m-0">قائمة الطلبة</h4>
+                        <Select name="class_id" :options="studentStore.classOptions" optionLabel="label"
+                            optionValue="value" placeholder="اختر الصف" @update:modelValue="changeClass"
+                            v-model="studentStore.selectedClassId" v-show="!globalSearchInput.length" />
                     </div>
-                </template>
+                    <IconField v-show="!globalSearchInput.length">
+                        <InputIcon>
+                            <i class="pi pi-search" />
+                        </InputIcon>
+                        <InputText v-model="tableSearchValue" placeholder="بحث عن..." />
+                    </IconField>
 
-                <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
+                </div>
+            </template>
 
-                <Column field="first_name" header="الاسم" class="hidden" />
-                <Column field="last_name" header="اللقب" class="hidden" />
-                <Column header="الاسم واللقب" sortable class="font-bold">
-                    <template #body="slotProps: DataTableSlot<Student>">
-                        <p>{{ slotProps.data.last_name + " " + slotProps.data.first_name }}</p>
-                    </template>
-                </Column>
-                <Column header="الأب">
-                    <template #body="slotProps: DataTableSlot<Student>">
-                        <p>{{ slotProps.data.father_name + " بن " + slotProps.data.grandfather_name }}</p>
-                    </template>
-                </Column>
-                <Column field="phone_number" header="رقم الهاتف" style="min-width: 5rem"></Column>
-                <Column field="address" header="العنوان" style="min-width: 16rem"></Column>
-                <Column header="القسم" v-if="globalSearchInput.length">
-                    <template #body="slotProps: DataTableSlot<Student>">
-                        <p>{{studentStore.classOptions.find((classObj) => classObj.value ===
-                            slotProps.data.class_id)?.label}}</p>
-                    </template>
-                </Column>
-                <Column header="">
-                    <template #body="slotProps: DataTableSlot<Student>">
-                        <div class="flex gap-2">
-                            <Button @click="createEvent('lateness', [slotProps.data.id])" icon="pi pi-clock"
-                                severity="warn" rounded outlined />
-                            <Button @click="createEvent('absence', [slotProps.data.id])" icon="pi pi-ban"
-                                severity="danger" rounded outlined />
-                        </div>
+            <template #actions="{ slotProps }">
+                <div class="flex gap-2">
+                    <Button @click="createEvent('lateness', [slotProps.data.id])" icon="pi pi-clock" severity="warn"
+                        rounded outlined />
+                    <Button @click="createEvent('absence', [slotProps.data.id])" icon="pi pi-ban" severity="danger"
+                        rounded outlined />
+                </div>
+            </template>
+        </UtilsStudentsTable>
 
-
-                    </template>
-                </Column>
-                <template #empty>
-                    <p class="text-center bold"> لا يوجد أي طلبة</p>
-                </template>
-            </DataTable>
-        </div>
         <Dialog header="إعدادت" v-model:visible="showSettingsDialog" :style="{ width: '350px' }" :modal="true">
             <PlaygroundSettingsForm :settings="playgroundSettings" @submit="applyNewSettings" />
         </Dialog>
@@ -127,7 +96,7 @@
 
     </div>
 </template>
-<script setup lang="ts">import { FilterMatchMode } from '@primevue/core/api';
+<script setup lang="ts">
 import { useToast } from 'primevue/usetoast';
 
 import type {
@@ -138,7 +107,6 @@ import type {
     LatenessInfo,
     NewLateness,
     NewAbsence,
-    DataTableSlot
 } from '~/data/types';
 
 import { userFeedbackMessages } from '~/data/static';
@@ -199,11 +167,8 @@ const applyNewSettings = (newSettings: PlaygroundSettings) => {
 /*                              UI State                                      */
 /* -------------------------------------------------------------------------- */
 
-const dt = ref();
-const filters = ref({
-    global: { value: null, matchMode: FilterMatchMode.CONTAINS }
-});
 
+const tableSearchValue = ref('')
 const globalSearchInput = ref('');
 const selectedStudents = ref<Student[]>([]);
 const selectedStudentsIds = ref<number[]>([]);
@@ -274,7 +239,7 @@ const createEvent = <T extends EventTypes>(
     eventType: T,
     ids: number[]
 ) => {
-    //check if data is absent and fast mode is on => create event with defaults
+    //check if fast mode is on => create event with defaults
     if (playgroundSettings.value.fastMode) {
         const data = createDefaultEventData(eventType);
         postEvent(eventType, ids, data);
@@ -311,25 +276,17 @@ const postEvent = async <T extends EventTypes>(
     data: EventInfo<T>
 ) => {
     const rows = bindStudentIdToEventInfo(eventType, ids, data);
-
-    let skippedIds: number[] = [];
-    let insertedCount = 0;
     let severity: 'success' | 'error' = 'success';
     let message = '';
-
     try {
         if (eventType === 'absence') {
-            const res = await backend.insertAbsences(rows);
-            skippedIds = res.skippedIds;
-            insertedCount = res.insertedCount;
+            await backend.insertAbsences(rows);
             message = absenceToastMessages.addSuccess;
         } else {
-            const res = await backend.insertLateness(rows as NewLateness[]);
-            skippedIds = res.skippedIds;
-            insertedCount = res.insertedCount;
+            await backend.insertLateness(rows as NewLateness[]);
             message = latenessToastMessages.addSuccess;
         }
-
+        resetSelectedStudents();
         toast.add({ severity: 'success', summary: message, life: 3000 });
     } catch (error) {
         severity = 'error';
@@ -340,21 +297,6 @@ const postEvent = async <T extends EventTypes>(
                 : latenessToastMessages.addFailed;
 
         toast.add(getToastErrorObject(error, errMsg));
-    } finally {
-        if (severity === 'error') return;
-
-        if (skippedIds.length > 0) {
-            createPartialAddToastMessage(
-                eventType,
-                insertedCount,
-                skippedIds
-            );
-        }
-        else {
-            resetSelectedStudents();
-
-        }
-
     }
 };
 
@@ -427,7 +369,7 @@ const createDefaultEventData = <T extends EventTypes>(
 /* -------------------------------------------------------------------------- */
 /*                              Partial Toast                                 */
 /* -------------------------------------------------------------------------- */
-
+//dropped since the backend returns the message only
 const createPartialAddToastMessage = (
     eventType: EventTypes,
     insertedCount: number,
