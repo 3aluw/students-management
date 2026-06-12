@@ -41,115 +41,141 @@ Parameter / Param:  (The intermediate, normalized key-value pairs).
 Clause: (The final SQL string and execution values). 
 */
 
-type TableToQuery = 'absence' | 'student' | 'lateness'
+type QueryType = 'absence' | 'student' | 'lateness' | "pagination"
 type PureEventQueryFilters = Omit<EventQueryFilters, "limit" | "offset">
+type PaginationQueryFilters = Pick<EventQueryFilters, "limit" | "offset">
 type QueryMap = {
     student: StudentsQueryFilters;
     absence: PureEventQueryFilters;
     lateness: PureEventQueryFilters;
+    pagination: PaginationQueryFilters
 }
-// "SQLPWherearam" makes it clear this represents a specific column/query blueprint.
-interface SQLPWherearam {
-    columnName: string; // Renamed from 'name' to distinguish it from the student's name
-    sqlExpression?: string;  // Renamed from 'query' to avoid confusion with the whole SQL query
-    bindingValue: unknown;   // Renamed from 'value' for database clarity
+
+// Represents a blueprint for an abstract piece of a SQL query (WHERE item, LIMIT, etc.)
+interface SQLFragment {
+    key: string;            // The key originating from the filter/pagination object
+    sqlExpression?: string; // The raw SQL fragment chunk (e.g., "exited_at >= ?")
+    bindingValue: unknown;  // The parameterized execution value
 }
 
 /**
- * Maps a raw filter key/value pair into one or more SQL parameters.
- * Handles complex transformations like date boundaries or multi-column searches.
+ * Transforms raw filter or pagination entries into structured SQL fragments.
  */
-const expandFilterToSQLParams = (columnName: string, value: unknown, table: TableToQuery): SQLPWherearam[] => {
+const expandFilterToSQLFragments = (key: string, value: unknown, context: QueryType): SQLFragment[] => {
 
-    if (table == "student") {
+    if (context == "student") {
         // Edge Case: Handle Year Boundaries
-        if (columnName === "exited_at_Year" && Number(value)) {
+        if (key === "exited_at_Year" && Number(value)) {
             const boundaries = getYearBoundaries(Number(value) as number);
             return [
-                { columnName: "exited_at_Year", sqlExpression: "exited_at >= ?", bindingValue: boundaries.start },
-                { columnName: "exited_at_Year", sqlExpression: "exited_at <= ?", bindingValue: boundaries.end }
+                { key: "exited_at_Year", sqlExpression: "exited_at >= ?", bindingValue: boundaries.start },
+                { key: "exited_at_Year", sqlExpression: "exited_at <= ?", bindingValue: boundaries.end }
             ];
         }
 
     }
+    else if (context == "pagination") {
+        const sqlKeyword = key.toUpperCase();
+        return [{
+            key,
+            sqlExpression: `${sqlKeyword} ?`,
+            bindingValue: Number(value)
+        }];
+    }
     else {
-        const defaultTableAbbr = table === "absence" ? "a." : "l.";
-        if (columnName === 'minDate') {
+        const defaultTableAbbr = context === "absence" ? "a." : "l.";
+        if (key === 'minDate') {
             return [{
-                columnName,
+                key,
                 sqlExpression: `${defaultTableAbbr}date >= ?`,
                 bindingValue: Number(value)
 
             }]
         }
-        if (columnName === 'maxDate') {
+        if (key === 'maxDate') {
             return [{
-                columnName,
+                key,
                 sqlExpression: `${defaultTableAbbr}date <= ?`,
                 bindingValue: Number(value)
 
             }]
         }
-        if (columnName === 'classId') {
+        if (key === 'classId') {
             return [{
-                columnName,
+                key,
                 sqlExpression: `s.class_id = ?`,
                 bindingValue: Number(value)
             }]
         }
     }
     // Edge Case -Common between tables-: Full Name Search
-    if (columnName === "name") {
+    if (key === "name") {
         return [{
-            columnName: "name",
+            key: "name",
             sqlExpression: "(first_name || ' ' || last_name) LIKE ?",
             bindingValue: `%${value}%`
         }];
     }
     // Default Case: Simple exact match
-    return [{ columnName, bindingValue: value }];
+    return [{ key, bindingValue: value }];
 };
 
 /**
- * Flattens the raw filter object into a single array of SQL parameters.
+ * Loops through the filter/pagination object and aggregates all SQL SQLFragment.
  */
-const parseFiltersToSQLParams = <T extends TableToQuery>(table: T, filters: QueryMap[T]): SQLPWherearam[] => {
-    const sqlParams: SQLPWherearam[] = [];
+const extractSQLFragments = <T extends QueryType>(context: T, filters: QueryMap[T]): SQLFragment[] => {
+    const fragments: SQLFragment[] = [];
 
-    const filterEntries = Object.entries(filters) as [string, unknown][];
+    const entries = Object.entries(filters) as [string, unknown][];
 
-    for (const [key, value] of filterEntries) {
+    for (const [key, value] of entries) {
         if (value !== undefined) { // Guard against undefined values
-            sqlParams.push(...expandFilterToSQLParams(key, value, table));
+            fragments.push(...expandFilterToSQLFragments(key, value, context));
         }
     }
 
-    return sqlParams;
+    return fragments;
 };
 
 /**
- * Combines SQL parameters into the final WHERE string and bindings (values) for better-sqlite3.
+ * Compiles parsed fragments into executable statements and their binding values.
  */
-const compileWhereClause = (params: SQLPWherearam[]): { whereStmt: string, bindings: unknown[] } => {
-    if (!params.length) {
-        return { whereStmt: "", bindings: [] };
+const compileSQLClause = (fragments: SQLFragment[], context: QueryType): { stmt: string, bindings: unknown[] } => {
+    if (!fragments.length) {
+        return { stmt: "", bindings: [] };
     }
 
-    // Fallback to "columnName = ?" if no special SQL expression was defined
-    const clauses = params.map(p => p.sqlExpression ?? `${p.columnName} = ?`);
-    const bindings = params.map(p => p.bindingValue);
+    // Fallback to "key = ?" if no special SQL expression was defined
+    const clauses = fragments.map(p => p.sqlExpression ?? `${p.key} = ?`);
+    const bindings = fragments.map(p => p.bindingValue);
 
-    return {
-        whereStmt: `WHERE ${clauses.join(" AND ")}`, // Added "WHERE " prefix for convenience
-        bindings
+    if (context === "pagination") {
+
+        return {
+            stmt: `${clauses.join(" ")}`, bindings
+        }
     };
-};
-// A coordinator function keeping -transforms query into SQL params then into string/values-
-export const buildWhereFromFilters = <T extends TableToQuery>(table: T, filters: QueryMap[T],) => {
-    const params = parseFiltersToSQLParams(table, filters);
-    return compileWhereClause(params);
+
+
+    // Where filters are joined by AND, defaulting to standard equality if no custom expression is present
+    return {
+        stmt: `WHERE ${clauses.join(" AND ")}`,
+        bindings
+    }
 };
 
+/**
+ * Main coordinator function to build SQL chunks from client-side inputs.
+ */
+export const buildSQLClause = <T extends QueryType>(context: T, sourceData: QueryMap[T]) => {
+    const fragments = extractSQLFragments(context, sourceData);
+    return compileSQLClause(fragments, context);
+};
+
+
+/* -------------------------------------------------------------------------- */
+/*                                CTE & value lists                           */
+/* -------------------------------------------------------------------------- */
 /**
  * Converts an array of values into a SQL VALUES list format.
  * @param values - Array of values to wrap in parentheses.
