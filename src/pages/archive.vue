@@ -2,7 +2,7 @@
     <div>
         <UtilsStudentsTableNew :global-search-active="false" :settings="{
             clearSelectionOnClassChange: true, columnsToHide: ['class']
-        }" :students="studentsToShow" :table-search-value="tableSearchValue" v-model="selectedStudents">
+        }" :students="studentsToShow" :table-search-value="''" v-model="selectedStudents">
             <template #toolbar>
                 <Toolbar class="mb-6">
                     <template #start>
@@ -104,7 +104,6 @@ type ClientFilters = {
 const studentsToShow = ref<Student[]>([]);
 const selectedStudents = ref<Student[]>([]); //passed from the table component
 
-const tableSearchValue = ref('');
 
 const modalFilters = ref<ClientFilters>({
     status: 'graduated',
