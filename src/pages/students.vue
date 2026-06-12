@@ -1,95 +1,67 @@
 <template>
     <div>
-        <div class="card">
-            <Toolbar class="mb-6">
-                <template #start>
-                    <IconField>
-                        <InputIcon>
-                            <i class="pi pi-search" />
-                        </InputIcon>
-                        <InputText v-model.trim="globalSearchInput" placeholder="بحث عام" type="search" />
-                    </IconField>
-                </template>
-            </Toolbar>
-
-            <Toolbar class="mb-6">
-                <template #start>
-                    <Button label="جديد" icon="pi pi-plus" iconPos="right" severity="secondary" class="mx-2"
-                        @click="showStudentDialog = true" />
-                    <Button v-if="selectedStudents.length" label="حذف" icon="pi pi-trash" iconPos="right"
-                        severity="secondary" class="mx-2" @click="showStudentDeleteDialog = true" />
-                    <Button label="تعديل" icon="pi pi-pencil" iconPos="right" severity="secondary" class="mx-2"
-                        @click="handleStudentEditClick" v-if="selectedStudents.length == 1" />
-                    <Button v-if="selectedStudents.length" label="نقل إلى" icon="pi pi-undo"
-                        @click="toggleTransferStudentsMenu" aria-haspopup="true" aria-controls="overlay_menu"
-                        iconPos="right" severity="secondary" class="mx-2" />
-                    <Menu ref="transferStudentsMenu" id="overlay_menu" :model="filteredClassOptions" :popup="true">
-                        <template #item="{ item }">
-                            <Button variant="text" severity="secondary"
-                                @click="useTransferConfirm.requestAction(selectedStudents, [item.value])"> {{ item.label
-                                }}</Button>
-                        </template>
-                    </Menu>
-
-                </template>
-
-                <template #end>
-                    <Button label="تحميل" icon="pi pi-download" iconPos="right" severity="secondary"
-                        @click="exportCSV()" />
-                </template>
-            </Toolbar>
-
-            <DataTable :ref="dt" v-model:selection="selectedStudents" :value="studentsToShow" dataKey="id"
-                :paginator="true" :rows="10" :filters="filters" stripedRows
-                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                :rowsPerPageOptions="[5, 10, 25]"
-                currentPageReportTemplate="يتم عرض من {first} إلى {last} من مجموع الطلبة: {totalRecords}"
-                :globalFilterFields="['first_name', 'last_name']">
-                <template #header>
-                    <div class="flex flex-wrap gap-2 items-center justify-between">
-                        <div class="flex gap-4">
-                            <h4 class="m-0">قائمة الطلبة</h4>
-                            <Select name="class_id" :options="studentStore.classOptions" optionLabel="label"
-                                optionValue="value" placeholder="اختر الصف" @update:modelValue="changeClass"
-                                v-model="studentStore.selectedClassId" v-show="!globalSearchInput.length" />
-                        </div>
-                        <IconField v-show="!globalSearchInput.length">
+        <UtilsStudentsTableNew :global-search-active="globalSearchInput.length > 0" :settings="{
+            clearSelectionOnClassChange: true
+        }" :students="studentsToShow" :table-search-value="tableSearchValue" v-model="selectedStudents">
+            <template #toolbar>
+                <Toolbar class="mb-6">
+                    <template #start>
+                        <IconField>
                             <InputIcon>
                                 <i class="pi pi-search" />
                             </InputIcon>
-                            <InputText v-model="filters['global'].value" placeholder="بحث عن..." />
+                            <InputText v-model.trim="globalSearchInput" placeholder="بحث عام" type="search" />
                         </IconField>
+                    </template>
+                </Toolbar>
 
+                <Toolbar class="mb-6">
+                    <template #start>
+                        <Button label="جديد" icon="pi pi-plus" iconPos="right" severity="secondary" class="mx-2"
+                            @click="showStudentDialog = true" />
+                        <Button v-if="selectedStudents.length" label="حذف" icon="pi pi-trash" iconPos="right"
+                            severity="secondary" class="mx-2" @click="showStudentDeleteDialog = true" />
+                        <Button label="تعديل" icon="pi pi-pencil" iconPos="right" severity="secondary" class="mx-2"
+                            @click="handleStudentEditClick" v-if="selectedStudents.length == 1" />
+                        <Button v-if="selectedStudents.length" label="نقل إلى" icon="pi pi-undo"
+                            @click="toggleTransferStudentsMenu" aria-haspopup="true" aria-controls="overlay_menu"
+                            iconPos="right" severity="secondary" class="mx-2" />
+                        <Menu ref="transferStudentsMenu" id="overlay_menu" :model="filteredClassOptions" :popup="true">
+                            <template #item="{ item }">
+                                <Button variant="text" severity="secondary"
+                                    @click="useTransferConfirm.requestAction(selectedStudents, [item.value])"> {{
+                                        item.label
+                                    }}</Button>
+                            </template>
+                        </Menu>
+
+                    </template>
+
+                    <template #end>
+                        <Button label="تحميل" icon="pi pi-download" iconPos="right" severity="secondary"
+                            @click="exportCSV()" />
+                    </template>
+                </Toolbar>
+            </template>
+            <template #header>
+                <div class="flex flex-wrap gap-2 items-center justify-between">
+                    <div class="flex gap-4">
+                        <h4 class="m-0">قائمة الطلبة</h4>
+                        <Select name="class_id" :options="studentStore.classOptions" optionLabel="label"
+                            optionValue="value" placeholder="اختر الصف" @update:modelValue="changeClass"
+                            v-model="studentStore.selectedClassId" v-show="!globalSearchInput.length" />
                     </div>
-                </template>
+                    <IconField v-show="!globalSearchInput.length">
+                        <InputIcon>
+                            <i class="pi pi-search" />
+                        </InputIcon>
+                        <InputText v-model="tableSearchValue" placeholder="بحث في القسم المحدد" />
+                    </IconField>
 
-                <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
+                </div>
+            </template>
+        </UtilsStudentsTableNew>
 
-                <Column field="first_name" header="الاسم" class="hidden" />
-                <Column field="last_name" header="اللقب" class="hidden" />
-                <Column header="الاسم واللقب" sortable class="font-bold">
-                    <template #body="slotProps: DataTableSlot<Student>">
-                        <p>{{ slotProps.data.last_name + " " + slotProps.data.first_name }}</p>
-                    </template>
-                </Column>
-                <Column header="الأب">
-                    <template #body="slotProps: DataTableSlot<Student>">
-                        <p>{{ slotProps.data.father_name + " بن " + slotProps.data.grandfather_name }}</p>
-                    </template>
-                </Column>
-                <Column field="phone_number" header="رقم الهاتف" style="min-width: 5rem"></Column>
-                <Column field="address" header="العنوان" style="min-width: 16rem"></Column>
-                <Column header="القسم" v-show="globalSearchInput.length">
-                    <template #body="slotProps: DataTableSlot<Student>">
-                        <p>{{studentStore.classOptions.find((classObj) => classObj.value ===
-                            slotProps.data.class_id)?.label}}</p>
-                    </template>
-                </Column>
-                <template #empty>
-                    <p class="text-center bold"> لا يوجد أي طلبة</p>
-                </template>
-            </DataTable>
-        </div>
         <Dialog header="أدخل معلومات القسم" @hide="studentToEdit = undefined" v-model:visible="showStudentDialog"
             :style="{ width: '350px' }" :modal="true">
             <UtilsEntityForm entityType="student" :entityObject="studentToEdit" @submit="handleStudentSubmit" />
@@ -110,12 +82,10 @@
 /* -------------------------------------------------------------------------- */
 /*                                   Imports                                  */
 /* -------------------------------------------------------------------------- */
-import { FilterMatchMode } from '@primevue/core/api';
 import { useToast } from 'primevue/usetoast';
 
 import type {
     Student,
-    DataTableSlot,
     NewStudent,
     BatchEditStudent,
     EditStudent,
@@ -143,13 +113,7 @@ const { student: toastMessages } = userFeedbackMessages;
 
 const dt = ref();
 
-const filters = ref({
-    global: {
-        value: null,
-        matchMode: FilterMatchMode.CONTAINS
-    }
-});
-
+const tableSearchValue = ref('')
 const studentsToShow = computed(() =>
     globalSearchInput.value.trim().length
         ? studentStore.searchedStudents
