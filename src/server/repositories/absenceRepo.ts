@@ -6,7 +6,8 @@ type TotalRow = { total: number };
 export const absenceRepo = {
     getAbsences: (filters: EventQueryFilters) => {
         const { limit = 20, offset = 0, ...otherFilters } = filters;
-        const { whereStmt, bindings } = buildWhereFromFilters("absence", otherFilters)
+        const { stmt: whereStmt, bindings: whereBindings } = buildSQLClause("absence", otherFilters)
+        const { stmt: paginationStmt, bindings: paginationBindings } = buildSQLClause("pagination", { limit, offset })
 
         const stmt = db
             .prepare(
@@ -24,10 +25,10 @@ export const absenceRepo = {
     INNER JOIN class c ON c.id = s.class_id
     ${whereStmt}
     ORDER BY a.date DESC
-    LIMIT ? OFFSET ?
+    ${paginationStmt}
 `
             )
-            .bind(...bindings, Number(limit), Number(offset));
+            .bind(...whereBindings, ...paginationBindings);
         const absences = stmt.all() as LocalAbsence[];
 
         const stmtTotal = db
@@ -39,7 +40,7 @@ export const absenceRepo = {
     ${whereStmt}
     ORDER BY a.date DESC`
             )
-            .bind(...bindings);
+            .bind(...whereBindings);
         const total = (stmtTotal.get() as TotalRow).total;
 
         return { total, absences };

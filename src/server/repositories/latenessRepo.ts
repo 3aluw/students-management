@@ -7,7 +7,8 @@ type TotalRow = { total: number };
 export const latenessRepo = {
     getLateness: (filters: EventQueryFilters) => {
         const { limit = 20, offset = 0, ...otherFilters } = filters;
-        const { whereStmt, bindings } = buildWhereFromFilters("lateness", otherFilters)
+        const { stmt: whereStmt, bindings: whereBindings } = buildSQLClause("lateness", otherFilters)
+        const { stmt: paginationStmt, bindings: paginationBindings } = buildSQLClause("pagination", { limit, offset })
 
 
         const stmt = db
@@ -26,11 +27,11 @@ export const latenessRepo = {
     INNER JOIN class c ON c.id = s.class_id
     ${whereStmt}
     ORDER BY l.date DESC
-    LIMIT ? OFFSET ?
+   ${paginationStmt}
     
 `
             )
-            .bind(...bindings, Number(limit), Number(offset));
+            .bind(...whereBindings, ...paginationBindings);
         const lateness = stmt.all() as LocalLateness[];
 
         const stmtTotal = db
@@ -43,7 +44,7 @@ export const latenessRepo = {
     ${whereStmt}
     ORDER BY l.date DESC`
             )
-            .bind(...bindings);
+            .bind(...whereBindings);
         const total = (stmtTotal.get() as TotalRow).total;
 
         return { total, lateness };
