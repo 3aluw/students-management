@@ -3,6 +3,7 @@ import type {
   Class,
   NewClass,
   EditClass,
+  StudentsQueryFilters,
   Student,
   NewStudent,
   EditStudent,
@@ -44,12 +45,19 @@ export default function () {
   };
 
   // ========== Student functions ==========
-  const getStudentsByClass = (classId: number) => {
-    return $fetch<Student[]>(`/api/students/?classId=${classId}`);
+  const getStudents = (query: StudentsQueryFilters) => {
+    const params = new URLSearchParams();
+
+    if (query.name && query.name.trim().length) params.append("name", query.name);
+    if ("class_id" in query && query.class_id !== undefined)
+      params.append("class_id", String(query.class_id));
+    if (query.status) params.append("status", query.status);
+    if ("exited_at_Year" in query && query.exited_at_Year !== undefined)
+      params.append("exited_at_Year", String(query.exited_at_Year));
+
+    return $fetch<Student[]>(`/api/students/?${params.toString()}`);
   };
-  const getStudentsByName = (name: string) => {
-    return $fetch<Student[]>(`/api/students/?name=${name}`);
-  };
+
   const createStudent = (body: NewStudent) => {
     return $fetch("/api/students", {
       method: "POST",
@@ -149,7 +157,7 @@ export default function () {
       body,
     });
   };
-   const deleteSeason = (seasonId: number) => {
+  const deleteSeason = (seasonId: number) => {
     return $fetch(`/api/season/?id=${seasonId}`, {
       method: "DELETE",
     });
@@ -159,8 +167,7 @@ export default function () {
     updateClass,
     getClasses,
     deleteClass,
-    getStudentsByClass,
-    getStudentsByName,
+    getStudents,
     createStudent,
     deleteStudents,
     updateStudents,

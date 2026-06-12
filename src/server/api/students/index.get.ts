@@ -1,14 +1,15 @@
 import { studentService } from "~/server/services/studentService";
+import type { StudentsQueryFilters } from "~/data/types"
 export default defineEventHandler((event) => {
 
 
-  const { classId, name } = getQuery<{ classId?: string; name?: string }>(
+  const query = getQuery<StudentsQueryFilters>(
     event,
   );
   try {
-    return studentService.getStudents({ classId, name });
+    return studentService.getStudents(query);
   } catch (err) {
-    logError("Error fetching students:", err, event.path, { classId, name });
+    logError("Error fetching students:", err, event.path, query);
     throw createError(toSafeError(err, "فشلت عملية إيجاد الطلبة"));
   }
 });

@@ -39,6 +39,14 @@ export const dateFilterOptions = [
   label: string;
   value: SupportedDateRanges;
 }[];
+export const statusFilterOptions = [
+  { label: "متخرج", value: "graduated" },
+  { label: "منسحب", value: "dropped" },
+  { label: "محول", value: "transferred" },
+] satisfies {
+  label: string;
+  value: StudentStatus;
+}[];
 export const ArabicBooleans = [
   { label: "لا", value: false },
   { label: "نعم", value: true },
@@ -59,7 +67,7 @@ export const ArabicStudentProperties: Record<keyof Student, string> = {
   phone_number: "رقم الهاتف",
   birth_date: "تاريخ الميلاد",
   address: "العنوان",
-  exited_at : "تاريخ المغادرة"
+  exited_at: "تاريخ المغادرة"
 };
 export const ArabicClassProperties: Record<keyof Class, string> = {
   id: "المعرف",
@@ -106,7 +114,7 @@ export const arabicProperties: Record<AllEntitiesKeys, string> = {
   ...ArabicSchoolSeasonProperties,
   ...ArabicSchoolTermProperties,
 }
-export const ArabicStudentStatus : Record<StudentStatus, string>={
+export const ArabicStudentStatus: Record<StudentStatus, string> = {
   active: "نشط",
   graduated: "متخرج",
   transferred: "محوّل",

@@ -15,16 +15,16 @@ export const useStudentStore = defineStore("studentStore", () => {
   const populateStudents = async (classId?: number) => {
     if (!classId) classId = selectedClassId.value ?? classes.value[0].id;
     try {
-      students.value = await backend.getStudentsByClass(classId);
+      students.value = await backend.getStudents({ class_id: classId, status: "active" });
       selectedClassId.value = classId;
     } catch (err) {
       console.log(err);
     }
   };
   const populateSearchedStudents = async (name: string) => {
-    if(!name.trim().length) searchedStudents.value = []
+    if (!name.trim().length) searchedStudents.value = []
     try {
-      searchedStudents.value = await backend.getStudentsByName(name);
+      searchedStudents.value = await backend.getStudents({ name, status: "active" });
     } catch (err) {
       console.log(err);
     }

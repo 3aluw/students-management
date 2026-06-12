@@ -1,4 +1,7 @@
-import type { EventQueryFilters } from "~/data/types";
+import type { EventQueryFilters, StudentsQueryFilters } from "~/data/types";
+import { getYearBoundaries } from "./date";
+
+
 
 /**
  * Generates a SQL SET clause for UPDATE statements from an object's keys.
@@ -75,6 +78,94 @@ export const buildWhereQuery = <T extends EventQueryFilters>(
     const where = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
     return { where, params };
 };
+
+/* -------------------------------------------------------------------------- */
+/*                                WHERE utils                                 */
+/* -------------------------------------------------------------------------- */
+
+/*  TERMINOLOGY
+Filters (The raw user input object).
+
+Parameter / Param (The intermediate, normalized key-value pairs).
+
+Clause (The final SQL string and execution values). 
+*/
+
+
+// "SQLPWherearam" makes it clear this represents a specific column/query blueprint.
+interface SQLPWherearam {
+    columnName: string; // Renamed from 'name' to distinguish it from the student's name
+    sqlExpression?: string;  // Renamed from 'query' to avoid confusion with the whole SQL query
+    bindingValue: unknown;   // Renamed from 'value' for database clarity
+}
+
+/**
+ * Maps a raw filter key/value pair into one or more SQL parameters.
+ * Handles complex transformations like date boundaries or multi-column searches.
+ */
+const expandFilterToSQLParams = (columnName: string, value: unknown): SQLPWherearam[] => {
+    // Edge Case: Handle Year Boundaries
+    if (columnName === "exited_at_Year" && Number(value)) {
+        const boundaries = getYearBoundaries(Number(value) as number);
+        return [
+            { columnName: "exited_at_Year", sqlExpression: "exited_at >= ?", bindingValue: boundaries.start },
+            { columnName: "exited_at_Year", sqlExpression: "exited_at <= ?", bindingValue: boundaries.end }
+        ];
+    }
+
+    // Edge Case: Full Name Search
+    if (columnName === "name") {
+        return [{
+            columnName: "name",
+            sqlExpression: "(first_name || ' ' || last_name) LIKE ?",
+            bindingValue: `%${value}%`
+        }];
+    }
+
+    // Default Case: Simple exact match
+    return [{ columnName, bindingValue: value }];
+};
+
+/**
+ * Flattens the raw filter object into a single array of SQL parameters.
+ */
+const parseFiltersToSQLParams = (filters: StudentsQueryFilters): SQLPWherearam[] => {
+    const sqlParams: SQLPWherearam[] = [];
+
+    const filterEntries = Object.entries(filters) as [string, unknown][];
+
+    for (const [key, value] of filterEntries) {
+        if (value !== undefined) { // Guard against undefined values
+            sqlParams.push(...expandFilterToSQLParams(key, value));
+        }
+    }
+
+    return sqlParams;
+};
+
+/**
+ * Combines SQL parameters into the final WHERE string and bindings (values) for better-sqlite3.
+ */
+const compileWhereClause = (params: SQLPWherearam[]): { whereStmt: string, bindings: unknown[] } => {
+    if (!params.length) {
+        return { whereStmt: "", bindings: [] };
+    }
+
+    // Fallback to "columnName = ?" if no special SQL expression was defined
+    const clauses = params.map(p => p.sqlExpression ?? `${p.columnName} = ?`);
+    const bindings = params.map(p => p.bindingValue);
+
+    return {
+        whereStmt: `WHERE ${clauses.join(" AND ")}`, // Added "WHERE " prefix for convenience
+        bindings
+    };
+};
+// A coordinator function keeping -transforms query into SQL params then into string/values-
+export const buildWhereFromFilters = (filters: StudentsQueryFilters) => {
+    const params = parseFiltersToSQLParams(filters);
+    return compileWhereClause(params);
+};
+
 
 /**
  * Converts an array of values into a SQL VALUES list format.

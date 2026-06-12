@@ -1,25 +1,17 @@
 import { BatchEditStudent, ClassPromotionMap, EditStudent, NewStudent, Student } from "~/data/types";
 import db from "~/db/db";
 import { seasonService } from "../services/seasonService";
+import type { StudentsQueryFilters } from "~/data/types"
 
 
 export const studentRepo = {
-  getAll(limit = 300): Student[] {
-    const stmt = db.prepare("SELECT * FROM student LIMIT ?");
-    const students = stmt.all(limit);
-    return students as Student[];
-  },
-  findByClassId(classId: number): Student[] {
-    const stmt = db.prepare("SELECT * FROM student WHERE class_id = ?");
-    const students = stmt.all(classId);
-    return students as Student[];
-  },
-  findByName(name: string): Student[] {
-    const stmt = db.prepare(
-      "SELECT * FROM student WHERE (first_name || ' ' || last_name) LIKE ?",
-    );
-    const students = stmt.all(`%${name}%`);
-    return students as Student[];
+
+  getStudents(query: StudentsQueryFilters) {
+    const { whereStmt, bindings } = buildWhereFromFilters(query)
+    const stmt = db.prepare(`SELECT * FROM student ${whereStmt}`,
+    ).bind(...bindings)
+    const students = stmt.all() as Student[]
+    return students;
   },
   deleteStudentsByIds(studentIds: number[]) {
     const inClause = generateDBInClause(studentIds.length);

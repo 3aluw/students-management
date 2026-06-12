@@ -1,16 +1,9 @@
-import { BatchEditStudent, ClassPromotionMap, EditStudent, NewStudent, Student } from "~/data/types";
+import { BatchEditStudent, ClassPromotionMap, EditStudent, NewStudent, Student, StudentsQueryFilters } from "~/data/types";
 import { studentRepo } from "../repositories/studentRepo";
 
 export const studentService = {
-  getStudents(query: { classId?: string; name?: string }) {
-    const { classId, name } = query;
-    if (classId) {
-      return studentRepo.findByClassId(Number(classId));
-    } else if (name) {
-      return studentRepo.findByName(name);
-    } else {
-      return studentRepo.getAll();
-    }
+  getStudents(query: StudentsQueryFilters) {
+    return studentRepo.getStudents(query)
   },
 
   createStudent(studentData: NewStudent) {

@@ -152,14 +152,7 @@ export type SupportedDateRanges =
   | "this week"
   | "this month";
 
-export type EventQueryFilters = Partial<{
-  limit: number;
-  offset: number;
-  classId: number;
-  name: string;
-  minDate: number;
-  maxDate: number;
-}>;
+
 
 export type PlaygroundSettings = {
   defaultStartTime: number;
@@ -192,4 +185,24 @@ export type BackendValidationError = BackendBaseError & {
   }
 }
 
+// ============== Query types====================
+export type InactiveStudentQueryFilters = {
+  name?: string,
+  status: Exclude<StudentStatus, "active">
+  exited_at_Year?: number
+}
+export type ActiveStudentQueryFilters = {
+  name?: string,
+  class_id?: number,
+  status: Extract<StudentStatus, "active">,
+}
+export type StudentsQueryFilters = ActiveStudentQueryFilters | InactiveStudentQueryFilters
 
+export type EventQueryFilters = Partial<{
+  limit: number;
+  offset: number;
+  classId: number;
+  name: string;
+  minDate: number;
+  maxDate: number;
+}>;

@@ -6,7 +6,7 @@ export function useConfirmHandler<
   A2 extends unknown[] | [] = []   // args for onAfterAction
 >(
   actionFn: (item: T, ...args: A1) => Promise<void>,
-  onAfterAction?: (...args: A2) => Promise<unknown>,
+  onAfterAction?: (...args: A2) => Promise<unknown> | void,
   successMsg = 'تمت العملية بنجاح',
   errorMsg = 'حدث خطأ أثناء العملية'
 ) {
