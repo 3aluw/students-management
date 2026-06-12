@@ -30,7 +30,7 @@ export const generateDBSetClause = <T extends Object>(object: T) => {
 export const generateDBInClause = (num: number) => Array(num).fill("?").join(",");
 
 /* -------------------------------------------------------------------------- */
-/*                                WHERE utils                                 */
+/*                             WHERE/ Pagination utils                        */
 /* -------------------------------------------------------------------------- */
 
 /*  TERMINOLOGY
