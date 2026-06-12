@@ -1,11 +1,16 @@
     <template>
-        <UtilsStudentsTable :settings="{ clearSelectionOnClassChange: false, tableTitle: 'حدد الطلبة الراسبين', columnsToHide: ['address'] }" :globalSearchValue="''"
-            v-model="selectedStudents">
+
+
+
+        <UtilsStudentsTableNew :global-search-active="false" :settings="{
+            clearSelectionOnClassChange: true, columnsToHide: ['address']
+        }" :students="studentsToShow" :table-search-value="tableSearchValue" v-model="selectedStudents">
             <template #toolbar>
                 <Toolbar>
                     <template #start>
                         <Button label="طلبة تم تحديدهم" icon="pi pi-check" iconPos="right" severity="secondary"
-                            @click="displaySelectedStudentsDialog = true" :badge="selectedStudents?.length.toString()" />
+                            @click="displaySelectedStudentsDialog = true"
+                            :badge="selectedStudents?.length.toString()" />
                         <Dialog header="Dialog" v-model:visible="displaySelectedStudentsDialog"
                             :breakpoints="{ '960px': '75vw' }" :style="{ width: '40vw' }" :modal="true">
                             <DataView :value="selectedStudents" dataKey="id">
@@ -30,7 +35,27 @@
                     </template>
                 </Toolbar>
             </template>
-        </UtilsStudentsTable>
+
+            <template #header>
+                <div class="flex flex-wrap gap-2 items-center justify-between">
+                    <div class="flex gap-4">
+                        <h4 class="m-0"> حدد الطلبة الراسبين</h4>
+                        <Select name="class_id" :options="studentStore.classOptions" optionLabel="label"
+                            optionValue="value" placeholder="اختر الصف" @update:modelValue="changeClass"
+                            v-model="studentStore.selectedClassId" />
+                    </div>
+                    <IconField>
+                        <InputIcon>
+                            <i class="pi pi-search" />
+                        </InputIcon>
+                        <InputText v-model="tableSearchValue" placeholder="بحث في القسم المحدد" />
+                    </IconField>
+
+                </div>
+            </template>
+
+
+        </UtilsStudentsTableNew>
     </template>
 <script setup lang="ts">
 import { useStudentStore } from '~/store/studentStore';
@@ -39,6 +64,13 @@ const studentStore = useStudentStore();
 
 // ========== selectedStudents MODEL SHARED TO PARENT ==========
 const selectedStudents = defineModel<Student[]>()
+const studentsToShow = computed(() => studentStore.students)
+
+const tableSearchValue = ref("")
+// CHANGE CLASS HANDLING
+const changeClass = (classId: number) => {
+    studentStore.populateStudents(classId)
+}
 
 // ========== SelectedStudents DIALOG HANDLING==========
 const displaySelectedStudentsDialog = ref(false);
