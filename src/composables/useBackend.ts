@@ -87,11 +87,7 @@ export default function () {
     );
   };
   const insertAbsences = (body: NewAbsence[]) => {
-    return $fetch<{
-      success: boolean;
-      insertedCount: number;
-      skippedIds: number[];
-    }>("/api/absences", {
+    return $fetch("/api/absences", {
       method: "POST",
       body,
     });
@@ -119,11 +115,7 @@ export default function () {
     );
   };
   const insertLateness = (body: NewLateness[]) => {
-    return $fetch<{
-      success: boolean;
-      insertedCount: number;
-      skippedIds: number[];
-    }>("/api/lateness", {
+    return $fetch("/api/lateness", {
       method: "POST",
       body,
     });

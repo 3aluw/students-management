@@ -1,13 +1,15 @@
 import db from '~/db/db';
-import type {  BatchEditLateness,  EditLateness, EventQueryFilters,  LocalLateness,  NewLateness } from "~/data/types";
+import type { BatchEditLateness, EditLateness, EventQueryFilters, LocalLateness, NewLateness } from "~/data/types";
 
 type TotalRow = { total: number };
 
 
 export const latenessRepo = {
     getLateness: (filters: EventQueryFilters) => {
-        const { limit = 20, offset = 0 } = filters;
-        const { where, params } = buildWhereQuery(filters, "lateness");
+        const { limit = 20, offset = 0, ...otherFilters } = filters;
+        const { stmt: whereStmt, bindings: whereBindings } = buildSQLClause("lateness", otherFilters)
+        const { stmt: paginationStmt, bindings: paginationBindings } = buildSQLClause("pagination", { limit, offset })
+
 
         const stmt = db
             .prepare(
@@ -23,13 +25,13 @@ export const latenessRepo = {
     FROM lateness l
     INNER JOIN student s ON s.id = l.student_id
     INNER JOIN class c ON c.id = s.class_id
-    ${where ? where : ""}
+    ${whereStmt}
     ORDER BY l.date DESC
-    LIMIT ? OFFSET ?
+   ${paginationStmt}
     
 `
             )
-            .bind(...params, Number(limit), Number(offset));
+            .bind(...whereBindings, ...paginationBindings);
         const lateness = stmt.all() as LocalLateness[];
 
         const stmtTotal = db
@@ -39,10 +41,10 @@ export const latenessRepo = {
     FROM lateness l
     INNER JOIN student s ON s.id = l.student_id
     INNER JOIN class c ON c.id = s.class_id
-    ${where ? where : ""}
+    ${whereStmt}
     ORDER BY l.date DESC`
             )
-            .bind(...params);
+            .bind(...whereBindings);
         const total = (stmtTotal.get() as TotalRow).total;
 
         return { total, lateness };
@@ -57,13 +59,14 @@ export const latenessRepo = {
     createLateness: (lateness: NewLateness[]) => {
 
         const stmt = db.prepare(`
-        INSERT OR IGNORE INTO lateness (student_id, date, start_time, late_by, reason, reason_accepted) VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO lateness (student_id, date, start_time, late_by, reason, reason_accepted) VALUES (?, ?, ?, ?, ?, ?)
 `);
 
         const insertMany = db.transaction((latenessArray: NewLateness[]) => {
+            let total = 0;
 
             for (const l of latenessArray) {
-                stmt.run(
+                const result = stmt.run(
                     l.student_id,
                     l.date,
                     l.start_time,
@@ -71,8 +74,9 @@ export const latenessRepo = {
                     l.reason,
                     l.reason_accepted
                 );
+                total += result.changes;
             }
-            return (db.prepare("SELECT changes() as changes").get() as { changes: number });
+            return { changes: total };
 
         });
         return insertMany(lateness);

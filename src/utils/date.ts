@@ -2,7 +2,7 @@ import type {
     SupportedDateRanges,
     LatenessInfo,
     AbsenceInfo,
-    PlaygroundSettings, SchoolTerm
+    PlaygroundSettings
 } from "~/data/types"
 
 // ========== Time functions ==========
