@@ -42,6 +42,12 @@
                             slotProps.data.class_id)?.label}}</p>
                     </template>
                 </Column>
+                <Column header="">
+                    <template #body="slotProps: DataTableSlot<Student>">
+                        <slot name="actions" :slot-props="slotProps">
+                        </slot>
+                    </template>
+                </Column>
                 <template #empty>
                     <p class="text-center bold"> لا يوجد أي طلبة</p>
                 </template>
