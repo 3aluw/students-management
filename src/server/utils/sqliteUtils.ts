@@ -106,7 +106,7 @@ interface SQLPWherearam {
 const expandFilterToSQLParams = (columnName: string, value: unknown): SQLPWherearam[] => {
     // Edge Case: Handle Year Boundaries
     if (columnName === "exited_at_Year" && Number(value)) {
-        const boundaries = getYearBoundaries(value as number);
+        const boundaries = getYearBoundaries(Number(value) as number);
         return [
             { columnName: "exited_at_Year", sqlExpression: "exited_at >= ?", bindingValue: boundaries.start },
             { columnName: "exited_at_Year", sqlExpression: "exited_at <= ?", bindingValue: boundaries.end }
