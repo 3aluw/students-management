@@ -5,8 +5,8 @@ type TotalRow = { total: number };
 
 export const absenceRepo = {
     getAbsences: (filters: EventQueryFilters) => {
-        const { limit = 20, offset = 0 } = filters;
-        const { where, params } = buildWhereQuery(filters, "absence");
+        const { limit = 20, offset = 0, ...otherFilters } = filters;
+        const { whereStmt, bindings } = buildWhereFromFilters("absence", otherFilters)
 
         const stmt = db
             .prepare(
@@ -22,12 +22,12 @@ export const absenceRepo = {
     FROM absence a
     INNER JOIN student s ON s.id = a.student_id
     INNER JOIN class c ON c.id = s.class_id
-    ${where ? where : ""}
+    ${whereStmt}
     ORDER BY a.date DESC
     LIMIT ? OFFSET ?
 `
             )
-            .bind(...params, Number(limit), Number(offset));
+            .bind(...bindings, Number(limit), Number(offset));
         const absences = stmt.all() as LocalAbsence[];
 
         const stmtTotal = db
@@ -36,10 +36,10 @@ export const absenceRepo = {
     FROM absence a
     INNER JOIN student s ON s.id = a.student_id
     INNER JOIN class c ON c.id = s.class_id
-    ${where ? where : ""}
+    ${whereStmt}
     ORDER BY a.date DESC`
             )
-            .bind(...params);
+            .bind(...bindings);
         const total = (stmtTotal.get() as TotalRow).total;
 
         return { total, absences };
@@ -53,7 +53,6 @@ export const absenceRepo = {
     },
 
     createAbsences: (absences: NewAbsence[]) => {
-
         const stmt = db.prepare(`
         INSERT OR IGNORE INTO absence
         (student_id, date, start_time, reason, reason_accepted)
@@ -61,19 +60,21 @@ export const absenceRepo = {
 `);
 
         const insertMany = db.transaction((absenceArray: NewAbsence[]) => {
+            let total = 0;
 
             for (const a of absenceArray) {
-                stmt.run(
+                const result = stmt.run(
                     a.student_id,
                     a.date,
                     a.start_time,
                     a.reason,
                     a.reason_accepted
                 );
-            }
-            return (db.prepare("SELECT changes() as changes").get() as { changes: number });
 
-        });
+                total += result.changes;
+            }
+            return { changes: total };
+        })
         return insertMany(absences);
     },
 

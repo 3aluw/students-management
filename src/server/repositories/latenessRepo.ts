@@ -57,13 +57,14 @@ export const latenessRepo = {
     createLateness: (lateness: NewLateness[]) => {
 
         const stmt = db.prepare(`
-        INSERT OR IGNORE INTO lateness (student_id, date, start_time, late_by, reason, reason_accepted) VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO lateness (student_id, date, start_time, late_by, reason, reason_accepted) VALUES (?, ?, ?, ?, ?, ?)
 `);
 
         const insertMany = db.transaction((latenessArray: NewLateness[]) => {
+            let total = 0;
 
             for (const l of latenessArray) {
-                stmt.run(
+                const result = stmt.run(
                     l.student_id,
                     l.date,
                     l.start_time,
@@ -71,8 +72,9 @@ export const latenessRepo = {
                     l.reason,
                     l.reason_accepted
                 );
+                total += result.changes;
             }
-            return (db.prepare("SELECT changes() as changes").get() as { changes: number });
+            return { changes: total };
 
         });
         return insertMany(lateness);
