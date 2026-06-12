@@ -35,8 +35,8 @@
                     header="رقم الهاتف" style="min-width: 5rem"></Column>
                 <Column v-if="!props.settings.columnsToHide?.includes('address')" field="address" header="العنوان"
                     style="min-width: 16rem"></Column>
-                <Column v-if="!props.settings.columnsToHide?.includes('class')" header="القسم"
-                    v-show="props.globalSearchActive">
+                <Column v-if="!props.settings.columnsToHide?.includes('class') && props.globalSearchActive"
+                    header="القسم">
                     <template #body="slotProps: DataTableSlot<Student>">
                         <p>{{studentStore.classOptions.find((classObj) => classObj.value ===
                             slotProps.data.class_id)?.label}}</p>
