@@ -1,7 +1,7 @@
 <template>
     <div>
         <UtilsStudentsTableNew :global-search-active="globalSearchValue.length > 0" :settings="{
-            clearSelectionOnClassChange: true,
+            clearSelectionOnClassChange: true, columnsToHide: ['class']
         }" :students="studentsToShow" :table-search-value="tableSearchValue" v-model="selectedStudents">
             <template #toolbar>
                 <Toolbar class="mb-6">
