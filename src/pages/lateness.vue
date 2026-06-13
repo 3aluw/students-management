@@ -16,7 +16,7 @@
                         @click="exportCSV()" />
                 </template>
             </Toolbar>
-            <DataTable :ref="dt" v-model:selection="selectedLateness" :value="eventStore.lateness" dataKey="id"
+            <DataTable ref="dt" v-model:selection="selectedLateness" :value="eventStore.lateness" dataKey="id"
                 :paginator="true" :rows="10" stripedRows lazy @page="updatePage" :totalRecords="totalRecords"
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 currentPageReportTemplate="يتم عرض من {first} إلى {last} من مجموع التأخرات: {totalRecords}">

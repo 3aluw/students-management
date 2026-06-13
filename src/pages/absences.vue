@@ -17,7 +17,7 @@
                 </template>
             </Toolbar>
 
-            <DataTable :ref="dt" v-model:selection="selectedAbsences" :value="eventStore.absences" dataKey="id"
+            <DataTable ref="dt" v-model:selection="selectedAbsences" :value="eventStore.absences" dataKey="id"
                 :paginator="true" :rows="10" stripedRows lazy @page="updatePage" :totalRecords="totalRecords"
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 currentPageReportTemplate="يتم عرض من {first} إلى {last} من مجموع الغيابات: {totalRecords}"
