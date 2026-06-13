@@ -10,7 +10,10 @@ import type {
   Lateness,
   SchoolTerm,
   AllEntitiesKeys,
-  StudentStatus
+  StudentStatus,
+  XLSXStudent,
+  XLSXLateness,
+  XLSXAbsnece
 } from "./types";
 
 export const genderOptions = [
@@ -76,24 +79,24 @@ export const ArabicClassProperties: Record<keyof Class, string> = {
   school_level: "الطور التعليمي",
   section: "الحرف",
 };
-export const ArabicLatenessProperties: Record<keyof Lateness, string> = {
+export const ArabicLatenessProperties = {
   id: "المعرف",
   student_id: "معرف الطالب",
   date: "التاريخ",
   start_time: "وقت بداية الحصة",
   late_by: "مدة التأخر (بالدقائق)",
   reason: "السبب",
-  reason_accepted: "قبول السبب",
-};
+  reason_accepted: "قبول العذر",
+} as const satisfies Record<keyof Lateness, string>;
 
-export const ArabicAbsenceProperties: Record<keyof Absence, string> = {
+export const ArabicAbsenceProperties = {
   id: "المعرف",
   student_id: "معرف الطالب",
   date: "التاريخ",
   start_time: "وقت بداية الحصة",
   reason: "السبب",
   reason_accepted: "قبول السبب",
-};
+} as const satisfies Record<keyof Absence, string>;
 
 export const ArabicSchoolSeasonProperties: Record<keyof SchoolSeason, string> = {
   id: "المعرف",
@@ -213,3 +216,32 @@ export const toGraduateClass: Pick<Class, 'section' | 'id'> = {
   id: -1,
   section: 'المتخرجون'
 }
+
+
+// ============== XLSX files arabic properties ====================
+export const XLSXArabicStudentProperties = {
+  id: "المعرف",
+  first_name: "الاسم",
+  last_name: "اللقب",
+  father_name: "اسم الأب",
+  grandfather_name: "اسم الجد",
+  sex: "الجنس",
+  phone_number: "رقم الهاتف",
+  birth_date: "تاريخ الميلاد",
+  address: "العنوان",
+} as const satisfies Record<keyof XLSXStudent, string>;
+
+export const XLSXArabicLatenessProperties = {
+  student: " الطالب",
+  date: "التاريخ",
+  late_by: "مدة التأخر (بالدقائق)",
+  reason: "السبب",
+  reason_accepted: "قبول العذر",
+} as const satisfies Record<keyof XLSXLateness, string>;
+
+export const XLSXArabicAbsenceProperties = {
+  student: " الطالب",
+  date: "التاريخ",
+  reason: "السبب",
+  reason_accepted: "قبول السبب",
+} as const satisfies Record<keyof XLSXAbsnece, string>;
