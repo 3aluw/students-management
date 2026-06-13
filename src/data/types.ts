@@ -206,3 +206,9 @@ export type EventQueryFilters = Partial<{
   minDate: number;
   maxDate: number;
 }>;
+
+
+// ============== XLSX types ====================
+export type XLSXStudent = Omit<Student, "status" | "class_id" | "exited_at" | "birth_date" > & {
+  birth_date : Date
+}
