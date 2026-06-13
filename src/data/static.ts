@@ -69,6 +69,7 @@ export const ArabicStudentProperties = {
   address: "العنوان",
   exited_at: "تاريخ المغادرة"
 } as const satisfies Record<keyof Student, string>;
+
 export const ArabicClassProperties: Record<keyof Class, string> = {
   id: "المعرف",
   grade: "المستوى",

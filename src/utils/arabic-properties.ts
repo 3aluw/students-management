@@ -1,5 +1,5 @@
 import { arabicProperties } from "~/data/static";
-import type { Student } from "~/data/types";
+import type { Student, XLSXStudent } from "~/data/types";
 import { ArabicStudentProperties } from "~/data/static";
 // ========== Fields / its Arabic translations functions ==========
 /*Internal */
@@ -24,24 +24,26 @@ export const getRequiredFieldMessage = (
 };
 export const getPropertyArabicName = (fieldName: string) => fieldName in arabicProperties ? arabicProperties[fieldName as keyof typeof arabicProperties] : undefined
 
+const { status, class_id, exited_at, ...others } = ArabicStudentProperties
+const XLSXArabicStudentProperties = others satisfies Record<keyof XLSXStudent, string>
 
 // 1. Derive the type for the Arabic keys
-type ArabicKeys = typeof ArabicStudentProperties[keyof Student];
+type ArabicKeys = typeof XLSXArabicStudentProperties[keyof XLSXStudent];
 
 // 2. Define the shape of the Arabic student object
 // It maps the Arabic string keys to the corresponding values from the Student object
 export type StudentInArabic = {
-  [K in keyof Student as typeof ArabicStudentProperties[K]]: Student[K];
+  [K in keyof XLSXStudent as typeof XLSXArabicStudentProperties[K]]: XLSXStudent[K];
 };
 
 export const transformPropertiesToArabic = (
-  itemObj: Student,
-  arabicPropsDict: typeof ArabicStudentProperties
+  itemObj: XLSXStudent,
+  arabicPropsDict: typeof XLSXArabicStudentProperties
 ): StudentInArabic => {
   // Initialize with a type cast to our final shape
   const studentInArabic = {} as StudentInArabic;
 
-  for (const key of Object.keys(itemObj) as Array<keyof Student>) {
+  for (const key of Object.keys(itemObj) as Array<keyof XLSXStudent>) {
     const arabicKey = arabicPropsDict[key];
 
     // We use a type assertion here because TypeScript's compiler 
