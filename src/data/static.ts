@@ -55,7 +55,7 @@ export const sqliteBoolean = [
   { label: "لا", value: 0 },
   { label: "نعم", value: 1 },
 ];
-export const ArabicStudentProperties: Record<keyof Student, string> = {
+export const ArabicStudentProperties = {
   id: "المعرف",
   status: "الحالة",
   first_name: "الاسم",
@@ -68,7 +68,7 @@ export const ArabicStudentProperties: Record<keyof Student, string> = {
   birth_date: "تاريخ الميلاد",
   address: "العنوان",
   exited_at: "تاريخ المغادرة"
-};
+} as const satisfies Record<keyof Student, string>;
 export const ArabicClassProperties: Record<keyof Class, string> = {
   id: "المعرف",
   grade: "المستوى",
