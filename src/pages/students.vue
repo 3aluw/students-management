@@ -89,7 +89,8 @@ import type {
     NewStudent,
     BatchEditStudent,
     EditStudent,
-    InactiveStudent
+    InactiveStudent,
+    XLSXStudent
 } from '~/data/types';
 
 import { userFeedbackMessages } from '~/data/static';
@@ -126,12 +127,13 @@ function getFormattedTableJson(tableRefInstance: any) {
     if (!tableRefInstance) return [];
 
     // 2. Grab the current visible/processed rows (respects active filters/sorting)
-    const rows: Student[] = tableRefInstance.processedData || tableRefInstance.value || [];
+    const students: Student[] = tableRefInstance.processedData || tableRefInstance.value || [];
 
 
     // 3. Map the rows using the Header Display Names as JSON keys
-    const structuredData = rows.map(row => {
-        const formattedRow = transformPropertiesToArabic(row, ArabicStudentProperties)
+    const structuredData = students.map(student => {
+        const XLSXStudent = transformStudentToExcelVersion(student)
+        const formattedRow = transformPropertiesToArabic(XLSXStudent, ArabicStudentProperties)
         return formattedRow;
     });
     return structuredData;
@@ -146,9 +148,9 @@ const exportXlsx = (studentsData: StudentInArabic[]) => {
 
     // 4. Append the worksheet to the workbook with a name
     XLSX.utils.book_append_sheet(workbook, worksheet, "التلاميذ");
-
+    const className = studentStore.classOptions.find((cl) => cl.value === studentStore.selectedClassId)?.label
     // 5. Write the file to disk
-    XLSX.writeFile(workbook, `${studentStore.selectedClassId}.xlsx`);
+    XLSX.writeFile(workbook, `${className ?? studentStore.selectedClassId}.xlsx`);
 }
 
 const handleExportClick = (tableRefInstance: any) => {
