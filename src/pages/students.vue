@@ -3,7 +3,7 @@
         <UtilsStudentsTable :global-search-active="globalSearchInput.length > 0" :settings="{
             clearSelectionOnClassChange: true
         }" :students="studentsToShow" :table-search-value="tableSearchValue" v-model="selectedStudents">
-            <template #toolbar>
+            <template #toolbar="{ tableRef }">
                 <Toolbar class="mb-6">
                     <template #start>
                         <IconField>
@@ -39,7 +39,7 @@
 
                     <template #end>
                         <Button label="تحميل" icon="pi pi-download" iconPos="right" severity="secondary"
-                            @click="exportCSV()" />
+                            @click="handleExportClick(tableRef)" />
                     </template>
                 </Toolbar>
             </template>
@@ -83,7 +83,7 @@
 /*                                   Imports                                  */
 /* -------------------------------------------------------------------------- */
 import { useToast } from 'primevue/usetoast';
-
+import * as XLSX from 'xlsx';
 import type {
     Student,
     NewStudent,
@@ -94,7 +94,8 @@ import type {
 
 import { userFeedbackMessages } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
-
+import { ArabicStudentProperties } from "~/data/static"
+import type { StudentInArabic } from '~/utils/arabic-properties';
 
 /* -------------------------------------------------------------------------- */
 /*                                Composables                                 */
@@ -120,11 +121,40 @@ const studentsToShow = computed(() =>
         : studentStore.students
 );
 
-function exportCSV() {
-    dt.value.exportCSV();
+
+function getFormattedTableJson(tableRefInstance: any) {
+    if (!tableRefInstance) return [];
+
+    // 2. Grab the current visible/processed rows (respects active filters/sorting)
+    const rows: Student[] = tableRefInstance.processedData || tableRefInstance.value || [];
+
+
+    // 3. Map the rows using the Header Display Names as JSON keys
+    const structuredData = rows.map(row => {
+        const formattedRow = transformPropertiesToArabic(row, ArabicStudentProperties)
+        return formattedRow;
+    });
+    return structuredData;
 }
 
+const exportXlsx = (studentsData: StudentInArabic[]) => {
+    // 2. Create a new, blank workbook
+    const workbook = XLSX.utils.book_new();
 
+    // 3. Convert JSON data to a worksheet
+    const worksheet = XLSX.utils.json_to_sheet(studentsData);
+
+    // 4. Append the worksheet to the workbook with a name
+    XLSX.utils.book_append_sheet(workbook, worksheet, "التلاميذ");
+
+    // 5. Write the file to disk
+    XLSX.writeFile(workbook, `${studentStore.selectedClassId}.xlsx`);
+}
+
+const handleExportClick = (tableRefInstance: any) => {
+    const structuredData = getFormattedTableJson(tableRefInstance)
+    exportXlsx(structuredData)
+}
 /* -------------------------------------------------------------------------- */
 /*                              Class change Handling                         */
 /* -------------------------------------------------------------------------- */
