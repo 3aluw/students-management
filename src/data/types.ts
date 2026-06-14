@@ -209,6 +209,18 @@ export type EventQueryFilters = Partial<{
 
 
 // ============== XLSX types ====================
-export type XLSXStudent = Omit<Student, "status" | "class_id" | "exited_at" | "birth_date" > & {
-  birth_date : Date
+export type XLSXStudent = Omit<Student, "status" | "class_id" | "exited_at" | "birth_date"> & {
+  birth_date: Date
 }
+export type XLSXAbsnece = Omit<Absence, "id" | "student_id" | "date" | "start_time" | "reason_accepted"> & {
+  date: Date,
+  reason_accepted: boolean,
+  student: string
+}
+export type XLSXLateness = Omit<Lateness, "id" | "student_id" | "date" | "start_time" | "reason_accepted"> & {
+  date: Date,
+  reason_accepted: boolean,
+  student: string,
+}
+
+
