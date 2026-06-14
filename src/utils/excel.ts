@@ -31,7 +31,7 @@ export const transformEventToExcelVersion = <T extends LocalAbsence | LocalLaten
 
 
 export const exportXlsx = (data: ArabicXLSXType[], fileName: string) => {
-    console.log(data,fileName)
+
     // 2. Create a new, blank workbook
     const workbook = XLSX.utils.book_new();
 
@@ -39,7 +39,7 @@ export const exportXlsx = (data: ArabicXLSXType[], fileName: string) => {
     const worksheet = XLSX.utils.json_to_sheet(data);
 
     // 4. Append the worksheet to the workbook with a name
-    XLSX.utils.book_append_sheet(workbook, worksheet, "التلاميذ");
+    XLSX.utils.book_append_sheet(workbook, worksheet, fileName);
     // 5. Write the file to disk
     XLSX.writeFile(workbook, `${fileName}.xlsx`);
 }
