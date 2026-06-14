@@ -1,6 +1,6 @@
-import { arabicProperties } from "~/data/static";
-import type { Student, XLSXAbsnece, XLSXLateness, XLSXStudent } from "~/data/types";
-import { ArabicStudentProperties, XLSXArabicStudentProperties, XLSXArabicAbsenceProperties, XLSXArabicLatenessProperties } from "~/data/static";
+import { ArabicAbsenceProperties, arabicProperties } from "~/data/static";
+import type { InArabic, PropDict, ArabicKeysOf, XLSXTypes } from "~/data/types";
+
 // ========== Fields / its Arabic translations functions ==========
 /*Internal */
 const formatRequiredFieldMessage = (
@@ -30,94 +30,37 @@ export const getPropertyArabicName = (fieldName: string) => fieldName in arabicP
 /*                               Excel Logic                                  */
 /* -------------------------------------------------------------------------- */
 
-/* type Alisa */
-type XLSXStudentDict = typeof XLSXArabicStudentProperties
-type XLSXAbsenceDict = typeof XLSXArabicAbsenceProperties
-type XLSXLatenessDict = typeof XLSXArabicLatenessProperties
 
 
-/**
- * Generic property-mapping dictionary type.
- * @typeParam T - The object type to extract keys from.
- * @example
- * ```typescript
- * type XLSXArabicStudentProperties = PropDict<XLSXStudent> // gives typeof XLSXArabicStudentPropertie
- * ```
- */
-type PropDict<T> = Record<keyof T, string>;
-
-/**
- * Generic key extractor.
- * @typeParam T - The object type to extract keys from.
- * @example
- * ```typescript
- * type arabicStudentProps = ArabicKeysOf<typeof ArabicStudentProperties> // gives "المعرف" | "الحالة" | "الاسم" | "اللقب" | "اسم الأب" | "اسم الجد" | "الصف" | "الجنس" | "رقم الهاتف" | "تاريخ الميلاد" | "العنوان" | "تاريخ المغادرة"
- * ```
- */
-type ArabicKeysOf<Dict> = Dict[keyof Dict];
-
-/**
- * Generic Arabic-keyed type, derived from any source type T and its dict.
- * @typeParam T - The object type to extract keys from.
- * @typeParam Dict - The dictionary that holds T keys. (So we can map using it)
- * @example
- * ```typescript
- * type arabicStufdent : InArabic<XLSXStudent, typeof XLSXArabicStudentProperties> // gives XLSXStudent but with Arabic keys
- * ```
- */
- 
-type InArabic<T, Dict extends PropDict<T>> = {
-  [K in keyof T as Dict[K]]: T[K];
-};
-
-
-// 2. Define the shape of the Arabic student object
-// It maps the Arabic string keys to the corresponding values from the Student object
-export type StudentInArabic = {
-  [K in keyof XLSXStudent as typeof XLSXArabicStudentProperties[K]]: XLSXStudent[K];
-};
-
-export const transformPropertiesToArabic = (
-  itemObj: XLSXStudent,
-  arabicPropsDict: typeof XLSXArabicStudentProperties
-): InArabic<XLSXStudent, typeof ArabicStudentProperties> => {
+export const transformToArabic = <T extends XLSXTypes, Dict extends PropDict<T>>(
+  itemObj: T,
+  arabicPropsDict: Dict
+): InArabic<T, Dict> => {
   // Initialize with a type cast to our final shape
-  const studentInArabic = {} as StudentInArabic;
+  const studentInArabic = {} as InArabic<T, Dict>;
 
-  for (const key of Object.keys(itemObj) as Array<keyof XLSXStudent>) {
+  for (const key of Object.keys(itemObj) as Array<keyof T>) {
     const arabicKey = arabicPropsDict[key];
 
     // We use a type assertion here because TypeScript's compiler 
     // struggles to track dynamic correlated properties inside a loop.
     (studentInArabic as any)[arabicKey] = itemObj[key];
   }
+  return studentInArabic as InArabic<T, Dict>;
+}
 
-  return studentInArabic;
-};
-export const transformPropertiesToEnglish = (
-  studentInArabic: StudentInArabic,
-  arabicPropsDict: typeof ArabicStudentProperties
-): Student => {
-  // 1. Initialize the object so it's not undefined
-  let engStudent = {} as Student;
 
-  // 2. Create a reverse mapping lookup: { "المعرف": "id", "الحالة": "status" }
-  const englishKeysDict = Object.fromEntries(
-    Object.entries(arabicPropsDict).map(([enKey, arValue]) => [arValue, enKey])
-  ) as Record<ArabicKeysOf<typeof ArabicStudentProperties>, keyof Student>;
+export const transformToEnglish = <T extends object, Dict extends PropDict<T>>(
+  arabicObj: InArabic<T, Dict>,
+  dict: Dict
+): T => {
+  const reverseDict = Object.fromEntries(
+    (Object.entries(dict) as Array<[keyof T, string]>).map(([enKey, arVal]) => [arVal, enKey])
+  ) as Record<ArabicKeysOf<Dict>, keyof T>;
 
-  // 3. Loop through the Arabic object safely
-  for (const arabicKey in studentInArabic) {
-    if (Object.hasOwn(studentInArabic, arabicKey)) {
-      // TypeScript now knows exactly what English key matches this Arabic key
-      const engKey = (englishKeysDict as any)[arabicKey];
-
-      if (engKey) {
-        // Use a small type cast here to bypass compiler limitations on dynamic keys
-        (engStudent as any)[engKey] = studentInArabic[arabicKey as keyof StudentInArabic];
-      }
-    }
-  }
-
-  return engStudent as Student;
+  return Object.fromEntries(
+    (Object.keys(arabicObj) as Array<ArabicKeysOf<Dict>>)
+      .filter((arKey) => reverseDict[arKey] !== undefined)
+      .map((arKey) => [reverseDict[arKey], arabicObj[arKey as keyof InArabic<T, Dict>]])
+  ) as T;
 };
