@@ -1,5 +1,5 @@
-import { ArabicAbsenceProperties, arabicProperties } from "~/data/static";
-import type { InArabic, PropDict, ArabicKeysOf, XLSXType } from "~/data/types";
+import { ArabicAbsenceProperties, arabicProperties, ArabicXLSXStudentProperties } from "~/data/static";
+import type { InArabic, PropDict, ArabicKeysOf, XLSXType, Student, LocalLateness, LocalAbsence, XLSXLateness, XLSXAbsnece } from "~/data/types";
 
 // ========== Fields / its Arabic translations functions ==========
 /*Internal */
@@ -64,3 +64,5 @@ export const transformToEnglish = <T extends object, Dict extends PropDict<T>>(
       .map((arKey) => [reverseDict[arKey], arabicObj[arKey as keyof InArabic<T, Dict>]])
   ) as T;
 };
+
+
