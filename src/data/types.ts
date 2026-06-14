@@ -1,5 +1,5 @@
 import type { ZodError } from "zod";
-
+import { XLSXArabicAbsenceProperties, XLSXArabicLatenessProperties, XLSXArabicStudentProperties } from "./static";
 /**
  * Utility types
  */
@@ -209,6 +209,44 @@ export type EventQueryFilters = Partial<{
 
 
 // ============== XLSX types ====================
+
+/*Utility types: used mainly for excel language transformations but can be used for other language transformation */
+
+/**
+ * Generic property-mapping dictionary type.
+ * @typeParam T - The object type to extract keys from.
+ * @example
+ * ```typescript
+ * type XLSXArabicStudentProperties = PropDict<XLSXStudent> // gives typeof XLSXArabicStudentPropertie
+ * ```
+ */
+export type PropDict<T> = Record<keyof T, string>;
+
+/**
+ * Generic key extractor.
+ * @typeParam T - The object type to extract keys from.
+ * @example
+ * ```typescript
+ * type arabicStudentProps = ArabicKeysOf<typeof ArabicStudentProperties> // gives "المعرف" | "الحالة" | "الاسم" | "اللقب" | "اسم الأب" | "اسم الجد" | "الصف" | "الجنس" | "رقم الهاتف" | "تاريخ الميلاد" | "العنوان" | "تاريخ المغادرة"
+ * ```
+ */
+export type ArabicKeysOf<Dict> = Dict[keyof Dict];
+
+/**
+ * Generic Arabic-keyed type, derived from any source type T and its dict.
+ * @typeParam T - The object type to extract keys from.
+ * @typeParam Dict - The dictionary that holds T keys. (So we can map using it)
+ * @example
+ * ```typescript
+ * type arabicStufdent : InArabic<XLSXStudent, typeof XLSXArabicStudentProperties> // gives XLSXStudent but with Arabic keys
+ * ```
+ */
+
+export type InArabic<T, Dict extends PropDict<T>> = {
+  [K in keyof T as Dict[K]]: T[K];
+};
+
+/* XLSX student and events' types */
 export type XLSXStudent = Omit<Student, "status" | "class_id" | "exited_at" | "birth_date"> & {
   birth_date: Date
 }
@@ -222,5 +260,9 @@ export type XLSXLateness = Omit<Lateness, "id" | "student_id" | "date" | "start_
   reason_accepted: boolean,
   student: string,
 }
+
+export type XLSXTypes = XLSXAbsnece | XLSXLateness | XLSXStudent
+
+
 
 
