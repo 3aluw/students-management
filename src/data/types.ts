@@ -1,5 +1,5 @@
 import type { ZodError } from "zod";
-import { XLSXArabicAbsenceProperties, XLSXArabicLatenessProperties, XLSXArabicStudentProperties } from "./static";
+import { ArabicXLSXcAbsenceProperties, ArabicXLSXLatenessProperties, ArabicXLSXStudentProperties } from "./static";
 /**
  * Utility types
  */
@@ -217,7 +217,7 @@ export type EventQueryFilters = Partial<{
  * @typeParam T - The object type to extract keys from.
  * @example
  * ```typescript
- * type XLSXArabicStudentProperties = PropDict<XLSXStudent> // gives typeof XLSXArabicStudentPropertie
+ * type ArabicXLSXStudentProperties = PropDict<XLSXStudent> // gives typeof XLSXArabicStudentPropertie
  * ```
  */
 export type PropDict<T> = Record<keyof T, string>;
@@ -238,7 +238,7 @@ export type ArabicKeysOf<Dict> = Dict[keyof Dict];
  * @typeParam Dict - The dictionary that holds T keys. (So we can map using it)
  * @example
  * ```typescript
- * type arabicStufdent : InArabic<XLSXStudent, typeof XLSXArabicStudentProperties> // gives XLSXStudent but with Arabic keys
+ * type arabicStufdent : InArabic<XLSXStudent, typeof ArabicXLSXStudentProperties> // gives XLSXStudent but with Arabic keys
  * ```
  */
 

@@ -219,7 +219,7 @@ export const toGraduateClass: Pick<Class, 'section' | 'id'> = {
 
 
 // ============== XLSX files arabic properties ====================
-export const XLSXArabicStudentProperties = {
+export const ArabicXLSXStudentProperties = {
   id: "المعرف",
   first_name: "الاسم",
   last_name: "اللقب",
@@ -231,7 +231,7 @@ export const XLSXArabicStudentProperties = {
   address: "العنوان",
 } as const satisfies Record<keyof XLSXStudent, string>;
 
-export const XLSXArabicLatenessProperties = {
+export const ArabicXLSXLatenessProperties = {
   student: " الطالب",
   date: "التاريخ",
   late_by: "مدة التأخر (بالدقائق)",
@@ -239,7 +239,7 @@ export const XLSXArabicLatenessProperties = {
   reason_accepted: "قبول العذر",
 } as const satisfies Record<keyof XLSXLateness, string>;
 
-export const XLSXArabicAbsenceProperties = {
+export const ArabicXLSXcAbsenceProperties = {
   student: " الطالب",
   date: "التاريخ",
   reason: "السبب",

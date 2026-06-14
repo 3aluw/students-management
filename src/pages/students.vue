@@ -96,7 +96,7 @@ import type {
 
 import { userFeedbackMessages } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
-import { ArabicStudentProperties, XLSXArabicStudentProperties } from "~/data/static"
+import { ArabicStudentProperties, ArabicXLSXStudentProperties } from "~/data/static"
 
 /* -------------------------------------------------------------------------- */
 /*                                Composables                                 */
@@ -123,7 +123,7 @@ const studentsToShow = computed(() =>
 /* -------------------------------------------------------------------------- */
 /*                               Excel features Logic                         */
 /* -------------------------------------------------------------------------- */
- type ArabicXLSXStudent = InArabic<XLSXStudent, typeof XLSXArabicStudentProperties>
+ type ArabicXLSXStudent = InArabic<XLSXStudent, typeof ArabicXLSXStudentProperties>
 
 function getFormattedTableJson(tableRefInstance: any) {
     if (!tableRefInstance) return [];
