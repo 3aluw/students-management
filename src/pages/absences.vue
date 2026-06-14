@@ -147,22 +147,12 @@ const resetSelected = () => {
 /* -------------------------------------------------------------------------- */
 /*                               Excel features Logic                         */
 /* -------------------------------------------------------------------------- */
-const getFormattedTableJson = (absences: LocalAbsence[]) => {
-
-  // 3. Map the Absences array creating an Arabic keys Json
-  const structuredData = absences.map(absence => {
-    const XLSXAbcense = transformEventToExcelVersion(absence)
-    const formattedRow = transformToArabic(XLSXAbcense, ArabicXLSXcAbsenceProperties)
-    return formattedRow;
-  });
-  return structuredData;
-}
 
 const handleExportClick = async () => {
   const absences = (await backend.getAbsences(dbFilters.value)).absences
   const selectedClassId = dbFilters.value?.classId
   const className = selectedClassId ? getClassName(studentStore.classOptions, selectedClassId) ?? "قائمة الغيابات" : "قائمة الغيابات"
-  const structuredData = getFormattedTableJson(absences)
+  const structuredData = getFormattedEventJson(absences, ArabicXLSXcAbsenceProperties)
   exportXlsx(structuredData, className)
 }
 

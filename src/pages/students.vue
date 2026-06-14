@@ -83,20 +83,17 @@
 /*                                   Imports                                  */
 /* -------------------------------------------------------------------------- */
 import { useToast } from 'primevue/usetoast';
-import * as XLSX from 'xlsx';
 import type {
     Student,
     NewStudent,
     BatchEditStudent,
     EditStudent,
     InactiveStudent,
-    XLSXStudent,
-    InArabic
 } from '~/data/types';
 
 import { userFeedbackMessages } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
-import { ArabicStudentProperties, ArabicXLSXStudentProperties } from "~/data/static"
+import { ArabicXLSXStudentProperties } from "~/data/static"
 
 /* -------------------------------------------------------------------------- */
 /*                                Composables                                 */
@@ -123,18 +120,6 @@ const studentsToShow = computed(() =>
 /* -------------------------------------------------------------------------- */
 /*                               Excel features Logic                         */
 /* -------------------------------------------------------------------------- */
-type ArabicXLSXStudent = InArabic<XLSXStudent, typeof ArabicXLSXStudentProperties>
-
-function getFormattedTableJson(students: Student[]) {
-
-    // 3. Map the rows using the Header Display Names as JSON keys
-    const structuredData = students.map(student => {
-        const XLSXStudent = transformStudentToExcelVersion(student)
-        const formattedRow = transformToArabic(XLSXStudent, ArabicStudentProperties)
-        return formattedRow;
-    });
-    return structuredData;
-}
 
 const handleExportClick = (tableRefInstance: any) => {
     if (!tableRefInstance) return [];
@@ -142,7 +127,7 @@ const handleExportClick = (tableRefInstance: any) => {
     // 2. Grab the current visible/processed rows (respects active filters/sorting)
     const students: Student[] = tableRefInstance.processedData || tableRefInstance.value || [];
     const className = getClassName(studentStore.classOptions, studentStore.selectedClassId) ?? "قائمة الطلبة"
-    const structuredData = getFormattedTableJson(students)
+    const structuredData = getFormattedStudentJson(students, ArabicXLSXStudentProperties)
     exportXlsx(structuredData, className)
 }
 /* -------------------------------------------------------------------------- */

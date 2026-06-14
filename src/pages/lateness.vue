@@ -65,7 +65,6 @@
 </template>
 <script setup lang="ts">
 import { useToast } from 'primevue/usetoast';
-import * as XLSX from 'xlsx';
 import type {
   EventQueryFilters,
   LocalLateness,
@@ -73,9 +72,6 @@ import type {
   BatchEditLateness,
   LatenessInfo,
   DataTableSlot,
-  XLSXLateness,
-  InArabic,
-  Lateness
 } from '~/data/types';
 
 import { userFeedbackMessages, ArabicXLSXLatenessProperties } from '~/data/static';
@@ -83,7 +79,6 @@ import { useStudentStore } from '~/store/studentStore';
 import { useEventStore } from '~/store/eventStore';
 
 import type { DataTablePageEvent } from 'primevue';
-import { ArabicLatenessProperties } from '../data/static';
 
 /* -------------------------------------------------------------------------- */
 /*                                Stores                                      */
@@ -157,22 +152,13 @@ const resetSelected = () => {
 /* -------------------------------------------------------------------------- */
 /*                               Excel features Logic                         */
 /* -------------------------------------------------------------------------- */
-const getFormattedTableJson = (lateness: LocalLateness[]) => {
 
-  // 3. Map the lateness array creating an Arabic keys Json
-  const structuredData = lateness.map(lateness => {
-    const XLSXLateness = transformEventToExcelVersion(lateness)
-    const formattedRow = transformToArabic(XLSXLateness, ArabicXLSXLatenessProperties)
-    return formattedRow;
-  });
-  return structuredData;
-}
 
 const handleExportClick = async () => {
   const lateness = (await backend.getLateness(dbFilters.value)).lateness
   const selectedClassId = dbFilters.value?.classId
   const className = selectedClassId ? getClassName(studentStore.classOptions, selectedClassId) ?? "قائمة التأخرات" : "قائمة التأخرات"
-  const structuredData = getFormattedTableJson(lateness)
+  const structuredData = getFormattedEventJson(lateness, ArabicXLSXLatenessProperties)
   exportXlsx(structuredData, className)
 }
 /* -------------------------------------------------------------------------- */
