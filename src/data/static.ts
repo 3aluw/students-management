@@ -232,15 +232,20 @@ export const ArabicXLSXStudentProperties = {
 } as const satisfies Record<keyof XLSXStudent, string>;
 
 export const ArabicXLSXLatenessProperties = {
-  student: " الطالب",
+  first_name: "الاسم",
+  last_name: "اللقب",
+  class: "القسم",
   date: "التاريخ",
   late_by: "مدة التأخر (بالدقائق)",
   reason: "السبب",
   reason_accepted: "قبول العذر",
+
 } as const satisfies Record<keyof XLSXLateness, string>;
 
 export const ArabicXLSXcAbsenceProperties = {
-  student: " الطالب",
+  first_name: "الاسم",
+  last_name: "اللقب",
+  class: "القسم",
   date: "التاريخ",
   reason: "السبب",
   reason_accepted: "قبول السبب",
