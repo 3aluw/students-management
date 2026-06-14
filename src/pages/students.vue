@@ -123,14 +123,9 @@ const studentsToShow = computed(() =>
 /* -------------------------------------------------------------------------- */
 /*                               Excel features Logic                         */
 /* -------------------------------------------------------------------------- */
- type ArabicXLSXStudent = InArabic<XLSXStudent, typeof ArabicXLSXStudentProperties>
+type ArabicXLSXStudent = InArabic<XLSXStudent, typeof ArabicXLSXStudentProperties>
 
-function getFormattedTableJson(tableRefInstance: any) {
-    if (!tableRefInstance) return [];
-
-    // 2. Grab the current visible/processed rows (respects active filters/sorting)
-    const students: Student[] = tableRefInstance.processedData || tableRefInstance.value || [];
-
+function getFormattedTableJson(students: Student[]) {
 
     // 3. Map the rows using the Header Display Names as JSON keys
     const structuredData = students.map(student => {
@@ -141,23 +136,14 @@ function getFormattedTableJson(tableRefInstance: any) {
     return structuredData;
 }
 
-const exportXlsx = (studentsData: ArabicXLSXStudent[]) => {
-    // 2. Create a new, blank workbook
-    const workbook = XLSX.utils.book_new();
-
-    // 3. Convert JSON data to a worksheet
-    const worksheet = XLSX.utils.json_to_sheet(studentsData);
-
-    // 4. Append the worksheet to the workbook with a name
-    XLSX.utils.book_append_sheet(workbook, worksheet, "التلاميذ");
-    const className = studentStore.classOptions.find((cl) => cl.value === studentStore.selectedClassId)?.label
-    // 5. Write the file to disk
-    XLSX.writeFile(workbook, `${className ?? studentStore.selectedClassId}.xlsx`);
-}
-
 const handleExportClick = (tableRefInstance: any) => {
-    const structuredData = getFormattedTableJson(tableRefInstance)
-    exportXlsx(structuredData)
+    if (!tableRefInstance) return [];
+
+    // 2. Grab the current visible/processed rows (respects active filters/sorting)
+    const students: Student[] = tableRefInstance.processedData || tableRefInstance.value || [];
+    const className = getClassName(studentStore.classOptions, studentStore.selectedClassId) ?? "قائمة الطلبة"
+    const structuredData = getFormattedTableJson(students)
+    exportXlsx(structuredData, className)
 }
 /* -------------------------------------------------------------------------- */
 /*                              Class change Handling                         */

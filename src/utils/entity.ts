@@ -3,4 +3,4 @@ type ClassOptions = {
     label: string;
     value: number;
 }[]
-export const getClassName = (classOptions: ClassOptions,classId: number) => classOptions.find((cl) => cl.value === classId)?.label
+export const getClassName = (classOptions: ClassOptions, classId?: number) => classId ? classOptions.find((cl) => cl.value === classId)?.label : undefined
