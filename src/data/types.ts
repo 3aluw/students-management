@@ -250,15 +250,15 @@ export type InArabic<T, Dict extends PropDict<T>> = {
 export type XLSXStudent = Omit<Student, "status" | "class_id" | "exited_at" | "birth_date"> & {
   birth_date: Date
 }
-export type XLSXAbsnece = Omit<Absence, "id" | "student_id" | "date" | "start_time" | "reason_accepted"> & {
+export type XLSXAbsnece = Omit<LocalAbsence, "id" | "student_id" | "date" | "start_time" | "reason_accepted" | "section" | "class_id" | "grade" | "school_level"> & {
+  class : string,
   date: Date,
   reason_accepted: boolean,
-  student: string
 }
-export type XLSXLateness = Omit<Lateness, "id" | "student_id" | "date" | "start_time" | "reason_accepted"> & {
+export type XLSXLateness = Omit<LocalLateness, "id" | "student_id" | "date" | "start_time" | "reason_accepted" | "section" | "class_id" | "grade" | "school_level"> & {
+  class : string,
   date: Date,
   reason_accepted: boolean,
-  student: string,
 }
 
 export type XLSXTypes = XLSXAbsnece | XLSXLateness | XLSXStudent
