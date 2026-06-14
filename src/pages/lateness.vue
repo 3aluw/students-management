@@ -1,86 +1,89 @@
 <template>
-    <div>
-        <div class="card">
-            <!-- Toolbar above the table - action buttons -->
-            <Toolbar class="mb-6">
-                <template #start>
-                    <Button label="حذف" icon="pi pi-trash" iconPos="right" severity="secondary" class="mx-2"
-                        @click="useDeleteConfirm.requestAction(selectedLateness)"
-                        :disabled="!selectedLateness || !selectedLateness.length" />
-                    <Button label="تعديل" icon="pi pi-pencil" iconPos="right" severity="secondary" class="mx-2"
-                        @click="handleEditClick" :disabled="!selectedLateness || !selectedLateness.length" />
-                </template>
+  <div>
+    <div class="card">
+      <!-- Toolbar above the table - action buttons -->
+      <Toolbar class="mb-6">
+        <template #start>
+          <Button label="حذف" icon="pi pi-trash" iconPos="right" severity="secondary" class="mx-2"
+            @click="useDeleteConfirm.requestAction(selectedLateness)"
+            :disabled="!selectedLateness || !selectedLateness.length" />
+          <Button label="تعديل" icon="pi pi-pencil" iconPos="right" severity="secondary" class="mx-2"
+            @click="handleEditClick" :disabled="!selectedLateness || !selectedLateness.length" />
+        </template>
 
-                <template #end>
-                    <Button label="تحميل" icon="pi pi-download" iconPos="right" severity="secondary"
-                        @click="exportCSV()" />
-                </template>
-            </Toolbar>
-            <DataTable ref="dt" v-model:selection="selectedLateness" :value="eventStore.lateness" dataKey="id"
-                :paginator="true" :rows="10" stripedRows lazy @page="updatePage" :totalRecords="totalRecords"
-                paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
-                currentPageReportTemplate="يتم عرض من {first} إلى {last} من مجموع التأخرات: {totalRecords}">
+        <template #end>
+          <Button label="تحميل" icon="pi pi-download" iconPos="right" severity="secondary" @click="exportCSV()" />
+        </template>
+      </Toolbar>
+      <DataTable ref="dt" v-model:selection="selectedLateness" :value="eventStore.lateness" dataKey="id"
+        :paginator="true" :rows="10" stripedRows lazy @page="updatePage" :totalRecords="totalRecords"
+        paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
+        currentPageReportTemplate="يتم عرض من {first} إلى {last} من مجموع التأخرات: {totalRecords}">
 
-                <template #header>
-                    <UtilsFilterPanel title="آخر التاخرات" :filters="['classId', 'name', 'dateRange']"
-                        @updateFilters="updateFilters" />
-                </template>
+        <template #header>
+          <UtilsFilterPanel title="آخر التاخرات" :filters="['classId', 'name', 'dateRange']"
+            @updateFilters="updateFilters" />
+        </template>
 
-                <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
-                <Column header="الاسم واللقب" sortable class="font-bold">
-                    <template #body="slotProps: DataTableSlot<LocalLateness>">
-                        <p>{{ slotProps.data.last_name + " " + slotProps.data.first_name }}</p>
-                    </template>
-                </Column>
+        <Column selectionMode="multiple" style="width: 3rem" :exportable="false"></Column>
+        <Column header="الاسم واللقب" sortable class="font-bold">
+          <template #body="slotProps: DataTableSlot<LocalLateness>">
+            <p>{{ slotProps.data.last_name + " " + slotProps.data.first_name }}</p>
+          </template>
+        </Column>
 
-                <Column field="date" header="التاريخ" style="min-width: 5rem">
-                    <template #body="slotProps: DataTableSlot<LocalLateness>">
-                        <p>{{ useDateFormat(slotProps.data.date, 'YYYY-MM-DD (ddd)', { locales: 'ar-SA' }) }}</p>
-                    </template>
-                </Column>
-                <Column field="late_by" header="متأخر ب(min)" style="min-width: 2rem"></Column>
-                <Column field="reason" header="السبب" style="min-width: 2rem"></Column>
-                <Column field="reason_accepted" header="عذر مقبول" style="min-width: 16rem">
-                    <template #body="slotProps: DataTableSlot<LocalLateness>">
-                        <p>{{ slotProps.data.reason_accepted ? 'نعم' : 'لا' }}</p>
-                    </template>
-                </Column>
-                <Column header="القسم">
-                    <template #body="slotProps: DataTableSlot<LocalLateness>">
-                        <p>{{studentStore.classOptions.find((classObj) => classObj.value ===
-                            slotProps.data.class_id)?.label}}</p>
-                    </template>
-                </Column>
-                <template #empty>
-                    <p class="text-center bold"> لا يوجد أي طلبة</p>
-                </template>
-            </DataTable>
-        </div>
-        <Dialog header="أدخل معلومات التأخر" @hide="latenessToEdit = undefined" v-model:visible="showLatenessDialog"
-            :style="{ width: '350px' }" :modal="true">
-            <UtilsEventForm eventType="lateness" :entityObject="latenessToEdit!" @submit="handleLatenessSubmit" />
-        </Dialog>
-        <UtilsConfirmDialog header="حذف الغياب" :danger="true" v-model="useDeleteConfirm.showConfirm.value"
-            @confirm="useDeleteConfirm.confirmAction" />
+        <Column field="date" header="التاريخ" style="min-width: 5rem">
+          <template #body="slotProps: DataTableSlot<LocalLateness>">
+            <p>{{ useDateFormat(slotProps.data.date, 'YYYY-MM-DD (ddd)', { locales: 'ar-SA' }) }}</p>
+          </template>
+        </Column>
+        <Column field="late_by" header="متأخر ب(min)" style="min-width: 2rem"></Column>
+        <Column field="reason" header="السبب" style="min-width: 2rem"></Column>
+        <Column field="reason_accepted" header="عذر مقبول" style="min-width: 16rem">
+          <template #body="slotProps: DataTableSlot<LocalLateness>">
+            <p>{{ slotProps.data.reason_accepted ? 'نعم' : 'لا' }}</p>
+          </template>
+        </Column>
+        <Column header="القسم">
+          <template #body="slotProps: DataTableSlot<LocalLateness>">
+            <p>{{studentStore.classOptions.find((classObj) => classObj.value ===
+              slotProps.data.class_id)?.label}}</p>
+          </template>
+        </Column>
+        <template #empty>
+          <p class="text-center bold"> لا يوجد أي طلبة</p>
+        </template>
+      </DataTable>
     </div>
+    <Dialog header="أدخل معلومات التأخر" @hide="latenessToEdit = undefined" v-model:visible="showLatenessDialog"
+      :style="{ width: '350px' }" :modal="true">
+      <UtilsEventForm eventType="lateness" :entityObject="latenessToEdit!" @submit="handleLatenessSubmit" />
+    </Dialog>
+    <UtilsConfirmDialog header="حذف الغياب" :danger="true" v-model="useDeleteConfirm.showConfirm.value"
+      @confirm="useDeleteConfirm.confirmAction" />
+  </div>
 </template>
 <script setup lang="ts">
 import { useToast } from 'primevue/usetoast';
-
+import * as XLSX from 'xlsx';
 import type {
   EventQueryFilters,
   LocalLateness,
   EditLateness,
   BatchEditLateness,
   LatenessInfo,
-  DataTableSlot
+  DataTableSlot,
+  XLSXLateness,
+  InArabic,
+  Lateness
 } from '~/data/types';
 
-import { userFeedbackMessages } from '~/data/static';
+import { userFeedbackMessages, ArabicXLSXLatenessProperties } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
 import { useEventStore } from '~/store/eventStore';
 
 import type { DataTablePageEvent } from 'primevue';
+import { ArabicLatenessProperties } from '../data/static';
 
 /* -------------------------------------------------------------------------- */
 /*                                Stores                                      */
@@ -152,6 +155,23 @@ const resetSelected = () => {
 };
 
 /* -------------------------------------------------------------------------- */
+/*                               Excel features Logic                         */
+/* -------------------------------------------------------------------------- */
+type ArabicXLSXLateness = InArabic<XLSXLateness, typeof ArabicXLSXLatenessProperties>
+
+const getFormattedTableJson = async () => {
+  // 2. Grab the current visible/processed rows (respects active filters/sorting)
+  const lateness = (await backend.getLateness({})).lateness
+
+  // 3. Map the rows using the Header Display Names as JSON keys
+  const structuredData = lateness.map(lateness => {
+    const XLSXLateness = transformEventToExcelVersion(lateness)
+    const formattedRow = transformToArabic(XLSXLateness, ArabicXLSXLatenessProperties)
+    return formattedRow;
+  });
+  return structuredData;
+}
+/* -------------------------------------------------------------------------- */
 /*                              Pagination                                    */
 /* -------------------------------------------------------------------------- */
 
@@ -190,15 +210,15 @@ const handleLatenessSubmit = async (
   const payload: BatchEditLateness | EditLateness =
     selectedLateness.value.length === 1
       ? {
-          id: selectedLateness.value[0]!.id,
-          ...latenessInfo
-        }
+        id: selectedLateness.value[0]!.id,
+        ...latenessInfo
+      }
       : {
-          ...latenessInfo,
-          ids: selectedLateness.value.map((l) => l.id)
-        };
+        ...latenessInfo,
+        ids: selectedLateness.value.map((l) => l.id)
+      };
 
-   editLateness(payload);
+  editLateness(payload);
 };
 
 /* -------------------------------------------------------------------------- */
