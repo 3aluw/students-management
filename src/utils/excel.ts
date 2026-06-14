@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
-import type { ArabicXLSXType, LocalAbsence, LocalLateness, Student, XLSXAbsnece, XLSXLateness, XLSXStudent, XLSXType } from "~/data/types";
+import type { ArabicXLSXStudentProperties } from '~/data/static';
+import type { ArabicXLSXType, InArabic, LocalAbsence, LocalLateness, PropDict, Student, XLSXAbsnece, XLSXLateness, XLSXStudent, XLSXType } from "~/data/types";
 
 export const transformStudentToExcelVersion = (student: Student): XLSXStudent => {
     const { class_id, exited_at, status, birth_date, ...rest } = student;
@@ -10,7 +11,7 @@ export const transformStudentToExcelVersion = (student: Student): XLSXStudent =>
     }
 };
 
-type ExcelEventVersion<T> = T extends LocalLateness ? XLSXLateness : XLSXAbsnece;
+type ExcelEventVersion<T extends LocalLateness | LocalAbsence> = T extends LocalLateness ? XLSXLateness : XLSXAbsnece;
 export const transformEventToExcelVersion = <T extends LocalAbsence | LocalLateness>
     (event: T): ExcelEventVersion<T> => {
     const { reason, first_name, last_name } = event
@@ -28,6 +29,32 @@ export const transformEventToExcelVersion = <T extends LocalAbsence | LocalLaten
 
     return base as ExcelEventVersion<T>
 }
+
+
+export const getFormattedStudentJson = (students: Student[], Dict : typeof ArabicXLSXStudentProperties) => {
+
+    // 3. Map the rows using the Header Display Names as JSON keys
+    const structuredData = students.map(student => {
+        const XLSXStudent = transformStudentToExcelVersion(student)
+        const formattedRow = transformToArabic(XLSXStudent, Dict)
+        return formattedRow;
+    });
+    return structuredData;
+}
+
+export const getFormattedEventJson = <
+    T extends LocalAbsence | LocalLateness,
+    XLSXT extends ExcelEventVersion<T>,
+    Dict extends PropDict<XLSXT>
+>(
+    records: T[],
+    dict: Dict
+): InArabic<XLSXT, Dict>[] => {
+    return records.map((record) => {
+        const xlsx = transformEventToExcelVersion(record) as XLSXT;
+        return transformToArabic(xlsx, dict);
+    });
+};
 
 
 export const exportXlsx = (data: ArabicXLSXType[], fileName: string) => {
