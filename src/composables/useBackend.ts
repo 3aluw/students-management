@@ -79,7 +79,7 @@ export default function () {
 
   // ========== Absence functions ==========
   const getAbsences = (params: EventQueryFilters) => {
-    return $fetch<{ absences: LocalAbsence[]; total: number }>(
+    return $fetch(
       `/api/absences`,
       {
         params,
@@ -107,7 +107,7 @@ export default function () {
 
   // ========== Lateness functions ==========
   const getLateness = (params: EventQueryFilters) => {
-    return $fetch<{ lateness: LocalLateness[]; total: number }>(
+    return $fetch(
       `/api/lateness`,
       {
         params,

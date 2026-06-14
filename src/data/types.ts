@@ -251,17 +251,18 @@ export type XLSXStudent = Omit<Student, "status" | "class_id" | "exited_at" | "b
   birth_date: Date
 }
 export type XLSXAbsnece = Omit<LocalAbsence, "id" | "student_id" | "date" | "start_time" | "reason_accepted" | "section" | "class_id" | "grade" | "school_level"> & {
-  class : string,
+  class: string,
   date: Date,
   reason_accepted: boolean,
 }
 export type XLSXLateness = Omit<LocalLateness, "id" | "student_id" | "date" | "start_time" | "reason_accepted" | "section" | "class_id" | "grade" | "school_level"> & {
-  class : string,
+  class: string,
   date: Date,
   reason_accepted: boolean,
 }
 
-export type XLSXTypes = XLSXAbsnece | XLSXLateness | XLSXStudent
+export type XLSXType = XLSXAbsnece | XLSXLateness | XLSXStudent
+export type ArabicXLSXType = InArabic<XLSXAbsnece, typeof ArabicXLSXcAbsenceProperties> | InArabic<XLSXLateness, typeof ArabicXLSXLatenessProperties> | InArabic<XLSXStudent, typeof ArabicXLSXStudentProperties>
 
 
 

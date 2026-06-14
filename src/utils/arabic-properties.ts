@@ -1,5 +1,5 @@
 import { ArabicAbsenceProperties, arabicProperties } from "~/data/static";
-import type { InArabic, PropDict, ArabicKeysOf, XLSXTypes } from "~/data/types";
+import type { InArabic, PropDict, ArabicKeysOf, XLSXType } from "~/data/types";
 
 // ========== Fields / its Arabic translations functions ==========
 /*Internal */
@@ -32,7 +32,7 @@ export const getPropertyArabicName = (fieldName: string) => fieldName in arabicP
 
 
 
-export const transformToArabic = <T extends XLSXTypes, Dict extends PropDict<T>>(
+export const transformToArabic = <T extends XLSXType, Dict extends PropDict<T>>(
   itemObj: T,
   arabicPropsDict: Dict
 ): InArabic<T, Dict> => {
