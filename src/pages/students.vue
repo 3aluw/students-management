@@ -90,13 +90,13 @@ import type {
     BatchEditStudent,
     EditStudent,
     InactiveStudent,
-    XLSXStudent
+    XLSXStudent,
+    InArabic
 } from '~/data/types';
 
 import { userFeedbackMessages } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
-import { ArabicStudentProperties } from "~/data/static"
-import type { StudentInArabic } from '~/utils/arabic-properties';
+import { ArabicStudentProperties, XLSXArabicStudentProperties } from "~/data/static"
 
 /* -------------------------------------------------------------------------- */
 /*                                Composables                                 */
@@ -113,8 +113,6 @@ const { student: toastMessages } = userFeedbackMessages;
 /*                               Table Logic                                  */
 /* -------------------------------------------------------------------------- */
 
-const dt = ref();
-
 const tableSearchValue = ref('')
 const studentsToShow = computed(() =>
     globalSearchInput.value.trim().length
@@ -122,6 +120,10 @@ const studentsToShow = computed(() =>
         : studentStore.students
 );
 
+/* -------------------------------------------------------------------------- */
+/*                               Excel features Logic                         */
+/* -------------------------------------------------------------------------- */
+ type ArabicXLSXStudent = InArabic<XLSXStudent, typeof XLSXArabicStudentProperties>
 
 function getFormattedTableJson(tableRefInstance: any) {
     if (!tableRefInstance) return [];
@@ -133,13 +135,13 @@ function getFormattedTableJson(tableRefInstance: any) {
     // 3. Map the rows using the Header Display Names as JSON keys
     const structuredData = students.map(student => {
         const XLSXStudent = transformStudentToExcelVersion(student)
-        const formattedRow = transformPropertiesToArabic(XLSXStudent, ArabicStudentProperties)
+        const formattedRow = transformToArabic(XLSXStudent, ArabicStudentProperties)
         return formattedRow;
     });
     return structuredData;
 }
 
-const exportXlsx = (studentsData: StudentInArabic[]) => {
+const exportXlsx = (studentsData: ArabicXLSXStudent[]) => {
     // 2. Create a new, blank workbook
     const workbook = XLSX.utils.book_new();
 
