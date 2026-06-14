@@ -12,7 +12,7 @@
         </template>
 
         <template #end>
-          <Button label="تحميل" icon="pi pi-download" iconPos="right" severity="secondary" @click="exportCSV()" />
+          <Button label="تحميل" icon="pi pi-download" iconPos="right" severity="secondary" @click="handleExportClick" />
         </template>
       </Toolbar>
       <DataTable ref="dt" v-model:selection="selectedLateness" :value="eventStore.lateness" dataKey="id"
@@ -157,19 +157,23 @@ const resetSelected = () => {
 /* -------------------------------------------------------------------------- */
 /*                               Excel features Logic                         */
 /* -------------------------------------------------------------------------- */
-type ArabicXLSXLateness = InArabic<XLSXLateness, typeof ArabicXLSXLatenessProperties>
+const getFormattedTableJson = (lateness: LocalLateness[]) => {
 
-const getFormattedTableJson = async () => {
-  // 2. Grab the current visible/processed rows (respects active filters/sorting)
-  const lateness = (await backend.getLateness({})).lateness
-
-  // 3. Map the rows using the Header Display Names as JSON keys
+  // 3. Map the lateness array creating an Arabic keys Json
   const structuredData = lateness.map(lateness => {
     const XLSXLateness = transformEventToExcelVersion(lateness)
     const formattedRow = transformToArabic(XLSXLateness, ArabicXLSXLatenessProperties)
     return formattedRow;
   });
   return structuredData;
+}
+
+const handleExportClick = async () => {
+  const lateness = (await backend.getLateness(dbFilters.value)).lateness
+  const selectedClassId = dbFilters.value?.classId
+  const className = selectedClassId ? getClassName(studentStore.classOptions, selectedClassId) ?? "قائمة التأخرات" : "قائمة التأخرات"
+  const structuredData = getFormattedTableJson(lateness)
+  exportXlsx(structuredData, className)
 }
 /* -------------------------------------------------------------------------- */
 /*                              Pagination                                    */
