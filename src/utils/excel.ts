@@ -1,4 +1,5 @@
-import type { Absence, Lateness, LocalAbsence, LocalLateness, Student, XLSXAbsnece, XLSXLateness, XLSXStudent } from "~/data/types";
+import * as XLSX from 'xlsx';
+import type { ArabicXLSXType, LocalAbsence, LocalLateness, Student, XLSXAbsnece, XLSXLateness, XLSXStudent, XLSXType } from "~/data/types";
 
 export const transformStudentToExcelVersion = (student: Student): XLSXStudent => {
     const { class_id, exited_at, status, birth_date, ...rest } = student;
@@ -26,4 +27,19 @@ export const transformEventToExcelVersion = <T extends LocalAbsence | LocalLaten
     }
 
     return base as ExcelEventVersion<T>
+}
+
+
+export const exportXlsx = (data: ArabicXLSXType[], fileName: string) => {
+    console.log(data,fileName)
+    // 2. Create a new, blank workbook
+    const workbook = XLSX.utils.book_new();
+
+    // 3. Convert JSON data to a worksheet
+    const worksheet = XLSX.utils.json_to_sheet(data);
+
+    // 4. Append the worksheet to the workbook with a name
+    XLSX.utils.book_append_sheet(workbook, worksheet, "التلاميذ");
+    // 5. Write the file to disk
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
 }
