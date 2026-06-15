@@ -2,6 +2,11 @@ import * as XLSX from 'xlsx';
 import type { ArabicXLSXStudentProperties } from '~/data/static';
 import type { ArabicXLSXType, InArabic, LocalAbsence, LocalLateness, Option, PropDict, Student, XLSXAbsnece, XLSXLateness, XLSXStudent, XLSXType } from "~/data/types";
 
+
+/*=========== functions to transform a record to its excel version ==========*/
+/**
+ * Student ===> XLSX version of Student
+ */
 export const transformStudentToExcelVersion = (student: Student): XLSXStudent => {
     const { class_id, exited_at, status, birth_date, ...rest } = student;
 
@@ -12,6 +17,9 @@ export const transformStudentToExcelVersion = (student: Student): XLSXStudent =>
 };
 
 type ExcelEventVersion<T extends LocalLateness | LocalAbsence> = T extends LocalLateness ? XLSXLateness : XLSXAbsnece;
+/**
+ * Event ===> XLSX version of that Event
+ */
 export const transformEventToExcelVersion = <T extends LocalAbsence | LocalLateness>
     (event: T, classOptions: Option[]): ExcelEventVersion<T> => {
     const { reason, first_name, last_name } = event
@@ -30,7 +38,11 @@ export const transformEventToExcelVersion = <T extends LocalAbsence | LocalLaten
     return base as ExcelEventVersion<T>
 }
 
+/*=========== Cordination functions to transform an array of record to its excel version with Arabic props ==========*/
 
+/**
+ * Array of Student ====> XLSX version of Student in Arabic
+ */
 export const getFormattedStudentJson = (students: Student[], Dict: typeof ArabicXLSXStudentProperties) => {
 
     // 3. Map the rows using the Header Display Names as JSON keys
@@ -42,6 +54,9 @@ export const getFormattedStudentJson = (students: Student[], Dict: typeof Arabic
     return structuredData;
 }
 
+/**
+ * Array of Event ====> XLSX version of that Event in Arabic
+ */
 export const getFormattedEventJson = <
     T extends LocalAbsence | LocalLateness,
     XLSXT extends ExcelEventVersion<T>,
@@ -57,17 +72,17 @@ export const getFormattedEventJson = <
     });
 };
 
-
+/*=========== function to export to XLSX ==========*/
 export const exportXlsx = (data: ArabicXLSXType[], fileName: string) => {
-
-    // 2. Create a new, blank workbook
+    // 1. Create a new, blank workbook
     const workbook = XLSX.utils.book_new();
 
-    // 3. Convert JSON data to a worksheet
+    // 2. Convert JSON data to a worksheet
     const worksheet = XLSX.utils.json_to_sheet(data);
 
-    // 4. Append the worksheet to the workbook with a name
+    // 3. Append the worksheet to the workbook with a name
     XLSX.utils.book_append_sheet(workbook, worksheet, fileName);
-    // 5. Write the file to disk
+
+    // 4. Write the file to disk
     XLSX.writeFile(workbook, `${fileName}.xlsx`);
 }
