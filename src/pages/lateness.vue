@@ -157,8 +157,9 @@ const resetSelected = () => {
 const handleExportClick = async () => {
   const lateness = (await backend.getLateness(dbFilters.value)).lateness
   const selectedClassId = dbFilters.value?.classId
-  const className = selectedClassId ? getClassName(studentStore.classOptions, selectedClassId) ?? "قائمة التأخرات" : "قائمة التأخرات"
-  const structuredData = getFormattedEventJson(lateness, ArabicXLSXLatenessProperties)
+  const classOptions = studentStore.classOptions
+  const className = selectedClassId ? getClassName(classOptions, selectedClassId) ?? "قائمة التأخرات" : "قائمة التأخرات"
+  const structuredData = getFormattedEventJson(lateness, ArabicXLSXLatenessProperties, classOptions)
   exportXlsx(structuredData, className)
 }
 /* -------------------------------------------------------------------------- */

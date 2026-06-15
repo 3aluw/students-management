@@ -151,8 +151,9 @@ const resetSelected = () => {
 const handleExportClick = async () => {
   const absences = (await backend.getAbsences(dbFilters.value)).absences
   const selectedClassId = dbFilters.value?.classId
-  const className = selectedClassId ? getClassName(studentStore.classOptions, selectedClassId) ?? "قائمة الغيابات" : "قائمة الغيابات"
-  const structuredData = getFormattedEventJson(absences, ArabicXLSXcAbsenceProperties)
+  const classOptions = studentStore.classOptions
+  const className = selectedClassId ? getClassName(classOptions, selectedClassId) ?? "قائمة الغيابات" : "قائمة الغيابات"
+  const structuredData = getFormattedEventJson(absences, ArabicXLSXcAbsenceProperties, classOptions)
   exportXlsx(structuredData, className)
 }
 
