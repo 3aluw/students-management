@@ -35,6 +35,13 @@ export const dateFilterOptions = [
   { label: "هذا الشهر", value: "this month" },
 ] as const satisfies Option<SupportedDateRanges>[];
 
+export const seasonRelatedDateFilterOptions = [
+  { label: "اليوم", value: "this season" },
+  { label: "هذا الأسبوع", value: "this term" },
+  { label: "هذا الشهر", value: "last term" },
+  { label: "أمس", value: "last season" },
+] as const satisfies Option<SupportedDateRanges>[]
+
 export const statusFilterOptions = [
   { label: "متخرج", value: "graduated" },
   { label: "منسحب", value: "dropped" },
