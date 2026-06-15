@@ -111,7 +111,7 @@ const totalRecords = ref(0);
 const selectedLateness = ref<LocalLateness[]>([]);
 
 const dbFilters = ref<EventQueryFilters>({
-  limit: 20,
+  limit: 10,
   offset: 0
 });
 
@@ -155,7 +155,8 @@ const resetSelected = () => {
 
 
 const handleExportClick = async () => {
-  const lateness = (await backend.getLateness(dbFilters.value)).lateness
+  const {limit, offset, ...userFilters} =  dbFilters.value
+  const lateness = (await backend.getLateness(userFilters)).lateness
   const selectedClassId = dbFilters.value?.classId
   const classOptions = studentStore.classOptions
   const className = selectedClassId ? getClassName(classOptions, selectedClassId) ?? "قائمة التأخرات" : "قائمة التأخرات"
