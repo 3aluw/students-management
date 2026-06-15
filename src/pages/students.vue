@@ -3,7 +3,7 @@
         <UtilsStudentsTable :global-search-active="globalSearchInput.length > 0" :settings="{
             clearSelectionOnClassChange: true
         }" :students="studentsToShow" :table-search-value="tableSearchValue" v-model="selectedStudents">
-            <template #toolbar>
+            <template #toolbar="{ tableRef }">
                 <Toolbar class="mb-6">
                     <template #start>
                         <IconField>
@@ -39,7 +39,7 @@
 
                     <template #end>
                         <Button label="تحميل" icon="pi pi-download" iconPos="right" severity="secondary"
-                            @click="exportCSV()" />
+                            @click="handleExportClick(tableRef)" />
                     </template>
                 </Toolbar>
             </template>
@@ -83,18 +83,17 @@
 /*                                   Imports                                  */
 /* -------------------------------------------------------------------------- */
 import { useToast } from 'primevue/usetoast';
-
 import type {
     Student,
     NewStudent,
     BatchEditStudent,
     EditStudent,
-    InactiveStudent
+    InactiveStudent,
 } from '~/data/types';
 
 import { userFeedbackMessages } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
-
+import { ArabicXLSXStudentProperties } from "~/data/static"
 
 /* -------------------------------------------------------------------------- */
 /*                                Composables                                 */
@@ -111,8 +110,6 @@ const { student: toastMessages } = userFeedbackMessages;
 /*                               Table Logic                                  */
 /* -------------------------------------------------------------------------- */
 
-const dt = ref();
-
 const tableSearchValue = ref('')
 const studentsToShow = computed(() =>
     globalSearchInput.value.trim().length
@@ -120,11 +117,19 @@ const studentsToShow = computed(() =>
         : studentStore.students
 );
 
-function exportCSV() {
-    dt.value.exportCSV();
+/* -------------------------------------------------------------------------- */
+/*                               Excel features Logic                         */
+/* -------------------------------------------------------------------------- */
+
+const handleExportClick = (tableRefInstance: any) => {
+    if (!tableRefInstance) return [];
+
+    // 2. Grab the current visible/processed rows (respects active filters/sorting)
+    const students: Student[] = tableRefInstance.processedData || tableRefInstance.value || [];
+    const className = getClassName(studentStore.classOptions, studentStore.selectedClassId) ?? "قائمة الطلبة"
+    const structuredData = getFormattedStudentJson(students, ArabicXLSXStudentProperties)
+    exportXlsx(structuredData, className)
 }
-
-
 /* -------------------------------------------------------------------------- */
 /*                              Class change Handling                         */
 /* -------------------------------------------------------------------------- */

@@ -1,7 +1,5 @@
 import { defineStore, acceptHMRUpdate } from "pinia";
 import type {
-  Lateness,
-  Absence,
   LocalAbsence,
   EventQueryFilters,
   LocalLateness,

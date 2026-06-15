@@ -1,11 +1,10 @@
 <template>
     <div>
         <div class="card">
-            <slot name="toolbar">
+            <slot name="toolbar" :tableRef="dt">
                 <!-- Toolbar button goes here -->
             </slot>
-
-            <DataTable :ref="dt" v-model:selection="selectedStudents" :value="props.students" dataKey="id"
+            <DataTable ref="dt" v-model:selection="selectedStudents" :value="props.students" dataKey="id"
                 :paginator="true" :rows="10" :filters="filters" stripedRows
                 paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink CurrentPageReport RowsPerPageDropdown"
                 :rowsPerPageOptions="[5, 10, 25]"
@@ -73,11 +72,15 @@ const props = defineProps<{
     globalSearchActive: boolean
 }>()
 
+
+
 // ========== selectedStudents MODEL SHARED TO PARENT ==========
 const selectedStudents = defineModel<Student[]>()
 
 // ========== TABLE REFERENCES & SEARCH FUNCTIONALITY==========
 const dt = ref(); //dataTable Ref
+
+
 const filters = computed(() => ({
     global: {
         value: props.tableSearchValue,

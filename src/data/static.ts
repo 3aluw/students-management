@@ -1,4 +1,5 @@
 import type {
+  Option,
   Class,
   Gender,
   Student,
@@ -10,43 +11,36 @@ import type {
   Lateness,
   SchoolTerm,
   AllEntitiesKeys,
-  StudentStatus
+  StudentStatus,
+  XLSXStudent,
+  XLSXLateness,
+  XLSXAbsnece
 } from "./types";
 
 export const genderOptions = [
   { label: "ذكر", value: "M" },
   { label: "أنثى", value: "F" },
-] satisfies {
-  label: string;
-  value: Gender;
-}[];
+] satisfies Option<Gender>[];
 
 export const schoolLevelOptions = [
   { label: "ابتدائي", value: "primary" },
   { label: "متوسط", value: "middle" },
   { label: "ثانوي", value: "high" },
-] satisfies {
-  label: string;
-  value: SchoolLevel;
-}[];
+] as const satisfies Option<SchoolLevel>[];
 
 export const dateFilterOptions = [
   { label: "اليوم", value: "today" },
   { label: "أمس", value: "yesterday" },
   { label: "هذا الأسبوع", value: "this week" },
   { label: "هذا الشهر", value: "this month" },
-] satisfies {
-  label: string;
-  value: SupportedDateRanges;
-}[];
+] as const satisfies Option<SupportedDateRanges>[];
+
 export const statusFilterOptions = [
   { label: "متخرج", value: "graduated" },
   { label: "منسحب", value: "dropped" },
   { label: "محول", value: "transferred" },
-] satisfies {
-  label: string;
-  value: StudentStatus;
-}[];
+] as const satisfies Option<StudentStatus>[];
+
 export const ArabicBooleans = [
   { label: "لا", value: false },
   { label: "نعم", value: true },
@@ -55,7 +49,7 @@ export const sqliteBoolean = [
   { label: "لا", value: 0 },
   { label: "نعم", value: 1 },
 ];
-export const ArabicStudentProperties: Record<keyof Student, string> = {
+export const ArabicStudentProperties = {
   id: "المعرف",
   status: "الحالة",
   first_name: "الاسم",
@@ -68,31 +62,32 @@ export const ArabicStudentProperties: Record<keyof Student, string> = {
   birth_date: "تاريخ الميلاد",
   address: "العنوان",
   exited_at: "تاريخ المغادرة"
-};
+} as const satisfies Record<keyof Student, string>;
+
 export const ArabicClassProperties: Record<keyof Class, string> = {
   id: "المعرف",
   grade: "المستوى",
   school_level: "الطور التعليمي",
   section: "الحرف",
 };
-export const ArabicLatenessProperties: Record<keyof Lateness, string> = {
+export const ArabicLatenessProperties = {
   id: "المعرف",
   student_id: "معرف الطالب",
   date: "التاريخ",
   start_time: "وقت بداية الحصة",
   late_by: "مدة التأخر (بالدقائق)",
   reason: "السبب",
-  reason_accepted: "قبول السبب",
-};
+  reason_accepted: "قبول العذر",
+} as const satisfies Record<keyof Lateness, string>;
 
-export const ArabicAbsenceProperties: Record<keyof Absence, string> = {
+export const ArabicAbsenceProperties = {
   id: "المعرف",
   student_id: "معرف الطالب",
   date: "التاريخ",
   start_time: "وقت بداية الحصة",
   reason: "السبب",
   reason_accepted: "قبول السبب",
-};
+} as const satisfies Record<keyof Absence, string>;
 
 export const ArabicSchoolSeasonProperties: Record<keyof SchoolSeason, string> = {
   id: "المعرف",
@@ -212,3 +207,37 @@ export const toGraduateClass: Pick<Class, 'section' | 'id'> = {
   id: -1,
   section: 'المتخرجون'
 }
+
+
+// ============== XLSX files arabic properties ====================
+export const ArabicXLSXStudentProperties = {
+  id: "المعرف",
+  first_name: "الاسم",
+  last_name: "اللقب",
+  father_name: "اسم الأب",
+  grandfather_name: "اسم الجد",
+  sex: "الجنس",
+  phone_number: "رقم الهاتف",
+  birth_date: "تاريخ الميلاد",
+  address: "العنوان",
+} as const satisfies Record<keyof XLSXStudent, string>;
+
+export const ArabicXLSXLatenessProperties = {
+  first_name: "الاسم",
+  last_name: "اللقب",
+  class: "القسم",
+  date: "التاريخ",
+  late_by: "مدة التأخر (بالدقائق)",
+  reason: "السبب",
+  reason_accepted: "قبول العذر",
+
+} as const satisfies Record<keyof XLSXLateness, string>;
+
+export const ArabicXLSXcAbsenceProperties = {
+  first_name: "الاسم",
+  last_name: "اللقب",
+  class: "القسم",
+  date: "التاريخ",
+  reason: "السبب",
+  reason_accepted: "قبول السبب",
+} as const satisfies Record<keyof XLSXAbsnece, string>;
