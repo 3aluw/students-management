@@ -84,12 +84,17 @@ export const mapSeasonsToTree = (seasons: SchoolSeason[]) => {
 const seasonTimeRanges = ["this season", "last term", "this term", "last season"] as const satisfies readonly SupportedDateRanges[]
 type seasonTimeRange = typeof seasonTimeRanges[number];
 
-const getAvailableFilters = (seasons: SchoolSeason[]) => {
+const getFiltersData = (seasons: SchoolSeason[]) => {
     const currentSeason = seasons.find((season) => getSeasonStatus(season) == "current")
     const terms = seasons.flatMap((season) => season.terms)
     const currentTerm = terms.find((term) => getTermStatus(term) === "current")
     const pastTerm = terms.find((term) => getTermStatus(term) === "past")
     const lastSeason = seasons.find((season) => getSeasonStatus(season) == "past")
+    return { currentSeason, currentTerm, pastTerm, lastSeason }
+}
+
+const getAvailableFiltersMap = (seasons: SchoolSeason[]) => {
+    const { currentSeason, currentTerm, pastTerm, lastSeason } = getFiltersData(seasons)
 
     const availableFilters
         = {
@@ -102,7 +107,7 @@ const getAvailableFilters = (seasons: SchoolSeason[]) => {
 }
 
 export const getAvailableSeasonFilterOptions = (seasonFilterOptions: Option<seasonTimeRange>[], seasons: SchoolSeason[]): Option<SupportedDateRanges>[] => {
-    const optionConditionMap = getAvailableFilters(seasons)
+    const optionConditionMap = getAvailableFiltersMap(seasons)
 
     const availableOptions = seasonFilterOptions.filter(({ value }) => optionConditionMap[value])
     return availableOptions
@@ -113,9 +118,7 @@ export const getSeasonTermTimeRange = (range: seasonTimeRange, seasons: SchoolSe
 
     if (!seasonTimeRanges.includes(range)) throw new Error("This function accepts only season/term calculations ");
 
-    const currentSeason = seasons.find((season) => getSeasonStatus(season) == "current")
-    const terms = seasons.flatMap((season) => season.terms)
-    const optionConditionMap = getAvailableFilters(seasons)
+    const { currentSeason, currentTerm, pastTerm, lastSeason } = getFiltersData(seasons)
 
     let start, end;
     switch (range) {
@@ -128,21 +131,18 @@ export const getSeasonTermTimeRange = (range: seasonTimeRange, seasons: SchoolSe
         }
 
         case "this term": {
-            const currentTerm = terms.find((term) => getTermStatus(term) === "current")
             if (!currentTerm) throw new Error("Thre is no current term")
             start = currentTerm.startDate;
             end = currentTerm.endDate;
             break;
         }
         case "last term": {
-            const pastTerm = terms.find((term) => getTermStatus(term) === "past")
             if (!pastTerm) throw new Error("Thre is no current term")
             start = pastTerm.startDate;
             end = pastTerm.endDate;
             break;
         }
         case "last season": {
-            const lastSeason = seasons.find((season) => getSeasonStatus(season) == "past")
             if (!lastSeason) throw new Error("Thre is no past season")
             const formattedSeason = getSeasonStartAndEndDates(lastSeason)
             start = formattedSeason.startDate;
