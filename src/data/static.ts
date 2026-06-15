@@ -1,4 +1,5 @@
 import type {
+  Option,
   Class,
   Gender,
   Student,
@@ -19,37 +20,27 @@ import type {
 export const genderOptions = [
   { label: "ذكر", value: "M" },
   { label: "أنثى", value: "F" },
-] satisfies {
-  label: string;
-  value: Gender;
-}[];
+] satisfies Option<Gender>[];
 
 export const schoolLevelOptions = [
   { label: "ابتدائي", value: "primary" },
   { label: "متوسط", value: "middle" },
   { label: "ثانوي", value: "high" },
-] satisfies {
-  label: string;
-  value: SchoolLevel;
-}[];
+] as const satisfies Option<SchoolLevel>[];
 
 export const dateFilterOptions = [
   { label: "اليوم", value: "today" },
   { label: "أمس", value: "yesterday" },
   { label: "هذا الأسبوع", value: "this week" },
   { label: "هذا الشهر", value: "this month" },
-] satisfies {
-  label: string;
-  value: SupportedDateRanges;
-}[];
+] as const satisfies Option<SupportedDateRanges>[];
+
 export const statusFilterOptions = [
   { label: "متخرج", value: "graduated" },
   { label: "منسحب", value: "dropped" },
   { label: "محول", value: "transferred" },
-] satisfies {
-  label: string;
-  value: StudentStatus;
-}[];
+] as const satisfies Option<StudentStatus>[];
+
 export const ArabicBooleans = [
   { label: "لا", value: false },
   { label: "نعم", value: true },
