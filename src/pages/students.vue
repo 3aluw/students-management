@@ -117,19 +117,7 @@ const studentsToShow = computed(() =>
         : studentStore.students
 );
 
-/* -------------------------------------------------------------------------- */
-/*                               Excel features Logic                         */
-/* -------------------------------------------------------------------------- */
 
-const handleExportClick = (tableRefInstance: any) => {
-    if (!tableRefInstance) return [];
-
-    // 2. Grab the current visible/processed rows (respects active filters/sorting)
-    const students: Student[] = tableRefInstance.processedData || tableRefInstance.value || [];
-    const className = getClassName(studentStore.classOptions, studentStore.selectedClassId) ?? "قائمة الطلبة"
-    const structuredData = getFormattedStudentJson(students, ArabicXLSXStudentProperties)
-    exportXlsx(structuredData, className)
-}
 /* -------------------------------------------------------------------------- */
 /*                              Class change Handling                         */
 /* -------------------------------------------------------------------------- */
@@ -354,7 +342,19 @@ const handleStudentQuit = (newStatus: Pick<InactiveStudent, "status" | "exited_a
     }
 
 }
+/* -------------------------------------------------------------------------- */
+/*                               Excel Export Logic                           */
+/* -------------------------------------------------------------------------- */
 
+const handleExportClick = (tableRefInstance: any) => {
+    if (!tableRefInstance) return [];
+
+    // 2. Grab the current visible/processed rows (respects active filters/sorting)
+    const students: Student[] = tableRefInstance.processedData || tableRefInstance.value || [];
+    const className = getClassName(studentStore.classOptions, studentStore.selectedClassId) ?? "قائمة الطلبة"
+    const structuredData = getFormattedStudentJson(students, ArabicXLSXStudentProperties)
+    exportXlsx(structuredData, className)
+}
 
 
 </script>

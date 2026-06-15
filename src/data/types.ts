@@ -150,9 +150,12 @@ export type SupportedDateRanges =
   | "today"
   | "yesterday"
   | "this week"
-  | "this month";
-
-
+  | "this month"
+  | "this season"
+  | "this term"
+  | "last term"
+  | "last season"
+     
 
 export type PlaygroundSettings = {
   defaultStartTime: number;
