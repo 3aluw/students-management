@@ -109,7 +109,7 @@ const totalRecords = ref(0);
 const selectedAbsences = ref<LocalAbsence[]>([]);
 
 const dbFilters = ref<EventQueryFilters>({
-  limit: 20,
+  limit: 10,
   offset: 0
 });
 
@@ -149,7 +149,8 @@ const resetSelected = () => {
 /* -------------------------------------------------------------------------- */
 
 const handleExportClick = async () => {
-  const absences = (await backend.getAbsences(dbFilters.value)).absences
+    const {limit, offset, ...userFilters} =  dbFilters.value
+  const absences = (await backend.getAbsences(userFilters)).absences
   const selectedClassId = dbFilters.value?.classId
   const classOptions = studentStore.classOptions
   const className = selectedClassId ? getClassName(classOptions, selectedClassId) ?? "قائمة الغيابات" : "قائمة الغيابات"
