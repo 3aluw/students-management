@@ -1,7 +1,9 @@
 import type {
+    Option,
     SchoolSeason,
     SchoolTerm,
     SeasonStatus,
+    SupportedDateRanges,
 } from "~/data/types";
 
 // ========== Season functions ==========
@@ -17,6 +19,18 @@ export const getSeasonStatus = (season: SchoolSeason): SeasonStatus => {
                 : "current";
     return seasonStatus;
 };
+
+export const getTermStatus = (term: SchoolTerm): SeasonStatus => {
+    const now = Date.now();
+    const seasonStatus: SeasonStatus =
+        now < term.startDate
+            ? "future"
+            : now > term.endDate
+                ? "past"
+                : "current";
+    return seasonStatus;
+}
+
 export const getSeasonStartAndEndDates = (season: SchoolSeason) => {
     return {
         id: season.id,
@@ -63,4 +77,82 @@ export const mapSeasonsToTree = (seasons: SchoolSeason[]) => {
             })),
         };
     });
+};
+
+
+
+const seasonTimeRanges = ["this season", "last term", "this term", "last season"] as const satisfies readonly SupportedDateRanges[]
+type seasonTimeRange = typeof seasonTimeRanges[number];
+
+const getAvailableFilters = (seasons: SchoolSeason[]) => {
+    const currentSeason = seasons.find((season) => getSeasonStatus(season) == "current")
+    const terms = seasons.flatMap((season) => season.terms)
+    const currentTerm = terms.find((term) => getTermStatus(term) === "current")
+    const pastTerm = terms.find((term) => getTermStatus(term) === "past")
+    const lastSeason = seasons.find((season) => getSeasonStatus(season) == "past")
+
+    const availableFilters
+        = {
+            "this season": Boolean(currentSeason),
+            "this term": Boolean(currentTerm),
+            "last term": Boolean(pastTerm),
+            "last season": Boolean(lastSeason),
+        } satisfies Record<seasonTimeRange, boolean>;
+    return availableFilters
+}
+
+export const getAvailableSeasonFilterOptions = (seasonFilterOptions: Option<seasonTimeRange>[], seasons: SchoolSeason[]): Option<SupportedDateRanges>[] => {
+    const optionConditionMap = getAvailableFilters(seasons)
+
+    const availableOptions = seasonFilterOptions.filter(({ value }) => optionConditionMap[value])
+    return availableOptions
+}
+
+
+export const getSeasonTermTimeRange = (range: seasonTimeRange, seasons: SchoolSeason[]) => {
+
+    if (!seasonTimeRanges.includes(range)) throw new Error("This function accepts only season/term calculations ");
+
+    const currentSeason = seasons.find((season) => getSeasonStatus(season) == "current")
+    const terms = seasons.flatMap((season) => season.terms)
+    const optionConditionMap = getAvailableFilters(seasons)
+
+    let start, end;
+    switch (range) {
+        case "this season": {
+            if (!currentSeason) throw new Error("Thre is no current season")
+            const formattedSeason = getSeasonStartAndEndDates(currentSeason)
+            start = formattedSeason.startDate;
+            end = formattedSeason.endDate;
+            break;
+        }
+
+        case "this term": {
+            const currentTerm = terms.find((term) => getTermStatus(term) === "current")
+            if (!currentTerm) throw new Error("Thre is no current term")
+            start = currentTerm.startDate;
+            end = currentTerm.endDate;
+            break;
+        }
+        case "last term": {
+            const pastTerm = terms.find((term) => getTermStatus(term) === "past")
+            if (!pastTerm) throw new Error("Thre is no current term")
+            start = pastTerm.startDate;
+            end = pastTerm.endDate;
+            break;
+        }
+        case "last season": {
+            const lastSeason = seasons.find((season) => getSeasonStatus(season) == "past")
+            if (!lastSeason) throw new Error("Thre is no past season")
+            const formattedSeason = getSeasonStartAndEndDates(lastSeason)
+            start = formattedSeason.startDate;
+            end = formattedSeason.endDate;
+            break;
+        }
+
+        default:
+            throw new Error("Unknown range");
+    }
+
+    return [start, end];
 };

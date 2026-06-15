@@ -19,6 +19,7 @@ export const transformStudentToExcelVersion = (student: Student): XLSXStudent =>
 type ExcelEventVersion<T extends LocalLateness | LocalAbsence> = T extends LocalLateness ? XLSXLateness : XLSXAbsnece;
 /**
  * Event ===> XLSX version of that Event
+ *  @remarks This function takes classOptions as a parameter to prevent the inclusion of store here (Since utils runs out of Nuxt context)
  */
 export const transformEventToExcelVersion = <T extends LocalAbsence | LocalLateness>
     (event: T, classOptions: Option[]): ExcelEventVersion<T> => {
@@ -56,6 +57,7 @@ export const getFormattedStudentJson = (students: Student[], Dict: typeof Arabic
 
 /**
  * Array of Event ====> XLSX version of that Event in Arabic
+ *  @remarks This function takes classOptions as a parameter to prevent the inclusion of store here (Since utils runs out of Nuxt context)
  */
 export const getFormattedEventJson = <
     T extends LocalAbsence | LocalLateness,
