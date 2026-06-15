@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx';
 import type { ArabicXLSXStudentProperties } from '~/data/static';
-import type { ArabicXLSXType, InArabic, LocalAbsence, LocalLateness, PropDict, Student, XLSXAbsnece, XLSXLateness, XLSXStudent, XLSXType } from "~/data/types";
+import type { ArabicXLSXType, InArabic, LocalAbsence, LocalLateness, Option, PropDict, Student, XLSXAbsnece, XLSXLateness, XLSXStudent, XLSXType } from "~/data/types";
 
 export const transformStudentToExcelVersion = (student: Student): XLSXStudent => {
     const { class_id, exited_at, status, birth_date, ...rest } = student;
@@ -13,14 +13,14 @@ export const transformStudentToExcelVersion = (student: Student): XLSXStudent =>
 
 type ExcelEventVersion<T extends LocalLateness | LocalAbsence> = T extends LocalLateness ? XLSXLateness : XLSXAbsnece;
 export const transformEventToExcelVersion = <T extends LocalAbsence | LocalLateness>
-    (event: T): ExcelEventVersion<T> => {
+    (event: T, classOptions: Option[]): ExcelEventVersion<T> => {
     const { reason, first_name, last_name } = event
 
     const base: XLSXAbsnece = {
         reason, first_name, last_name,
         reason_accepted: Boolean(event.reason_accepted),
         date: new Date(event.date),
-        class: "",
+        class: getClassName(classOptions, event.class_id) ?? '',
     }
 
     if ("late_by" in event) {
@@ -31,7 +31,7 @@ export const transformEventToExcelVersion = <T extends LocalAbsence | LocalLaten
 }
 
 
-export const getFormattedStudentJson = (students: Student[], Dict : typeof ArabicXLSXStudentProperties) => {
+export const getFormattedStudentJson = (students: Student[], Dict: typeof ArabicXLSXStudentProperties) => {
 
     // 3. Map the rows using the Header Display Names as JSON keys
     const structuredData = students.map(student => {
@@ -48,10 +48,11 @@ export const getFormattedEventJson = <
     Dict extends PropDict<XLSXT>
 >(
     records: T[],
-    dict: Dict
+    dict: Dict,
+    classOptions: Option[]
 ): InArabic<XLSXT, Dict>[] => {
     return records.map((record) => {
-        const xlsx = transformEventToExcelVersion(record) as XLSXT;
+        const xlsx = transformEventToExcelVersion(record, classOptions) as XLSXT;
         return transformToArabic(xlsx, dict);
     });
 };
