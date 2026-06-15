@@ -184,6 +184,15 @@ export type BackendValidationError = BackendBaseError & {
     issues: ZodError["issues"]
   }
 }
+// ============== Ui types====================
+/** 
+*Used im class/gender options...
+**/
+export type Option<T = number> = {
+  label: string;
+  value: T;
+};
+
 
 // ============== Query types====================
 export type InactiveStudentQueryFilters = {
