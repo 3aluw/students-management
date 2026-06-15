@@ -186,7 +186,7 @@ export type BackendValidationError = BackendBaseError & {
 }
 // ============== Ui types====================
 /** 
-*Used im class/gender options...
+*Used in class/gender options...
 **/
 export type Option<T = number> = {
   label: string;

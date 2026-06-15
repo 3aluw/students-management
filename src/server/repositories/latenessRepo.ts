@@ -6,7 +6,7 @@ type TotalRow = { total: number };
 
 export const latenessRepo = {
     getLateness: (filters: EventQueryFilters) => {
-        const { limit = 20, offset = 0, ...otherFilters } = filters;
+        const { limit , offset , ...otherFilters } = filters;
         const { stmt: whereStmt, bindings: whereBindings } = buildSQLClause("lateness", otherFilters)
         const { stmt: paginationStmt, bindings: paginationBindings } = buildSQLClause("pagination", { limit, offset })
 
