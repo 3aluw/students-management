@@ -55,7 +55,8 @@ export const studentRepo = {
     return result;
   },
 
-  updateStudents(studentsData: BatchEditStudent) {
+  updateStudentsByIds(studentsData: BatchEditStudent) {
+
     const { ids, ...props } = studentsData;
     const values = Object.values(props);
     const inClause = generateDBInClause(ids.length);
@@ -66,6 +67,24 @@ export const studentRepo = {
     const result = stmt.run(...values, ...ids);
     return result
   },
+
+  updateStudentsByPayload(studentsData: EditStudent[]) {
+    const editMany = db.transaction((studentsArray: EditStudent[]) => {
+      let total = 0;
+      for (const editStudent of studentsArray) {
+        const { id, ...props } = editStudent
+        if (Object.keys(props).length === 0) continue
+        const setClause = generateDBSetClause(props)
+        const stmt = db.prepare(`UPDATE student SET ${setClause} WHERE id = ?`)
+        const values = Object.values(props)
+        const result = stmt.bind(...values, id).run()
+        total += result.changes;
+      }
+      return { changes: total }
+    })
+    return editMany(studentsData)
+  },
+
 
   async handlesStudentsPromotion(
     promotionMap: ClassPromotionMap,
