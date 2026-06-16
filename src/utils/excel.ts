@@ -14,6 +14,7 @@ export const transformStudentToExcelVersion = (student: Student): XLSXStudent =>
         ...rest,
         birth_date: new Date(birth_date),
     }
+
 };
 
 type ExcelEventVersion<T extends LocalLateness | LocalAbsence> = T extends LocalLateness ? XLSXLateness : XLSXAbsnece;
@@ -90,7 +91,7 @@ export const exportXlsx = (data: ArabicXLSXType[], fileName: string) => {
 }
 
 export const getChangesInStudent = (existingStudent: Student, XLSXStudent: XLSXStudent) => {
-    const changes: EditStudent = { id: existingStudent.id }
+    const changes: Partial<EditStudent> = {}
     const formattedStudent: EditStudent = { ...XLSXStudent, birth_date: XLSXStudent.birth_date.getTime() }
 
     const newEntries = Object.entries(formattedStudent) as [keyof EditStudent, EditStudent[keyof EditStudent]][]
@@ -98,5 +99,5 @@ export const getChangesInStudent = (existingStudent: Student, XLSXStudent: XLSXS
     newEntries.forEach(([key, value]) => {
         if (existingStudent[key] !== value) (changes as any)[key] = value
     })
-    return changes;
+    return Object.keys(changes).length === 0 ? undefined : changes;
 }

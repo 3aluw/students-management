@@ -430,6 +430,7 @@ const handleXlSXImportedData = (XLSXStudents: ImportedXLSXData) => {
         if (isExistingStudent(student)) { existingStudents.push(student) }
         else { newStudents.push(student) }
     })
+    handleExistingImportedStudents(existingStudents)
 
 }
 const handleExistingImportedStudents = async (ArabicExistingStudents: ImportedExistingXLSXStudent[]) => {
@@ -438,11 +439,24 @@ const handleExistingImportedStudents = async (ArabicExistingStudents: ImportedEx
     
     let studentsFromOtherClasses = 0
     const editStudents: EditStudent[] = []
-    
-    XLSXStudents.forEach((XLSXStudent) => {
-        const student = students.find(({ id }) => XLSXStudent.id === id)
-        student ? editStudents.push(getChangesInStudent(student, XLSXStudent)) : studentsFromOtherClasses++
-    })
+
+    for (const XLSXStudent of XLSXStudents) {
+        const student = students.find(s => s.id === XLSXStudent.id)
+
+        if (!student) {
+            studentsFromOtherClasses++
+            continue
+        }
+
+        const changes = getChangesInStudent(student, XLSXStudent)
+        if (changes) {
+            editStudents.push({ ...changes, id: student.id })
+        }
+    }
+    if (editStudents.length) { 
+        await backend.updateStudents(editStudents)
+        studentStore.populateStudents()
+     }
 }
 
 const handleNewImportedStudents = (ArabicNewStudents: ImportedNewXLSXStudent[]) => {
