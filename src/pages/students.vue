@@ -38,9 +38,13 @@
                     </template>
 
                     <template #end>
-                        <Button label="تحميل" icon="pi pi-download" iconPos="right" severity="secondary"
+                        <FileUpload class="mx-2" mode="basic" @select="onXlsxSelect" chooseLabel="رفع" iconPos="right"
+                            auto chooseIcon="pi pi-upload" accept=".xlsx" severity="secondary"
+                            :chooseButtonProps="{ severity: 'secondary', iconPos: 'right' }" />
+                        <Button class="mx-2" label="تحميل" icon="pi pi-download" iconPos="right" severity="secondary"
                             @click="handleExportClick(tableRef)" />
                     </template>
+                    
                 </Toolbar>
             </template>
             <template #header>
@@ -94,6 +98,7 @@ import type {
 import { userFeedbackMessages } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
 import { ArabicXLSXStudentProperties } from "~/data/static"
+import type { FileUploadSelectEvent } from 'primevue';
 
 /* -------------------------------------------------------------------------- */
 /*                                Composables                                 */
@@ -356,5 +361,18 @@ const handleExportClick = (tableRefInstance: any) => {
     exportXlsx(structuredData, className)
 }
 
+import * as XLSX from 'xlsx';
 
+function onXlsxSelect(event: FileUploadSelectEvent) {
+    const file = event.files[0];
+    const reader = new FileReader();
+
+    reader.onload = async (e) => {
+        e?.target?.result;
+    };
+
+    reader.readAsDataURL(file);
+    const worksheet = XLSX.readFile(file)
+    const data = XLSX.utils.sheet_to_json(worksheet)
+}
 </script>
