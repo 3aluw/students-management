@@ -44,7 +44,7 @@
                         <Button class="mx-2" label="تحميل" icon="pi pi-download" iconPos="right" severity="secondary"
                             @click="handleExportClick(tableRef)" />
                     </template>
-                    
+
                 </Toolbar>
             </template>
             <template #header>
@@ -98,7 +98,7 @@ import type {
 import { userFeedbackMessages } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
 import { ArabicXLSXStudentProperties } from "~/data/static"
-import type { FileUploadSelectEvent } from 'primevue';
+import type { FileUploadSelectEvent, FileUploadUploadEvent } from 'primevue';
 
 /* -------------------------------------------------------------------------- */
 /*                                Composables                                 */
@@ -363,16 +363,51 @@ const handleExportClick = (tableRefInstance: any) => {
 
 import * as XLSX from 'xlsx';
 
+
+
+
 function onXlsxSelect(event: FileUploadSelectEvent) {
-    const file = event.files[0];
+    const file = event.files?.[0];
+    console.log(file)
+    if (!file) return; // Guard clause in case no file was selected
+    //Guard clause in case selected file is not xlsx
+    if (!file.name.toLowerCase().endsWith('.xlsx')) {
+        toast.add({ severity: 'error', summary: 'يرجى رفع ملف اكسل (.xlsx)', life: 3000 })
+        return;
+    } 
+
     const reader = new FileReader();
 
-    reader.onload = async (e) => {
-        e?.target?.result;
+    reader.onload = (e) => {
+        const fileData = e.target?.result;
+
+        // Ensure fileData exists and is an ArrayBuffer (matching type: "array")
+        if (!fileData || typeof fileData === 'string') {
+            toast.add({ severity: 'error', summary: 'الملف الذي تم رفعه غير صالح', life: 3000 })
+            return;
+        }
+
+        // Read the workbook
+        const workbook = XLSX.read(fileData, { type: "array" });
+
+        // Get the first sheet
+        const sheetName = workbook.SheetNames[0];
+        console.log(sheetName)
+        if (!sheetName) {
+            toast.add({ severity: 'warn', summary: 'الملف الذي تم رفعه فارغ ', life: 3000 })
+            return;
+        }
+
+        const worksheet = workbook.Sheets[sheetName];
+
+        // Parse rows to JSON
+        // You can cast this (e.g., as any[] or as MyInterface[]) depending on your data structure
+        const rows = XLSX.utils.sheet_to_json(worksheet);
+
+        console.log(rows); // Do something with your data here
     };
 
-    reader.readAsDataURL(file);
-    const worksheet = XLSX.readFile(file)
-    const data = XLSX.utils.sheet_to_json(worksheet)
+    // Crucial: You must explicitly tell the reader to read the file as an ArrayBuffer
+    reader.readAsArrayBuffer(file);
 }
 </script>
