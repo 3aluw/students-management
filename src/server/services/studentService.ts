@@ -36,15 +36,35 @@ export const studentService = {
 
   },
 
-  updateStudents(studentsData: BatchEditStudent) {
-    const result = studentRepo.updateStudents(studentsData);
-    if (result.changes === 0) {
+  updateStudents(studentsData: BatchEditStudent | EditStudent[]) {
+    const throwFailError = (error?: unknown) => {
       throw createError({
-        statusCode: 404,
-        message: "لم يتم تعديل الطلبة المحددين",
+        statusCode: 400,
+        message: "لم يتم تعديل الكلبة المحددين",
+        cause: error
+      })
+    }
+    let result = {
+      changes: 0
+    };
+    try {
+      if (Array.isArray(studentsData)) {
+        result = studentRepo.updateStudentsByPayload(studentsData)
+      } else {
+        result = studentRepo.updateStudentsByIds(studentsData);
+      }
+    }
+    catch (error) {
+      throwFailError(error)
+    }
+    if (result.changes === 0) throwFailError()
+      const studentsCount = Array.isArray(studentsData) ? studentsData.length : studentsData.ids.length
+    if (result.changes < studentsCount) {
+      throw createError({
+        statusCode: 409,
+        message: "تم تعديل الطلبة المحددين ، لكن بعضهم لم يتم تعديله (تم إضافة " + result.changes + " من " + studentsCount + ")",
       });
     }
-
     return {
       message: "تم تعديل الطلبة المحددين",
     };
