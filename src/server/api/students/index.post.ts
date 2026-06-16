@@ -5,26 +5,27 @@ import { ZodError } from "zod";
 import { studentSchemas } from "~/utils/zod-schemas";
 
 import { z } from "zod";
-type Operation = "create" | "update" | "batch update";
+type Operation = "create" | "update" | "batch update by ids" | "batch update by payload";
 
 export default defineEventHandler(async (event) => {
-  const reqBody = await readBody<NewStudent | EditStudent | BatchEditStudent>(
+  const reqBody = await readBody<NewStudent | EditStudent | EditStudent[] | BatchEditStudent>(
     event
   );
 
-  let operation: Operation = "ids" in reqBody ? "batch update" :
+  let operation: Operation = Array.isArray(reqBody) ?  "batch update by payload": "ids" in reqBody ? "batch update by ids" :
     !("id" in reqBody) ? "create" : "update";
 
 
   const schemaMap: Record<Operation, z.ZodTypeAny> = {
     create: studentSchemas.newStudentSchema,
     update: studentSchemas.editStudentSchema,
-    'batch update': studentSchemas.batchEditStudentSchema,
+    "batch update by payload": z.array(studentSchemas.editStudentSchema) satisfies z.ZodType<EditStudent[]>,
+    'batch update by ids': studentSchemas.batchEditStudentSchema,
   };
 
   try {
     schemaMap[operation].parse(reqBody);
-    if ("ids" in reqBody) {
+    if ("ids" in reqBody || Array.isArray(reqBody)) {
       return studentService.updateStudents(reqBody);
     }
     // if no id : Create a new item

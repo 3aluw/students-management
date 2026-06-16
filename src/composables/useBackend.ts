@@ -64,7 +64,7 @@ export default function () {
       body,
     });
   };
-  const updateStudents = (body: EditStudent | BatchEditStudent) => {
+  const updateStudents = (body: EditStudent | EditStudent[] | BatchEditStudent) => {
     return $fetch("/api/students", {
       method: "POST",
       body,
