@@ -374,7 +374,7 @@ type ImportedXLSXData = ImportedNewXLSXStudent[] | ImportedExistingXLSXStudent[]
 
 function onXlsxSelect(event: FileUploadSelectEvent) {
     const file = event.files?.[0];
-    console.log(file)
+
     if (!file) return; // Guard clause in case no file was selected
     //Guard clause in case selected file is not xlsx
     if (!file.name.toLowerCase().endsWith('.xlsx')) {
@@ -394,11 +394,10 @@ function onXlsxSelect(event: FileUploadSelectEvent) {
         }
 
         // Read the workbook
-        const workbook = XLSX.read(fileData, { type: "array" });
+        const workbook = XLSX.read(fileData, { type: "array", cellDates: true });
 
         // Get the first sheet
         const sheetName = workbook.SheetNames[0];
-        console.log(sheetName)
         if (!sheetName) {
             toast.add({ severity: 'warn', summary: 'الملف الذي تم رفعه فارغ ', life: 3000 })
             return;
@@ -407,13 +406,11 @@ function onXlsxSelect(event: FileUploadSelectEvent) {
         const worksheet = workbook.Sheets[sheetName];
 
         // Parse rows to JSON
-        // You can cast this (e.g., as any[] or as MyInterface[]) depending on your data structure
         const rows = XLSX.utils.sheet_to_json(worksheet) as ImportedXLSXData
 
-        console.log(rows); // Do something with your data here
+        handleXlSXImportedData(rows)
     };
-
-    // Crucial: You must explicitly tell the reader to read the file as an ArrayBuffer
+    // Crucial: explicitly tell the reader to read the file as an ArrayBuffer
     reader.readAsArrayBuffer(file);
 }
 
@@ -436,7 +433,7 @@ const handleXlSXImportedData = (XLSXStudents: ImportedXLSXData) => {
 const handleExistingImportedStudents = async (ArabicExistingStudents: ImportedExistingXLSXStudent[]) => {
     const XLSXStudents = ArabicExistingStudents.map(st => transformToEnglish(st, ArabicXLSXStudentProperties))
     const students = await backend.getStudents({ class_id: studentStore.selectedClassId, status: "active" })
-    
+
     let studentsFromOtherClasses = 0
     const editStudents: EditStudent[] = []
 
