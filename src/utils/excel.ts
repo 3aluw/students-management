@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx';
 import type { ArabicXLSXStudentProperties } from '~/data/static';
-import type { ArabicXLSXType, InArabic, LocalAbsence, LocalLateness, Option, PropDict, Student, XLSXAbsnece, XLSXLateness, XLSXStudent, XLSXType } from "~/data/types";
+import type { ArabicXLSXType, EditStudent, InArabic, LocalAbsence, LocalLateness, Option, PropDict, Student, XLSXAbsnece, XLSXLateness, XLSXStudent, XLSXType } from "~/data/types";
 
 
 /*=========== functions to transform a record to its excel version ==========*/
@@ -87,4 +87,16 @@ export const exportXlsx = (data: ArabicXLSXType[], fileName: string) => {
 
     // 4. Write the file to disk
     XLSX.writeFile(workbook, `${fileName}.xlsx`);
+}
+
+export const getChangesInStudent = (existingStudent: Student, XLSXStudent: XLSXStudent) => {
+    const changes: EditStudent = { id: existingStudent.id }
+    const formattedStudent: EditStudent = { ...XLSXStudent, birth_date: XLSXStudent.birth_date.getTime() }
+
+    const newEntries = Object.entries(formattedStudent) as [keyof EditStudent, EditStudent[keyof EditStudent]][]
+
+    newEntries.forEach(([key, value]) => {
+        if (existingStudent[key] !== value) (changes as any)[key] = value
+    })
+    return changes;
 }
