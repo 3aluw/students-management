@@ -93,6 +93,8 @@ import type {
     BatchEditStudent,
     EditStudent,
     InactiveStudent,
+    InArabic,
+    XLSXStudent,
 } from '~/data/types';
 
 import { userFeedbackMessages } from '~/data/static';
@@ -363,8 +365,11 @@ const handleExportClick = (tableRefInstance: any) => {
 
 import * as XLSX from 'xlsx';
 
-
-
+type XLSXStudentArabicDict = typeof ArabicXLSXStudentProperties
+type NewXLSXStudent = Omit<XLSXStudent, "id">
+type ImportedNewXLSXStudent = InArabic<NewXLSXStudent, XLSXStudentArabicDict>
+type ImportedExistingXLSXStudent = InArabic<XLSXStudent, XLSXStudentArabicDict>
+type ImportedXLSXData = ImportedNewXLSXStudent[] | ImportedExistingXLSXStudent[]
 
 function onXlsxSelect(event: FileUploadSelectEvent) {
     const file = event.files?.[0];
@@ -374,7 +379,7 @@ function onXlsxSelect(event: FileUploadSelectEvent) {
     if (!file.name.toLowerCase().endsWith('.xlsx')) {
         toast.add({ severity: 'error', summary: 'يرجى رفع ملف اكسل (.xlsx)', life: 3000 })
         return;
-    } 
+    }
 
     const reader = new FileReader();
 
@@ -402,12 +407,37 @@ function onXlsxSelect(event: FileUploadSelectEvent) {
 
         // Parse rows to JSON
         // You can cast this (e.g., as any[] or as MyInterface[]) depending on your data structure
-        const rows = XLSX.utils.sheet_to_json(worksheet);
+        const rows = XLSX.utils.sheet_to_json(worksheet) as ImportedXLSXData
 
         console.log(rows); // Do something with your data here
     };
 
     // Crucial: You must explicitly tell the reader to read the file as an ArrayBuffer
     reader.readAsArrayBuffer(file);
+}
+
+const isExistingStudent = (
+    student: ImportedXLSXData[number]
+): student is ImportedExistingXLSXStudent =>
+    "المعرف" in student && typeof student["المعرف"] === "number";
+
+const handleXlSXImportedDate = (XLSXStudents: ImportedXLSXData) => {
+
+    const newStudents: ImportedNewXLSXStudent[] = []
+    const existingStudents: ImportedExistingXLSXStudent[] = []
+    XLSXStudents.forEach((student) => {
+        if (isExistingStudent(student)) { existingStudents.push(student) }
+        else { newStudents.push(student) }
+    })
+
+}
+
+const handleNewXLSXStudents = (ArabicNewStudents: ImportedNewXLSXStudent[]) => {
+    const newXLSXStudents = ArabicNewStudents.map(st => transformToEnglish(st, ArabicXLSXStudentProperties))
+    const selectedClass = studentStore.selectedClassId
+    if (!selectedClass) return
+    const newStudent: NewStudent[] = newXLSXStudents.map((st) => {
+        return { ...st, birth_date: st.birth_date.getTime(), status: "active", exited_at: null, class_id: selectedClass }
+    })
 }
 </script>
