@@ -364,6 +364,7 @@ const handleExportClick = (tableRefInstance: any) => {
 }
 
 import * as XLSX from 'xlsx';
+import { getChangesInStudent } from '~/utils/excel';
 
 type XLSXStudentArabicDict = typeof ArabicXLSXStudentProperties
 type NewXLSXStudent = Omit<XLSXStudent, "id">
@@ -421,7 +422,7 @@ const isExistingStudent = (
 ): student is ImportedExistingXLSXStudent =>
     "المعرف" in student && typeof student["المعرف"] === "number";
 
-const handleXlSXImportedDate = (XLSXStudents: ImportedXLSXData) => {
+const handleXlSXImportedData = (XLSXStudents: ImportedXLSXData) => {
 
     const newStudents: ImportedNewXLSXStudent[] = []
     const existingStudents: ImportedExistingXLSXStudent[] = []
@@ -431,12 +432,24 @@ const handleXlSXImportedDate = (XLSXStudents: ImportedXLSXData) => {
     })
 
 }
+const handleExistingImportedStudents = async (ArabicExistingStudents: ImportedExistingXLSXStudent[]) => {
+    const XLSXStudents = ArabicExistingStudents.map(st => transformToEnglish(st, ArabicXLSXStudentProperties))
+    const students = await backend.getStudents({ class_id: studentStore.selectedClassId, status: "active" })
+    
+    let studentsFromOtherClasses = 0
+    const editStudents: EditStudent[] = []
+    
+    XLSXStudents.forEach((XLSXStudent) => {
+        const student = students.find(({ id }) => XLSXStudent.id === id)
+        student ? editStudents.push(getChangesInStudent(student, XLSXStudent)) : studentsFromOtherClasses++
+    })
+}
 
-const handleNewXLSXStudents = (ArabicNewStudents: ImportedNewXLSXStudent[]) => {
-    const newXLSXStudents = ArabicNewStudents.map(st => transformToEnglish(st, ArabicXLSXStudentProperties))
+const handleNewImportedStudents = (ArabicNewStudents: ImportedNewXLSXStudent[]) => {
+    const XLSXStudents = ArabicNewStudents.map(st => transformToEnglish(st, ArabicXLSXStudentProperties))
     const selectedClass = studentStore.selectedClassId
     if (!selectedClass) return
-    const newStudent: NewStudent[] = newXLSXStudents.map((st) => {
+    const newStudent: NewStudent[] = XLSXStudents.map((st) => {
         return { ...st, birth_date: st.birth_date.getTime(), status: "active", exited_at: null, class_id: selectedClass }
     })
 }
