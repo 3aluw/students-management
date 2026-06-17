@@ -89,6 +89,29 @@ export const exportXlsx = (data: ArabicXLSXType[], fileName: string) => {
     // 4. Write the file to disk
     XLSX.writeFile(workbook, `${fileName}.xlsx`);
 }
+export const groupExistingImportedStudents = (existingStudents: XLSXStudent[], students: Student[]) => {
+    //if in students not in XLSX : candidate of removing
+    const removingCandidates = useArrayDifference(students, existingStudents as any, (value, othVal) => value.id === othVal.id)
+
+    //if in XLSX not in students : form other class
+    const fromOtherClassesCandidates: XLSXStudent[] = []
+    //if there is a change : to update it
+    const editStudents: EditStudent[] = []
+
+    for (const XLSXStudent of existingStudents) {
+        const student = students.find(s => s.id === XLSXStudent.id)
+
+        if (!student) {
+            fromOtherClassesCandidates.push(XLSXStudent)
+            continue
+        }
+        const changes = getChangesInStudent(student, XLSXStudent)
+        if (changes) {
+            editStudents.push({ ...changes, id: student.id })
+        }
+    }
+    return { editStudents, fromOtherClassesCandidates, removingCandidates:removingCandidates.value }
+}
 
 export const getChangesInStudent = (existingStudent: Student, XLSXStudent: XLSXStudent) => {
     const changes: Partial<EditStudent> = {}
