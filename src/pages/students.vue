@@ -415,23 +415,31 @@ function onXlsxSelect(event: FileUploadSelectEvent) {
 }
 
 const isExistingStudent = (
-    student: ImportedXLSXData[number]
-): student is ImportedExistingXLSXStudent =>
-    "المعرف" in student && typeof student["المعرف"] === "number";
+    student: XLSXStudent | NewXLSXStudent
+): student is XLSXStudent =>
+    "id" in student && typeof student["id"] === "number";
 
-const handleXlSXImportedData = (XLSXStudents: ImportedXLSXData) => {
 
-    const newStudents: ImportedNewXLSXStudent[] = []
-    const existingStudents: ImportedExistingXLSXStudent[] = []
+const handleXlSXImportedData = (importedXLSXStudents: ImportedXLSXData) => {
+    // format in english
+    const XLSXStudents = importedXLSXStudents.map(st => transformToEnglish(st, ArabicXLSXStudentProperties))
+    //get existing and new students in XLSX imported data
+    const { newStudents, existingStudents } = groupXlSXDataByExistence(XLSXStudents)
+    console.log(newStudents, existingStudents)
+    //handleExistingImportedStudents(existingStudents)
+    handleNewImportedStudents(newStudents)
+
+}
+const groupXlSXDataByExistence = (XLSXStudents: NewXLSXStudent[] | XLSXStudent[]) => {
+    const newStudents: NewXLSXStudent[] = []
+    const existingStudents: XLSXStudent[] = []
     XLSXStudents.forEach((student) => {
         if (isExistingStudent(student)) { existingStudents.push(student) }
         else { newStudents.push(student) }
     })
-    handleExistingImportedStudents(existingStudents)
-
+    return { newStudents, existingStudents }
 }
-const handleExistingImportedStudents = async (ArabicExistingStudents: ImportedExistingXLSXStudent[]) => {
-    const XLSXStudents = ArabicExistingStudents.map(st => transformToEnglish(st, ArabicXLSXStudentProperties))
+const handleExistingImportedStudents = async (existingStudents: XLSXStudent[]) => {
     const students = await backend.getStudents({ class_id: studentStore.selectedClassId, status: "active" })
 
     let studentsFromOtherClasses = 0
