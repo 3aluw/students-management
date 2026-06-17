@@ -2,7 +2,8 @@ import { BatchEditStudent, ClassPromotionMap, EditStudent, NewStudent, Student, 
 import { studentRepo } from "../repositories/studentRepo";
 
 export const studentService = {
-  getStudents(query: StudentsQueryFilters) {
+  getStudents(query: StudentsQueryFilters | { ids: number[] }) {
+    if ('ids' in query) return studentRepo.getStudentsByIds(query.ids);
     return studentRepo.getStudents(query)
   },
 
@@ -37,7 +38,7 @@ export const studentService = {
       throwFailError(error)
     }
 
-    const studentsCount =  newStudents.length 
+    const studentsCount = newStudents.length
     if (result.changes < studentsCount) {
       throw createError({
         statusCode: 409,
