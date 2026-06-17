@@ -364,7 +364,6 @@ const handleExportClick = (tableRefInstance: any) => {
 }
 
 import * as XLSX from 'xlsx';
-import { getChangesInStudent } from '~/utils/excel';
 
 type XLSXStudentArabicDict = typeof ArabicXLSXStudentProperties
 type NewXLSXStudent = Omit<XLSXStudent, "id">
@@ -425,11 +424,11 @@ const handleXlSXImportedData = (importedXLSXStudents: ImportedXLSXData) => {
     const XLSXStudents = importedXLSXStudents.map(st => transformToEnglish(st, ArabicXLSXStudentProperties))
     //get existing and new students in XLSX imported data
     const { newStudents, existingStudents } = groupXlSXDataByExistence(XLSXStudents)
-    console.log(newStudents, existingStudents)
-    //handleExistingImportedStudents(existingStudents)
-    handleNewImportedStudents(newStudents)
+    handleExistingImportedStudents(existingStudents)
+    //handleNewImportedStudents(newStudents)
 
 }
+
 const groupXlSXDataByExistence = (XLSXStudents: NewXLSXStudent[] | XLSXStudent[]) => {
     const newStudents: NewXLSXStudent[] = []
     const existingStudents: XLSXStudent[] = []
@@ -439,34 +438,19 @@ const groupXlSXDataByExistence = (XLSXStudents: NewXLSXStudent[] | XLSXStudent[]
     })
     return { newStudents, existingStudents }
 }
+
 const handleExistingImportedStudents = async (existingStudents: XLSXStudent[]) => {
     const students = await backend.getStudents({ class_id: studentStore.selectedClassId, status: "active" })
 
-    let studentsFromOtherClasses = 0
-    const editStudents: EditStudent[] = []
-
-    for (const XLSXStudent of existingStudents) {
-        const student = students.find(s => s.id === XLSXStudent.id)
-
-        if (!student) {
-            studentsFromOtherClasses++
-            continue
-        }
-
-        const changes = getChangesInStudent(student, XLSXStudent)
-        if (changes) {
-            editStudents.push({ ...changes, id: student.id })
-        }
-    }
+    const { editStudents, fromOtherClassesCandidates, removingCandidates } = groupExistingImportedStudents(existingStudents, students)
     if (editStudents.length) {
         await backend.updateStudents(editStudents)
         studentStore.populateStudents()
     }
 }
 
-
 const handleNewImportedStudents = async (newSXLSXtudents: NewXLSXStudent[]) => {
-        const selectedClass = studentStore.selectedClassId
+    const selectedClass = studentStore.selectedClassId
     if (!selectedClass) return
     const newStudents: NewStudent[] = newSXLSXtudents.map((st) => {
         return { ...st, birth_date: st.birth_date.getTime(), status: "active", exited_at: null, class_id: selectedClass }
