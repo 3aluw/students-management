@@ -19,7 +19,35 @@ export const studentService = {
       message: "تم إنشاء الطالب",
     };
   },
+  createStudents(newStudents: NewStudent[]) {
+    const throwFailError = (error?: unknown) => {
+      throw createError({
+        statusCode: 400,
+        message: "لم يتم إنشاء الطلبة الجدد",
+        cause: error
+      })
+    }
+    let result = {
+      changes: 0
+    };
+    try {
+      result = studentRepo.createStudents(newStudents)
+    }
+    catch (error) {
+      throwFailError(error)
+    }
 
+    const studentsCount =  newStudents.length 
+    if (result.changes < studentsCount) {
+      throw createError({
+        statusCode: 409,
+        message: "تم إنشاء بعض الطلبة الجدد ، لكن حدثت مشكلة أثناء إنشاء البعض الآخر (تم إضافة " + result.changes + " من " + studentsCount + ")",
+      });
+    }
+    return {
+      message: "تم إنشاء الطلبة الجدد",
+    };
+  },
   updateStudent(studentData: EditStudent) {
     const result = studentRepo.updateStudent(studentData);
 
@@ -40,7 +68,7 @@ export const studentService = {
     const throwFailError = (error?: unknown) => {
       throw createError({
         statusCode: 400,
-        message: "لم يتم تعديل الكلبة المحددين",
+        message: "لم يتم تعديل الطلبة المحددين",
         cause: error
       })
     }
@@ -58,7 +86,7 @@ export const studentService = {
       throwFailError(error)
     }
     if (result.changes === 0) throwFailError()
-      const studentsCount = Array.isArray(studentsData) ? studentsData.length : studentsData.ids.length
+    const studentsCount = Array.isArray(studentsData) ? studentsData.length : studentsData.ids.length
     if (result.changes < studentsCount) {
       throw createError({
         statusCode: 409,
