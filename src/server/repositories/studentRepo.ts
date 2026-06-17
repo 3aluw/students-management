@@ -29,9 +29,10 @@ export const studentRepo = {
       phone_number,
       birth_date,
       address,
+      status
     } = studentData;
     const stmt = db.prepare(
-      "INSERT INTO student (class_id, first_name, last_name, father_name,grandfather_name, sex, phone_number, birth_date, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO student (class_id, first_name, last_name, father_name,grandfather_name, sex, phone_number, birth_date, address, status) VALUES (?,?, ?, ?, ?, ?, ?, ?, ?, ?)",
     );
     const result = stmt.run(
       class_id,
@@ -43,9 +44,38 @@ export const studentRepo = {
       phone_number,
       birth_date,
       address,
+      status
     );
     return result
 
+  },
+  createStudents(newStudents: NewStudent[]) {
+
+    const stmt = db.prepare(`
+        INSERT OR IGNORE INTO student (class_id, first_name, last_name, father_name,grandfather_name, sex, phone_number, birth_date, address, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,?)`);
+
+    const insertMany = db.transaction((studentsArray: NewStudent[]) => {
+      let total = 0;
+
+      for (const s of studentsArray) {
+        const result = stmt.run(
+          s.class_id,
+          s.first_name,
+          s.last_name,
+          s.father_name,
+          s.grandfather_name,
+          s.sex,
+          s.phone_number,
+          s.birth_date,
+          s.address,
+          s.status
+        );
+        total += result.changes;
+      }
+      return { changes: total };
+
+    });
+    return insertMany(newStudents);
   },
   updateStudent(studentData: EditStudent) {
     const values = Object.values(studentData);
