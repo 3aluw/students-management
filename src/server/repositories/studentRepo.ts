@@ -13,6 +13,12 @@ export const studentRepo = {
     const students = stmt.all() as Student[]
     return students;
   },
+  getStudentsByIds(ids: number[]) {
+    const inClause = generateDBInClause(ids.length)
+    const stmt = db.prepare(`SELECT * FROM student WHERE id IN (${inClause})`,
+    ).bind(...ids)
+    return stmt.all() as Student[]
+  },
   deleteStudentsByIds(studentIds: number[]) {
     const inClause = generateDBInClause(studentIds.length);
     const stmt = db.prepare(`DELETE FROM student WHERE id IN (${inClause})`);
