@@ -449,6 +449,17 @@ const handleExistingImportedStudents = async (existingStudents: XLSXStudent[]) =
     }
 }
 
+const validateFromOtherClassesCandidates = async (XLSXStudents: XLSXStudent[]) => {
+    const ids = XLSXStudents.map(({ id }) => id);
+    const students = await backend.getStudents({ ids });
+
+    // Create a Set of existing student IDs then filter
+    const existingStudentIds = new Set(students.map(st => st.id));
+    const trueCandidates = XLSXStudents.filter(({ id }) => existingStudentIds.has(id));
+
+    return trueCandidates; 
+}
+
 const handleNewImportedStudents = async (newSXLSXtudents: NewXLSXStudent[]) => {
     const selectedClass = studentStore.selectedClassId
     if (!selectedClass) return
