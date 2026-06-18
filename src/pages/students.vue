@@ -439,31 +439,58 @@ const groupXlSXDataByExistence = (XLSXStudents: NewXLSXStudent[] | XLSXStudent[]
     return { newStudents, existingStudents }
 }
 
+let trueTransferCandidates: Student[] = []
+let toRemoveCandidates: Student[] = []
+
 const handleExistingImportedStudents = async (existingStudents: XLSXStudent[]) => {
     const students = await backend.getStudents({ class_id: studentStore.selectedClassId, status: "active" })
 
-    const { editStudents, fromOtherClassesCandidates, removingCandidates } = groupExistingImportedStudents(existingStudents, students)
-    if (editStudents.length) {
-        await backend.updateStudents(editStudents)
-        studentStore.populateStudents()
-    }
+    const { editStudents, transferCandidates, toRemoveCandidates: foundRemoveCandidates } = groupExistingImportedStudents(existingStudents, students)
+    /*    if (editStudents.length) {
+           await backend.updateStudents(editStudents)
+           studentStore.populateStudents()
+       } */
+    toRemoveCandidates = foundRemoveCandidates
+    trueTransferCandidates = await validateTransferCandidates(transferCandidates)
+    showXLSXReconcileDialog.value = true
 }
 
-const validateFromOtherClassesCandidates = async (XLSXStudents: XLSXStudent[]) => {
+
+const validateTransferCandidates = async (XLSXStudents: XLSXStudent[]) => {
     const ids = XLSXStudents.map(({ id }) => id);
     const students = await backend.getStudents({ ids });
+    const unFoundStudents = []
+    const trueTransferCandidates: Student[] = []
+    // Create a Map of existing student IDs in the DB then filter
+    const studentMap = new Map(students.map(st => [st.id, st]));
 
-    // Create a Set of existing student IDs then filter
-    const existingStudentIds = new Set(students.map(st => st.id));
-    const trueCandidates = XLSXStudents.filter(({ id }) => existingStudentIds.has(id));
-
-    return trueCandidates; 
+    XLSXStudents.forEach((XLSXStudent) => {
+        const foundStudent = studentMap.get(XLSXStudent.id);
+        if (foundStudent) {
+            const changesInStudent = getChangesInStudent(foundStudent, XLSXStudent)
+            trueTransferCandidates.push({ ...foundStudent, first_name: XLSXStudent.first_name, last_name: XLSXStudent.last_name })
+        }
+        else {
+            unFoundStudents.push(XLSXStudents)
+        }
+    });
+    return trueTransferCandidates;
 }
 
-const handleNewImportedStudents = async (newSXLSXtudents: NewXLSXStudent[]) => {
+const handleImportReconcile = (reconcileObj: {
+    toTransfer: Student[],
+    toRemove: Student[],
+    removeMethod: StudentStatus | "delete"
+}) => {
+
+}
+
+
+
+const handleNewImportedStudents = async (newXLSXStudents: NewXLSXStudent[]) => {
     const selectedClass = studentStore.selectedClassId
     if (!selectedClass) return
-    const newStudents: NewStudent[] = newSXLSXtudents.map((st) => {
+    const newStudents: NewStudent[] = newXLSXStudents.map((st) => {
         return { ...st, birth_date: st.birth_date.getTime(), status: "active", exited_at: null, class_id: selectedClass }
     })
     if (newStudents.length) {
