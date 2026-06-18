@@ -80,6 +80,15 @@
         <UtilsConfirmDialog header="تحويل الطلبة" message="هل أنت متأكد من رغبتك في  التحويل إلى قسم آخر ؟"
             :danger="false" v-model="useTransferConfirm.showConfirm.value"
             @confirm="useTransferConfirm.confirmAction" />
+        <Dialog header="حذف التلاميذ المحددين من القسم" v-model:visible="showXLSXReconcileDialog"
+            :style="{ width: '350px' }" :modal="true">
+            <excelImportReconciliationForm :transfer-candidates="trueTransferCandidates"
+                :remove-candidates="toRemoveCandidates"
+                :toClassName="getClassName(studentStore.classOptions, studentStore.selectedClassId)"
+                @import-reconcile="handleImportReconcile" />
+        </Dialog>
+
+
     </div>
 </template>
 <script setup lang="ts">
@@ -95,6 +104,7 @@ import type {
     InactiveStudent,
     InArabic,
     XLSXStudent,
+    StudentStatus,
 } from '~/data/types';
 
 import { userFeedbackMessages } from '~/data/static';
@@ -364,12 +374,13 @@ const handleExportClick = (tableRefInstance: any) => {
 }
 
 import * as XLSX from 'xlsx';
-
 type XLSXStudentArabicDict = typeof ArabicXLSXStudentProperties
 type NewXLSXStudent = Omit<XLSXStudent, "id">
 type ImportedNewXLSXStudent = InArabic<NewXLSXStudent, XLSXStudentArabicDict>
 type ImportedExistingXLSXStudent = InArabic<XLSXStudent, XLSXStudentArabicDict>
 type ImportedXLSXData = ImportedNewXLSXStudent[] | ImportedExistingXLSXStudent[]
+
+const showXLSXReconcileDialog = ref(false)
 
 function onXlsxSelect(event: FileUploadSelectEvent) {
     const file = event.files?.[0];
@@ -498,4 +509,40 @@ const handleNewImportedStudents = async (newXLSXStudents: NewXLSXStudent[]) => {
         studentStore.populateStudents()
     }
 }
+
+
+
+const ex_transferCandidates: Student[] = [
+    {
+        "id": 1,
+        "class_id": 4,
+        "first_name": "أحمد",
+        "last_name": "العسري",
+        "father_name": "محمد",
+        "grandfather_name": "عبدالله",
+        "sex": "M",
+        "phone_number": "0612345678",
+        "birth_date": 1579046400000,
+        "address": "الرباط",
+        "status": "active",
+        "exited_at": null
+    }
+]
+
+const ex_deleteStudent: Student[] = [
+    {
+        "id": 10,
+        "class_id": 3,
+        "first_name": "هبة",
+        "last_name": "العلوي",
+        "father_name": "نزار",
+        "grandfather_name": "عبد المجيد",
+        "sex": "F",
+        "phone_number": "0623456789",
+        "birth_date": 1623974400000,
+        "address": "وجدة",
+        "status": "active",
+        "exited_at": null
+    }
+]
 </script>
