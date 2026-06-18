@@ -94,7 +94,7 @@ export const groupExistingImportedStudents = (existingStudents: XLSXStudent[], s
     const removingCandidates = useArrayDifference(students, existingStudents as any, (value, othVal) => value.id === othVal.id)
 
     //if in XLSX not in students : form other class
-    const fromOtherClassesCandidates: XLSXStudent[] = []
+    const transferCandidates: XLSXStudent[] = []
     //if there is a change : to update it
     const editStudents: EditStudent[] = []
 
@@ -102,7 +102,7 @@ export const groupExistingImportedStudents = (existingStudents: XLSXStudent[], s
         const student = students.find(s => s.id === XLSXStudent.id)
 
         if (!student) {
-            fromOtherClassesCandidates.push(XLSXStudent)
+            transferCandidates.push(XLSXStudent)
             continue
         }
         const changes = getChangesInStudent(student, XLSXStudent)
@@ -110,7 +110,7 @@ export const groupExistingImportedStudents = (existingStudents: XLSXStudent[], s
             editStudents.push({ ...changes, id: student.id })
         }
     }
-    return { editStudents, fromOtherClassesCandidates, removingCandidates:removingCandidates.value }
+    return { editStudents, transferCandidates, toRemoveCandidates:removingCandidates.value }
 }
 
 export const getChangesInStudent = (existingStudent: Student, XLSXStudent: XLSXStudent) => {
