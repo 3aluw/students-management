@@ -491,7 +491,7 @@ const handleExistingImportedStudents = async (existingStudents: XLSXStudent[]) =
 const validateTransferCandidates = async (XLSXStudents: XLSXStudent[]) => {
     const ids = XLSXStudents.map(({ id }) => id);
     const students = await backend.getStudents({ ids });
-    const unFoundStudents = []
+    const unFoundStudents: XLSXStudent[] = []
     const trueTransferCandidates: Student[] = []
     // Create a Map of existing student IDs in the DB then filter
     const studentMap = new Map(students.map(st => [st.id, st]));
@@ -504,12 +504,18 @@ const validateTransferCandidates = async (XLSXStudents: XLSXStudent[]) => {
             trueTransferCandidates.push({ ...foundStudent, first_name: XLSXStudent.first_name, last_name: XLSXStudent.last_name })
         }
         else {
-            unFoundStudents.push(XLSXStudents)
+            unFoundStudents.push(XLSXStudent)
         }
     });
+    if (unFoundStudents.length) alertAboutUnFoundStudent(unFoundStudents)
     return trueTransferCandidates;
 }
-
+const alertAboutUnFoundStudent = (XLSXStudents: XLSXStudent[]) => {
+    const message = XLSXStudents.length
+        ? XLSXStudents.map(s => `لم يتم إيجاد الطالب ${s.first_name + ' ' + s.last_name} المعرف: ${s.id}`).join('\n')
+        : `لا يوجد طلبة نشطين بالمعرفات التالية : ${XLSXStudents.slice(0, 8).map(s => s.id).join(' ')}...`
+    toast.add({ severity: "warn", summary: "طلبة بمعرفات خاطئة", detail: message })
+}
 const handleImportReconcile = async (reconcileObj: {
     toTransfer: Student[],
     toRemove: Student[],
