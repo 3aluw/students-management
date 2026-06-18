@@ -66,7 +66,7 @@
             </template>
         </UtilsStudentsTable>
 
-        <Dialog header="أدخل معلومات القسم" @hide="studentToEdit = undefined" v-model:visible="showStudentDialog"
+        <Dialog header="أدخل معلومات الطالب" @hide="studentToEdit = undefined" v-model:visible="showStudentDialog"
             :style="{ width: '350px' }" :modal="true">
             <UtilsEntityForm entityType="student" :entityObject="studentToEdit" @submit="handleStudentSubmit" />
         </Dialog>
@@ -80,8 +80,7 @@
         <UtilsConfirmDialog header="تحويل الطلبة" message="هل أنت متأكد من رغبتك في  التحويل إلى قسم آخر ؟"
             :danger="false" v-model="useTransferConfirm.showConfirm.value"
             @confirm="useTransferConfirm.confirmAction" />
-        <Dialog header="حذف التلاميذ المحددين من القسم" v-model:visible="showXLSXReconcileDialog"
-            :style="{ width: '350px' }" :modal="true">
+        <Dialog header="حذف التلاميذ المحددين من القسم" v-model:visible="showXLSXReconcileDialog" :modal="true">
             <excelImportReconciliationForm :transfer-candidates="trueTransferCandidates"
                 :remove-candidates="toRemoveCandidates"
                 :toClassName="getClassName(studentStore.classOptions, studentStore.selectedClassId)"
@@ -104,13 +103,14 @@ import type {
     InactiveStudent,
     InArabic,
     XLSXStudent,
-    StudentStatus,
+    ActiveStudent,
+    InActiveStudentStatus,
 } from '~/data/types';
 
 import { userFeedbackMessages } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
 import { ArabicXLSXStudentProperties } from "~/data/static"
-import type { FileUploadSelectEvent, FileUploadUploadEvent } from 'primevue';
+import type { FileUploadSelectEvent } from 'primevue';
 
 /* -------------------------------------------------------------------------- */
 /*                                Composables                                 */
@@ -177,7 +177,7 @@ const resetSelectedStudents = () => {
 /* -------------------------------------------------------------------------- */
 /*                           Transfer Students                                */
 /* -------------------------------------------------------------------------- */
-// A tempalte ref for the transfer students menu 
+// A template ref for the transfer students menu 
 const transferStudentsMenu = ref();
 const showStudentDeleteDialog = ref(false);
 const toggleTransferStudentsMenu = (event: Event) => {
@@ -208,13 +208,13 @@ const transferStudents = async (
 
 
 };
-const afterStdentTransfer = async () => {
+const afterStudentTransfer = async () => {
     resetSelectedStudents();
     studentStore.populateStudents;
 }
 const useTransferConfirm = useConfirmHandler(
     transferStudents,
-    afterStdentTransfer
+    afterStudentTransfer
 );
 
 /* -------------------------------------------------------------------------- */
@@ -236,16 +236,12 @@ const handleStudentEditClick = () => {
     showStudentDialog.value = true;
 };
 
-const EditStudent = async (studentObj: Student) => {
+const editStudent = async (studentObj: Student) => {
     try {
         await backend.updateStudents(studentObj);
 
-        await studentStore.populateStudents(
-            studentToEdit.value?.class_id!
-        );
+        await studentStore.populateStudents();
         resetSelectedStudents();
-        showStudentDialog.value = false;
-
         toast.add({
             severity: 'success',
             summary: toastMessages.updateSuccess,
@@ -294,14 +290,39 @@ const handleStudentSubmit = (
     newStudent: NewStudent
 ) => {
     studentToEdit.value
-        ? EditStudent({
+        ? editStudent({
             ...newStudent,
             id: studentToEdit.value.id
         })
         : createNewStudent(newStudent);
 };
 
+/* used by excel only */
+const editStudents = async (students: EditStudent[]) => {
+    try {
+        await backend.updateStudents(students);
 
+        await studentStore.populateStudents(
+            studentToEdit.value?.class_id!
+        );
+        resetSelectedStudents();
+        showStudentDialog.value = false;
+
+        toast.add({
+            severity: 'success',
+            summary: toastMessages.updateSuccess,
+            life: 3000
+        });
+
+    } catch (error) {
+        toast.add(
+            getToastErrorObject(
+                error,
+                toastMessages.updateFailed
+            )
+        );
+    }
+};
 /* -------------------------------------------------------------------------- */
 /*                              Delete Students                               */
 /* -------------------------------------------------------------------------- */
@@ -451,19 +472,19 @@ const groupXlSXDataByExistence = (XLSXStudents: NewXLSXStudent[] | XLSXStudent[]
 }
 
 let trueTransferCandidates: Student[] = []
+const trueTransferCandidatesChangesMap: Map<number, Partial<ActiveStudent>> = new Map()
 let toRemoveCandidates: Student[] = []
 
 const handleExistingImportedStudents = async (existingStudents: XLSXStudent[]) => {
     const students = await backend.getStudents({ class_id: studentStore.selectedClassId, status: "active" })
 
-    const { editStudents, transferCandidates, toRemoveCandidates: foundRemoveCandidates } = groupExistingImportedStudents(existingStudents, students)
-    /*    if (editStudents.length) {
-           await backend.updateStudents(editStudents)
-           studentStore.populateStudents()
-       } */
+    const { editStudents: editStudentsArray, transferCandidates, toRemoveCandidates: foundRemoveCandidates } = groupExistingImportedStudents(existingStudents, students)
+    if (editStudents.length) {
+        editStudents(editStudentsArray)
+    }
     toRemoveCandidates = foundRemoveCandidates
     trueTransferCandidates = await validateTransferCandidates(transferCandidates)
-    showXLSXReconcileDialog.value = true
+    if (toRemoveCandidates.length || trueTransferCandidates.length) showXLSXReconcileDialog.value = true
 }
 
 
@@ -478,7 +499,8 @@ const validateTransferCandidates = async (XLSXStudents: XLSXStudent[]) => {
     XLSXStudents.forEach((XLSXStudent) => {
         const foundStudent = studentMap.get(XLSXStudent.id);
         if (foundStudent) {
-            const changesInStudent = getChangesInStudent(foundStudent, XLSXStudent)
+            const changesInStudent: Partial<ActiveStudent> = { ...getChangesInStudent(foundStudent, XLSXStudent) }
+            trueTransferCandidatesChangesMap.set(XLSXStudent.id, changesInStudent)
             trueTransferCandidates.push({ ...foundStudent, first_name: XLSXStudent.first_name, last_name: XLSXStudent.last_name })
         }
         else {
@@ -488,13 +510,23 @@ const validateTransferCandidates = async (XLSXStudents: XLSXStudent[]) => {
     return trueTransferCandidates;
 }
 
-const handleImportReconcile = (reconcileObj: {
+const handleImportReconcile = async (reconcileObj: {
     toTransfer: Student[],
     toRemove: Student[],
-    removeMethod: StudentStatus | "delete"
+    removeMethod: InActiveStudentStatus | "delete"
 }) => {
-
+    const { toTransfer, toRemove, removeMethod } = reconcileObj
+    if (toTransfer.length) {
+        console.log(trueTransferCandidatesChangesMap);
+        const editStudentsArray: EditStudent[] = toTransfer.map((student) => ({ ...trueTransferCandidatesChangesMap.get(student.id), id: student.id, class_id: studentStore.selectedClassId }))
+        editStudents(editStudentsArray)
+    }
+    if (toRemove.length && removeMethod) {
+        removeMethod == 'delete' ? deleteStudents(toRemove) : handleStudentQuit({ status: removeMethod, exited_at: new Date().getTime() }, toRemove)
+    }
+    //showXLSXReconcileDialog.value = false
 }
+
 
 
 
@@ -511,38 +543,4 @@ const handleNewImportedStudents = async (newXLSXStudents: NewXLSXStudent[]) => {
 }
 
 
-
-const ex_transferCandidates: Student[] = [
-    {
-        "id": 1,
-        "class_id": 4,
-        "first_name": "أحمد",
-        "last_name": "العسري",
-        "father_name": "محمد",
-        "grandfather_name": "عبدالله",
-        "sex": "M",
-        "phone_number": "0612345678",
-        "birth_date": 1579046400000,
-        "address": "الرباط",
-        "status": "active",
-        "exited_at": null
-    }
-]
-
-const ex_deleteStudent: Student[] = [
-    {
-        "id": 10,
-        "class_id": 3,
-        "first_name": "هبة",
-        "last_name": "العلوي",
-        "father_name": "نزار",
-        "grandfather_name": "عبد المجيد",
-        "sex": "F",
-        "phone_number": "0623456789",
-        "birth_date": 1623974400000,
-        "address": "وجدة",
-        "status": "active",
-        "exited_at": null
-    }
-]
 </script>

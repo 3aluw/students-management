@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx';
 import type { ArabicXLSXStudentProperties } from '~/data/static';
-import type { ArabicXLSXType, EditStudent, InArabic, LocalAbsence, LocalLateness, Option, PropDict, Student, XLSXAbsnece, XLSXLateness, XLSXStudent, XLSXType } from "~/data/types";
+import type { ActiveStudent, ArabicXLSXType, EditStudent, InArabic, LocalAbsence, LocalLateness, Option, PropDict, Student, XLSXAbsnece, XLSXLateness, XLSXStudent, XLSXType } from "~/data/types";
 
 
 /*=========== functions to transform a record to its excel version ==========*/
@@ -40,7 +40,7 @@ export const transformEventToExcelVersion = <T extends LocalAbsence | LocalLaten
     return base as ExcelEventVersion<T>
 }
 
-/*=========== Cordination functions to transform an array of record to its excel version with Arabic props ==========*/
+/*=========== Coordination functions to transform an array of record to its excel version with Arabic props ==========*/
 
 /**
  * Array of Student ====> XLSX version of Student in Arabic
@@ -114,8 +114,8 @@ export const groupExistingImportedStudents = (existingStudents: XLSXStudent[], s
 }
 
 export const getChangesInStudent = (existingStudent: Student, XLSXStudent: XLSXStudent) => {
-    const changes: Partial<EditStudent> = {}
-    const formattedStudent: EditStudent = { ...XLSXStudent, birth_date: XLSXStudent.birth_date.getTime() }
+    const changes: Partial<ActiveStudent> = {}
+    const formattedStudent: Partial<ActiveStudent> = { ...XLSXStudent, birth_date: XLSXStudent.birth_date.getTime() }
 
     const newEntries = Object.entries(formattedStudent) as [keyof EditStudent, EditStudent[keyof EditStudent]][]
 

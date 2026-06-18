@@ -15,7 +15,7 @@ export const studentRepo = {
   },
   getStudentsByIds(ids: number[]) {
     const inClause = generateDBInClause(ids.length)
-    const stmt = db.prepare(`SELECT * FROM student WHERE id IN (${inClause})`,
+    const stmt = db.prepare(`SELECT * FROM student WHERE id IN (${inClause}) AND status = 'active'`,
     ).bind(...ids)
     return stmt.all() as Student[]
   },
