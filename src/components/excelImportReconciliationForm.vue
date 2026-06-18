@@ -77,7 +77,7 @@
 </template>
 <script setup lang="ts">
 import { ArabicStudentStatus } from '~/data/static';
-import type { Student, StudentStatus } from '~/data/types';
+import type { Student, InActiveStudentStatus } from '~/data/types';
 
 
 const props = defineProps<{
@@ -90,7 +90,7 @@ const props = defineProps<{
 type ImportReconcile = {
     toTransfer: Student[],
     toRemove: Student[],
-    removeMethod: StudentStatus | "delete"
+    removeMethod: InActiveStudentStatus | "delete"
 }
 const emit = defineEmits<{
     (e: 'import-reconcile', payload: ImportReconcile): void
@@ -99,21 +99,21 @@ const className = computed(() => props.toClassName ? `قسم ${props.toClassName
 )
 const toTransfer = ref<Student[]>([])
 const toRemove = ref<Student[]>([])
-const removeMethod = ref<StudentStatus | "delete">('delete')
+const removeMethod = ref<InActiveStudentStatus | "delete">('delete')
 
 const selectOptions = Object.entries(ArabicStudentStatus).filter((i) => i[0] !== "active").map(([key, arabicTxt]) => ({
     label: "تسجيل  كـ" + arabicTxt + `ين`,
     value: key,
 })).concat([
     { label: "حذف نهائي", value: "delete" },
-]) as { label: string, value: StudentStatus | "delete" }[];
+]) as { label: string, value: InActiveStudentStatus | "delete" }[];
 
 const confirmDeleteStatus = Object.entries(ArabicStudentStatus).filter((i) => i[0] !== "active").map(([key, arabicTxt]) => ({
     label: "نقلهم إلى قائمة الـ" + arabicTxt + `ين`,
     value: key,
 })).concat([
     { label: "حذفهم حذفا نهائيا", value: "delete" },
-]) as { label: string, value: StudentStatus | "delete" }[];
+]) as { label: string, value: InActiveStudentStatus | "delete" }[];
 
 const confirmDeleteMessage = computed(() => confirmDeleteStatus.find(({ value }) => value === removeMethod.value)?.label)
 
