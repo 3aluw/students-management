@@ -149,20 +149,8 @@ const resetSelected = () => {
   selectedLateness.value = [];
 };
 
-/* -------------------------------------------------------------------------- */
-/*                               Excel features Logic                         */
-/* -------------------------------------------------------------------------- */
 
 
-const handleExportClick = async () => {
-  const {limit, offset, ...userFilters} =  dbFilters.value
-  const lateness = (await backend.getLateness(userFilters)).lateness
-  const selectedClassId = dbFilters.value?.classId
-  const classOptions = studentStore.classOptions
-  const className = selectedClassId ? getClassName(classOptions, selectedClassId) ?? "قائمة التأخرات" : "قائمة التأخرات"
-  const structuredData = getFormattedEventJson(lateness, ArabicXLSXLatenessProperties, classOptions)
-  exportXlsx(structuredData, className)
-}
 /* -------------------------------------------------------------------------- */
 /*                              Pagination                                    */
 /* -------------------------------------------------------------------------- */
@@ -265,10 +253,15 @@ const useDeleteConfirm = useConfirmHandler(
 );
 
 /* -------------------------------------------------------------------------- */
-/*                                Export                                      */
+/*                               Excel Export Logic                           */
 /* -------------------------------------------------------------------------- */
-
-function exportCSV() {
-  dt.value.exportCSV();
+const handleExportClick = async () => {
+  const {limit, offset, ...userFilters} =  dbFilters.value
+  const lateness = (await backend.getLateness(userFilters)).lateness
+  const selectedClassId = dbFilters.value?.classId
+  const classOptions = studentStore.classOptions
+  const className = selectedClassId ? getClassName(classOptions, selectedClassId) ?? "قائمة التأخرات" : "قائمة التأخرات"
+  const structuredData = getFormattedEventJson(lateness, ArabicXLSXLatenessProperties, classOptions)
+  exportXlsx(structuredData, className)
 }
 </script>

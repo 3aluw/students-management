@@ -13,6 +13,12 @@ export const studentRepo = {
     const students = stmt.all() as Student[]
     return students;
   },
+  getStudentsByIds(ids: number[]) {
+    const inClause = generateDBInClause(ids.length)
+    const stmt = db.prepare(`SELECT * FROM student WHERE id IN (${inClause}) AND status = 'active'`,
+    ).bind(...ids)
+    return stmt.all() as Student[]
+  },
   deleteStudentsByIds(studentIds: number[]) {
     const inClause = generateDBInClause(studentIds.length);
     const stmt = db.prepare(`DELETE FROM student WHERE id IN (${inClause})`);
@@ -29,9 +35,10 @@ export const studentRepo = {
       phone_number,
       birth_date,
       address,
+      status
     } = studentData;
     const stmt = db.prepare(
-      "INSERT INTO student (class_id, first_name, last_name, father_name,grandfather_name, sex, phone_number, birth_date, address) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO student (class_id, first_name, last_name, father_name,grandfather_name, sex, phone_number, birth_date, address, status) VALUES (?,?, ?, ?, ?, ?, ?, ?, ?, ?)",
     );
     const result = stmt.run(
       class_id,
@@ -43,9 +50,38 @@ export const studentRepo = {
       phone_number,
       birth_date,
       address,
+      status
     );
     return result
 
+  },
+  createStudents(newStudents: NewStudent[]) {
+
+    const stmt = db.prepare(`
+        INSERT OR IGNORE INTO student (class_id, first_name, last_name, father_name,grandfather_name, sex, phone_number, birth_date, address, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?,?)`);
+
+    const insertMany = db.transaction((studentsArray: NewStudent[]) => {
+      let total = 0;
+
+      for (const s of studentsArray) {
+        const result = stmt.run(
+          s.class_id,
+          s.first_name,
+          s.last_name,
+          s.father_name,
+          s.grandfather_name,
+          s.sex,
+          s.phone_number,
+          s.birth_date,
+          s.address,
+          s.status
+        );
+        total += result.changes;
+      }
+      return { changes: total };
+
+    });
+    return insertMany(newStudents);
   },
   updateStudent(studentData: EditStudent) {
     const values = Object.values(studentData);
@@ -55,7 +91,8 @@ export const studentRepo = {
     return result;
   },
 
-  updateStudents(studentsData: BatchEditStudent) {
+  updateStudentsByIds(studentsData: BatchEditStudent) {
+
     const { ids, ...props } = studentsData;
     const values = Object.values(props);
     const inClause = generateDBInClause(ids.length);
@@ -66,6 +103,24 @@ export const studentRepo = {
     const result = stmt.run(...values, ...ids);
     return result
   },
+
+  updateStudentsByPayload(studentsData: EditStudent[]) {
+    const editMany = db.transaction((studentsArray: EditStudent[]) => {
+      let total = 0;
+      for (const editStudent of studentsArray) {
+        const { id, ...props } = editStudent
+        if (Object.keys(props).length === 0) continue
+        const setClause = generateDBSetClause(props)
+        const stmt = db.prepare(`UPDATE student SET ${setClause} WHERE id = ?`)
+        const values = Object.values(props)
+        const result = stmt.bind(...values, id).run()
+        total += result.changes;
+      }
+      return { changes: total }
+    })
+    return editMany(studentsData)
+  },
+
 
   async handlesStudentsPromotion(
     promotionMap: ClassPromotionMap,

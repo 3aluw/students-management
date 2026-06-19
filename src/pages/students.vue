@@ -38,9 +38,13 @@
                     </template>
 
                     <template #end>
-                        <Button label="تحميل" icon="pi pi-download" iconPos="right" severity="secondary"
+                        <FileUpload class="mx-2" mode="basic" @select="onXlsxSelect" chooseLabel="رفع" iconPos="right"
+                            auto chooseIcon="pi pi-upload" accept=".xlsx" severity="secondary"
+                            :chooseButtonProps="{ severity: 'secondary', iconPos: 'right' }" />
+                        <Button class="mx-2" label="تحميل" icon="pi pi-download" iconPos="right" severity="secondary"
                             @click="handleExportClick(tableRef)" />
                     </template>
+
                 </Toolbar>
             </template>
             <template #header>
@@ -62,7 +66,7 @@
             </template>
         </UtilsStudentsTable>
 
-        <Dialog header="أدخل معلومات القسم" @hide="studentToEdit = undefined" v-model:visible="showStudentDialog"
+        <Dialog header="أدخل معلومات الطالب" @hide="studentToEdit = undefined" v-model:visible="showStudentDialog"
             :style="{ width: '350px' }" :modal="true">
             <UtilsEntityForm entityType="student" :entityObject="studentToEdit" @submit="handleStudentSubmit" />
         </Dialog>
@@ -76,6 +80,14 @@
         <UtilsConfirmDialog header="تحويل الطلبة" message="هل أنت متأكد من رغبتك في  التحويل إلى قسم آخر ؟"
             :danger="false" v-model="useTransferConfirm.showConfirm.value"
             @confirm="useTransferConfirm.confirmAction" />
+        <Dialog header="حذف التلاميذ المحددين من القسم" v-model:visible="showXLSXReconcileDialog" :modal="true">
+            <excelImportReconciliationForm :transfer-candidates="trueTransferCandidates"
+                :remove-candidates="toRemoveCandidates"
+                :toClassName="getClassName(studentStore.classOptions, studentStore.selectedClassId)"
+                @import-reconcile="handleImportReconcile" />
+        </Dialog>
+
+
     </div>
 </template>
 <script setup lang="ts">
@@ -89,11 +101,16 @@ import type {
     BatchEditStudent,
     EditStudent,
     InactiveStudent,
+    InArabic,
+    XLSXStudent,
+    ActiveStudent,
+    InActiveStudentStatus,
 } from '~/data/types';
 
 import { userFeedbackMessages } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
 import { ArabicXLSXStudentProperties } from "~/data/static"
+import type { FileUploadSelectEvent } from 'primevue';
 
 /* -------------------------------------------------------------------------- */
 /*                                Composables                                 */
@@ -117,19 +134,7 @@ const studentsToShow = computed(() =>
         : studentStore.students
 );
 
-/* -------------------------------------------------------------------------- */
-/*                               Excel features Logic                         */
-/* -------------------------------------------------------------------------- */
 
-const handleExportClick = (tableRefInstance: any) => {
-    if (!tableRefInstance) return [];
-
-    // 2. Grab the current visible/processed rows (respects active filters/sorting)
-    const students: Student[] = tableRefInstance.processedData || tableRefInstance.value || [];
-    const className = getClassName(studentStore.classOptions, studentStore.selectedClassId) ?? "قائمة الطلبة"
-    const structuredData = getFormattedStudentJson(students, ArabicXLSXStudentProperties)
-    exportXlsx(structuredData, className)
-}
 /* -------------------------------------------------------------------------- */
 /*                              Class change Handling                         */
 /* -------------------------------------------------------------------------- */
@@ -172,7 +177,7 @@ const resetSelectedStudents = () => {
 /* -------------------------------------------------------------------------- */
 /*                           Transfer Students                                */
 /* -------------------------------------------------------------------------- */
-// A tempalte ref for the transfer students menu 
+// A template ref for the transfer students menu 
 const transferStudentsMenu = ref();
 const showStudentDeleteDialog = ref(false);
 const toggleTransferStudentsMenu = (event: Event) => {
@@ -203,13 +208,13 @@ const transferStudents = async (
 
 
 };
-const afterStdentTransfer = async () => {
+const afterStudentTransfer = async () => {
     resetSelectedStudents();
     studentStore.populateStudents;
 }
 const useTransferConfirm = useConfirmHandler(
     transferStudents,
-    afterStdentTransfer
+    afterStudentTransfer
 );
 
 /* -------------------------------------------------------------------------- */
@@ -231,16 +236,12 @@ const handleStudentEditClick = () => {
     showStudentDialog.value = true;
 };
 
-const EditStudent = async (studentObj: Student) => {
+const editStudent = async (studentObj: Student) => {
     try {
         await backend.updateStudents(studentObj);
 
-        await studentStore.populateStudents(
-            studentToEdit.value?.class_id!
-        );
+        await studentStore.populateStudents();
         resetSelectedStudents();
-        showStudentDialog.value = false;
-
         toast.add({
             severity: 'success',
             summary: toastMessages.updateSuccess,
@@ -289,14 +290,39 @@ const handleStudentSubmit = (
     newStudent: NewStudent
 ) => {
     studentToEdit.value
-        ? EditStudent({
+        ? editStudent({
             ...newStudent,
             id: studentToEdit.value.id
         })
         : createNewStudent(newStudent);
 };
 
+/* used by excel only */
+const editStudents = async (students: EditStudent[]) => {
+    try {
+        await backend.updateStudents(students);
 
+        await studentStore.populateStudents(
+            studentToEdit.value?.class_id!
+        );
+        resetSelectedStudents();
+        showStudentDialog.value = false;
+
+        toast.add({
+            severity: 'success',
+            summary: toastMessages.updateSuccess,
+            life: 3000
+        });
+
+    } catch (error) {
+        toast.add(
+            getToastErrorObject(
+                error,
+                toastMessages.updateFailed
+            )
+        );
+    }
+};
 /* -------------------------------------------------------------------------- */
 /*                              Delete Students                               */
 /* -------------------------------------------------------------------------- */
@@ -354,7 +380,172 @@ const handleStudentQuit = (newStatus: Pick<InactiveStudent, "status" | "exited_a
     }
 
 }
+/* -------------------------------------------------------------------------- */
+/*                               Excel Export Logic                           */
+/* -------------------------------------------------------------------------- */
 
+const handleExportClick = (tableRefInstance: any) => {
+    if (!tableRefInstance) return [];
+
+    // 2. Grab the current visible/processed rows (respects active filters/sorting)
+    const students: Student[] = tableRefInstance.processedData || tableRefInstance.value || [];
+    const className = getClassName(studentStore.classOptions, studentStore.selectedClassId) ?? "قائمة الطلبة"
+    const structuredData = getFormattedStudentJson(students, ArabicXLSXStudentProperties)
+    exportXlsx(structuredData, className)
+}
+
+import * as XLSX from 'xlsx';
+type XLSXStudentArabicDict = typeof ArabicXLSXStudentProperties
+type NewXLSXStudent = Omit<XLSXStudent, "id">
+type ImportedNewXLSXStudent = InArabic<NewXLSXStudent, XLSXStudentArabicDict>
+type ImportedExistingXLSXStudent = InArabic<XLSXStudent, XLSXStudentArabicDict>
+type ImportedXLSXData = ImportedNewXLSXStudent[] | ImportedExistingXLSXStudent[]
+
+const showXLSXReconcileDialog = ref(false)
+
+function onXlsxSelect(event: FileUploadSelectEvent) {
+    const file = event.files?.[0];
+
+    if (!file) return; // Guard clause in case no file was selected
+    //Guard clause in case selected file is not xlsx
+    if (!file.name.toLowerCase().endsWith('.xlsx')) {
+        toast.add({ severity: 'error', summary: 'يرجى رفع ملف اكسل (.xlsx)', life: 3000 })
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+        const fileData = e.target?.result;
+
+        // Ensure fileData exists and is an ArrayBuffer (matching type: "array")
+        if (!fileData || typeof fileData === 'string') {
+            toast.add({ severity: 'error', summary: 'الملف الذي تم رفعه غير صالح', life: 3000 })
+            return;
+        }
+
+        // Read the workbook
+        const workbook = XLSX.read(fileData, { type: "array", cellDates: true });
+
+        // Get the first sheet
+        const sheetName = workbook.SheetNames[0];
+        if (!sheetName) {
+            toast.add({ severity: 'warn', summary: 'الملف الذي تم رفعه فارغ ', life: 3000 })
+            return;
+        }
+
+        const worksheet = workbook.Sheets[sheetName];
+
+        // Parse rows to JSON
+        const rows = XLSX.utils.sheet_to_json(worksheet) as ImportedXLSXData
+
+        handleXlSXImportedData(rows)
+    };
+    // Crucial: explicitly tell the reader to read the file as an ArrayBuffer
+    reader.readAsArrayBuffer(file);
+}
+
+const isExistingStudent = (
+    student: XLSXStudent | NewXLSXStudent
+): student is XLSXStudent =>
+    "id" in student && typeof student["id"] === "number";
+
+
+const handleXlSXImportedData = (importedXLSXStudents: ImportedXLSXData) => {
+    // format in english
+    const XLSXStudents = importedXLSXStudents.map(st => transformToEnglish(st, ArabicXLSXStudentProperties))
+    //get existing and new students in XLSX imported data
+    const { newStudents, existingStudents } = groupXlSXDataByExistence(XLSXStudents)
+    handleExistingImportedStudents(existingStudents)
+    //handleNewImportedStudents(newStudents)
+
+}
+
+const groupXlSXDataByExistence = (XLSXStudents: NewXLSXStudent[] | XLSXStudent[]) => {
+    const newStudents: NewXLSXStudent[] = []
+    const existingStudents: XLSXStudent[] = []
+    XLSXStudents.forEach((student) => {
+        if (isExistingStudent(student)) { existingStudents.push(student) }
+        else { newStudents.push(student) }
+    })
+    return { newStudents, existingStudents }
+}
+
+let trueTransferCandidates: Student[] = []
+const trueTransferCandidatesChangesMap: Map<number, Partial<ActiveStudent>> = new Map()
+const NonexistentStudents: XLSXStudent[] = []
+let toRemoveCandidates: Student[] = []
+
+const handleExistingImportedStudents = async (existingStudents: XLSXStudent[]) => {
+    const students = await backend.getStudents({ class_id: studentStore.selectedClassId, status: "active" })
+
+    const { editStudents: editStudentsArray, transferCandidates, toRemoveCandidates: foundRemoveCandidates } = groupExistingImportedStudents(existingStudents, students)
+    if (editStudents.length) {
+        editStudents(editStudentsArray)
+    }
+    toRemoveCandidates = foundRemoveCandidates
+    trueTransferCandidates = await validateTransferCandidates(transferCandidates)
+    if (NonexistentStudents.length) alertAboutNonexistentStudent(NonexistentStudents)
+    if (toRemoveCandidates.length || trueTransferCandidates.length) showXLSXReconcileDialog.value = true
+}
+
+
+const validateTransferCandidates = async (XLSXStudents: XLSXStudent[]) => {
+    const ids = XLSXStudents.map(({ id }) => id);
+    const students = await backend.getStudents({ ids });
+    const trueTransferCandidates: Student[] = []
+    // Create a Map of existing student IDs in the DB then filter
+    const studentMap = new Map(students.map(st => [st.id, st]));
+
+    XLSXStudents.forEach((XLSXStudent) => {
+        const foundStudent = studentMap.get(XLSXStudent.id);
+        if (foundStudent) {
+            const changesInStudent: Partial<ActiveStudent> = { ...getChangesInStudent(foundStudent, XLSXStudent) }
+            trueTransferCandidatesChangesMap.set(XLSXStudent.id, changesInStudent)
+            trueTransferCandidates.push({ ...foundStudent, first_name: XLSXStudent.first_name, last_name: XLSXStudent.last_name })
+        }
+        else {
+            NonexistentStudents.push(XLSXStudent)
+        }
+    });
+    return trueTransferCandidates;
+}
+const alertAboutNonexistentStudent = (XLSXStudents: XLSXStudent[]) => {
+    const message = XLSXStudents.length
+        ? XLSXStudents.map(s => `لم يتم إيجاد الطالب ${s.first_name + ' ' + s.last_name} المعرف: ${s.id}`).join('\n')
+        : `لا يوجد طلبة نشطين بالمعرفات التالية : ${XLSXStudents.slice(0, 8).map(s => s.id).join(' ')}...`
+    toast.add({ severity: "warn", summary: "طلبة بمعرفات خاطئة", detail: message })
+}
+const handleImportReconcile = async (reconcileObj: {
+    toTransfer: Student[],
+    toRemove: Student[],
+    removeMethod: InActiveStudentStatus | "delete"
+}) => {
+    const { toTransfer, toRemove, removeMethod } = reconcileObj
+    if (toTransfer.length) {
+        const editStudentsArray: EditStudent[] = toTransfer.map((student) => ({ ...trueTransferCandidatesChangesMap.get(student.id), id: student.id, class_id: studentStore.selectedClassId }))
+        editStudents(editStudentsArray)
+    }
+    if (toRemove.length && removeMethod) {
+        removeMethod == 'delete' ? deleteStudents(toRemove) : handleStudentQuit({ status: removeMethod, exited_at: new Date().getTime() }, toRemove)
+    }
+    showXLSXReconcileDialog.value = false
+}
+
+
+
+
+const handleNewImportedStudents = async (newXLSXStudents: NewXLSXStudent[]) => {
+    const selectedClass = studentStore.selectedClassId
+    if (!selectedClass) return
+    const newStudents: NewStudent[] = newXLSXStudents.map((st) => {
+        return { ...st, birth_date: st.birth_date.getTime(), status: "active", exited_at: null, class_id: selectedClass }
+    })
+    if (newStudents.length) {
+        await backend.createStudents(newStudents)
+        studentStore.populateStudents()
+    }
+}
 
 
 </script>

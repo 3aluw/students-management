@@ -2,7 +2,8 @@ import { BatchEditStudent, ClassPromotionMap, EditStudent, NewStudent, Student, 
 import { studentRepo } from "../repositories/studentRepo";
 
 export const studentService = {
-  getStudents(query: StudentsQueryFilters) {
+  getStudents(query: StudentsQueryFilters | { ids: number[] }) {
+    if ('ids' in query) return studentRepo.getStudentsByIds(query.ids);
     return studentRepo.getStudents(query)
   },
 
@@ -19,7 +20,35 @@ export const studentService = {
       message: "تم إنشاء الطالب",
     };
   },
+  createStudents(newStudents: NewStudent[]) {
+    const throwFailError = (error?: unknown) => {
+      throw createError({
+        statusCode: 400,
+        message: "لم يتم إنشاء الطلبة الجدد",
+        cause: error
+      })
+    }
+    let result = {
+      changes: 0
+    };
+    try {
+      result = studentRepo.createStudents(newStudents)
+    }
+    catch (error) {
+      throwFailError(error)
+    }
 
+    const studentsCount = newStudents.length
+    if (result.changes < studentsCount) {
+      throw createError({
+        statusCode: 409,
+        message: "تم إنشاء بعض الطلبة الجدد ، لكن حدثت مشكلة أثناء إنشاء البعض الآخر (تم إضافة " + result.changes + " من " + studentsCount + ")",
+      });
+    }
+    return {
+      message: "تم إنشاء الطلبة الجدد",
+    };
+  },
   updateStudent(studentData: EditStudent) {
     const result = studentRepo.updateStudent(studentData);
 
@@ -36,15 +65,35 @@ export const studentService = {
 
   },
 
-  updateStudents(studentsData: BatchEditStudent) {
-    const result = studentRepo.updateStudents(studentsData);
-    if (result.changes === 0) {
+  updateStudents(studentsData: BatchEditStudent | EditStudent[]) {
+    const throwFailError = (error?: unknown) => {
       throw createError({
-        statusCode: 404,
+        statusCode: 400,
         message: "لم يتم تعديل الطلبة المحددين",
+        cause: error
+      })
+    }
+    let result = {
+      changes: 0
+    };
+    try {
+      if (Array.isArray(studentsData)) {
+        result = studentRepo.updateStudentsByPayload(studentsData)
+      } else {
+        result = studentRepo.updateStudentsByIds(studentsData);
+      }
+    }
+    catch (error) {
+      throwFailError(error)
+    }
+    if (result.changes === 0) throwFailError()
+    const studentsCount = Array.isArray(studentsData) ? studentsData.length : studentsData.ids.length
+    if (result.changes < studentsCount) {
+      throw createError({
+        statusCode: 409,
+        message: "تم تعديل الطلبة المحددين ، لكن بعضهم لم يتم تعديله (تم إضافة " + result.changes + " من " + studentsCount + ")",
       });
     }
-
     return {
       message: "تم تعديل الطلبة المحددين",
     };

@@ -5,17 +5,18 @@
 
         <div class="flex flex-wrap gap-4 items-center justify-between">
             <div class="flex gap-4">
-                <Select v-if="props.filters.includes('classId')" name="class_id" :options="classOptions" optionLabel="label" optionValue="value"
-                    placeholder="اختر الصف" v-model="dbFilters.classId" />
+                <Select v-if="props.filters.includes('classId')" name="class_id" :options="classOptions"
+                    optionLabel="label" optionValue="value" placeholder="اختر الصف" v-model="dbFilters.classId" />
             </div>
-            <div  v-if="props.filters.includes('dateRange')" class="flex flex-col gap-2">
-                <SelectButton name="date range" :options="dateFilterOptions" optionLabel="label" optionValue="value"
+            <div v-if="props.filters.includes('dateRange')" class="flex flex-col gap-2">
+                <SelectButton class="hidden sm:flex max-w-sm text-sm flex-wrap gap-1" name="date range"
+                    :options="avalableDateFilterOptions" optionLabel="label" optionValue="value"
                     v-model="selectedDateRange" @update:modelValue="updateDateRangeSelect" />
                 <DatePicker v-model="dateRange" showIcon fluid iconDisplay="input" selection-mode="range"
                     @value-change="(e) => updateDateRange(e, 'date picker')" />
 
             </div>
-            <IconField  v-if="props.filters.includes('name')">
+            <IconField v-if="props.filters.includes('name')">
                 <InputIcon>
                     <i class="pi pi-search" />
                 </InputIcon>
@@ -28,11 +29,12 @@
 </template>
 <script setup lang="ts">
 import type { EventQueryFilters, SupportedDateRanges } from '~/data/types';
-import { dateFilterOptions } from '~/data/static';
+import { dateFilterOptions, seasonDateFilterOptions } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
+import { useClientStore } from '~/store/clientStore';
 
 const studentStore = useStudentStore();
-
+const clientStore = useClientStore()
 type availableFilters = 'classId' | 'name' | 'dateRange'
 
 // ========== COMPUTED PROPERTIES ==========
@@ -49,7 +51,10 @@ const emit = defineEmits<{
     (e: 'updateFilters', filtersObj: EventQueryFilters): void;
 }>()
 
-
+const avalableDateFilterOptions = computed(() => {
+    const seasonFilterOptions = getAvailableSeasonFilterOptions(seasonDateFilterOptions, clientStore.seasons)
+    return [...dateFilterOptions, ...seasonFilterOptions]
+})
 // Date filter states
 const selectedDateRange = ref<SupportedDateRanges | undefined>(undefined) //used By date ranges select buttons
 const dateRange = ref<Date[] | undefined>(undefined) //used By datePicker
@@ -61,7 +66,7 @@ const updateDateRangeSelect = (value: SupportedDateRanges | null) => {
         updateDateRange([null, null])
         return
     }
-    const [min, max] = getTimeRange(value)
+    const [min, max] = getTimeRange(value, clientStore.seasons)
     dateRange.value = [new Date(min), new Date(max)]
     updateDateRange(dateRange.value, "select buttons")
 
@@ -87,7 +92,7 @@ watch(dbFilters.value, () => {
     emit('updateFilters', dbFilters.value)
 })
 
-const resetFilters = () => { 
+const resetFilters = () => {
     dateRange.value = undefined
     selectedDateRange.value = undefined
     const dbFiltersKeys = Object.keys(dbFilters.value) as (keyof EventQueryFilters)[]

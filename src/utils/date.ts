@@ -2,14 +2,17 @@ import type {
     SupportedDateRanges,
     LatenessInfo,
     AbsenceInfo,
-    PlaygroundSettings
+    PlaygroundSettings,
+    SchoolSeason
 } from "~/data/types"
 
 // ========== Time functions ==========
-export const getTimeRange = (range: SupportedDateRanges) => {
+export const getTimeRange = (range: SupportedDateRanges, seasons: SchoolSeason[]) => {
     const now = new Date();
     let start, end;
-
+    const seasonTimeRanges = ["this season", "last term", "this term", "last season"] as const satisfies readonly SupportedDateRanges[]
+    type seasonTimeRange = typeof seasonTimeRanges[number];
+    if (seasonTimeRanges.includes(range as seasonTimeRange)) return getSeasonTermTimeRange(range as seasonTimeRange, seasons)
     switch (range) {
         case "today": {
             start = new Date(now.getFullYear(), now.getMonth(), now.getDate());

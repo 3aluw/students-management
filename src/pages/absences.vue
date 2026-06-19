@@ -144,19 +144,6 @@ const updateFilters = (filtersObj: EventQueryFilters) => {
 const resetSelected = () => {
   selectedAbsences.value = [];
 };
-/* -------------------------------------------------------------------------- */
-/*                               Excel features Logic                         */
-/* -------------------------------------------------------------------------- */
-
-const handleExportClick = async () => {
-    const {limit, offset, ...userFilters} =  dbFilters.value
-  const absences = (await backend.getAbsences(userFilters)).absences
-  const selectedClassId = dbFilters.value?.classId
-  const classOptions = studentStore.classOptions
-  const className = selectedClassId ? getClassName(classOptions, selectedClassId) ?? "قائمة الغيابات" : "قائمة الغيابات"
-  const structuredData = getFormattedEventJson(absences, ArabicXLSXcAbsenceProperties, classOptions)
-  exportXlsx(structuredData, className)
-}
 
 /* -------------------------------------------------------------------------- */
 /*                              Table Pagination                              */
@@ -245,11 +232,18 @@ const useDeleteConfirm = useConfirmHandler(
 );
 
 /* -------------------------------------------------------------------------- */
-/*                              Export                                        */
+/*                               Excel Export Logic                           */
 /* -------------------------------------------------------------------------- */
 
-function exportCSV() {
-  dt.value.exportCSV();
+const handleExportClick = async () => {
+    const {limit, offset, ...userFilters} =  dbFilters.value
+  const absences = (await backend.getAbsences(userFilters)).absences
+  const selectedClassId = dbFilters.value?.classId
+  const classOptions = studentStore.classOptions
+  const className = selectedClassId ? getClassName(classOptions, selectedClassId) ?? "قائمة الغيابات" : "قائمة الغيابات"
+  const structuredData = getFormattedEventJson(absences, ArabicXLSXcAbsenceProperties, classOptions)
+  exportXlsx(structuredData, className)
 }
+
 
 </script>

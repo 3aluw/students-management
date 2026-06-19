@@ -12,7 +12,6 @@
                 :globalFilterFields="['first_name', 'last_name']">
                 <template #header>
                     <slot name="header">
-
                     </slot>
                 </template>
 
@@ -25,7 +24,7 @@
                         <p>{{ slotProps.data.last_name + " " + slotProps.data.first_name }}</p>
                     </template>
                 </Column>
-                <Column header="الأب">
+                <Column header="الأب" v-if="!props.settings.columnsToHide?.includes('father')">
                     <template #body="slotProps: DataTableSlot<Student>">
                         <p>{{ slotProps.data.father_name + " بن " + slotProps.data.grandfather_name }}</p>
                     </template>
@@ -43,7 +42,7 @@
                 </Column>
                 <Column header="">
                     <template #body="slotProps: DataTableSlot<Student>">
-                        <slot name="actions" :slot-props="slotProps">
+                        <slot name="customColumn" :slot-props="slotProps">
                         </slot>
                     </template>
                 </Column>
@@ -56,20 +55,20 @@
 </template>
 <script setup lang="ts">
 import { FilterMatchMode } from '@primevue/core/api';
-import type { Student, DataTableSlot, } from '~/data/types'
+import type { Student, DataTableSlot, XLSXStudent, } from '~/data/types'
 import { useStudentStore } from '~/store/studentStore';
 const studentStore = useStudentStore();
 
 // ========== TABLE SETTINGS PASSED FROM PARENT ==========
 type tableSettings = {
     clearSelectionOnClassChange: boolean
-    columnsToHide?: ('phone_number' | 'address' | 'class')[]
+    columnsToHide?: ('phone_number' | 'address' | 'class' | "father")[]
 }
 const props = defineProps<{
-    students: Student[]
+    students: Student[] | XLSXStudent[]
     settings: tableSettings
-    tableSearchValue: string
-    globalSearchActive: boolean
+    tableSearchValue?: string
+    globalSearchActive?: boolean
 }>()
 
 

@@ -1,18 +1,22 @@
 import type { ZodError } from "zod";
-import { ArabicXLSXcAbsenceProperties, ArabicXLSXLatenessProperties, ArabicXLSXStudentProperties } from "./static";
+import {
+  ArabicXLSXcAbsenceProperties,
+  ArabicXLSXLatenessProperties,
+  ArabicXLSXStudentProperties,
+} from "./static";
 /**
  * Utility types
  */
 export type NewEntity<T extends { id: any }> = Omit<T, "id">;
 
-type PartialExceptId<T extends { id: number }> = T extends any ? Partial<Omit<T, "id">> &
-  Pick<T, "id"> : never;
+type PartialExceptId<T extends { id: number }> = T extends any
+  ? Partial<Omit<T, "id">> & Pick<T, "id">
+  : never;
 
-type BatchEdit<T extends AllEntitiesUnion> =
-  T extends any
+type BatchEdit<T extends AllEntitiesUnion> = T extends any
   ? {
-    ids: number[];
-  } & Partial<Omit<T, "id">>
+      ids: number[];
+    } & Partial<Omit<T, "id">>
   : never;
 
 export type DataTableSlot<T> = { data: T };
@@ -32,10 +36,7 @@ export interface Class {
  * Represents a row in the `student` table.
  */
 
-type InactiveStudentStatus =
-  | "graduated"
-  | "dropped"
-  | "transferred";
+type InactiveStudentStatus = "graduated" | "dropped" | "transferred";
 
 export interface BaseStudent {
   id: number; // PRIMARY KEY AUTOINCREMENT
@@ -43,7 +44,7 @@ export interface BaseStudent {
   last_name: string; // TEXT NOT NULL
   father_name: string; // TEXT NOT NULL
   grandfather_name: string; // TEXT NOT NULL
-  sex: Gender;  // CHECK (sex IN ('M', 'F')) DEFAULT 'M'
+  sex: Gender; // CHECK (sex IN ('M', 'F')) DEFAULT 'M'
   phone_number: string; // TEXT NOT NULL
   birth_date: number; // INT (timestamp)
   address: string; // TEXT NOT NULL
@@ -68,7 +69,6 @@ export interface InactiveStudent extends BaseStudent {
  * Represents a row in the `Student` table.
  */
 export type Student = ActiveStudent | InactiveStudent;
-
 
 /**
  * Represents a row in the `Lateness` table.
@@ -107,8 +107,18 @@ export interface SchoolTerm {
   endDate: number;
 }
 
-export type AllEntitiesUnion = Student | Class | Absence | Lateness | SchoolSeason;
-export type AllEntitiesKeys = keyof (Student & Class & Absence & Lateness & SchoolSeason & SchoolTerm)
+export type AllEntitiesUnion =
+  | Student
+  | Class
+  | Absence
+  | Lateness
+  | SchoolSeason;
+export type AllEntitiesKeys = keyof (Student &
+  Class &
+  Absence &
+  Lateness &
+  SchoolSeason &
+  SchoolTerm);
 
 export type NewStudent = NewEntity<ActiveStudent>;
 export type NewClass = NewEntity<Class>;
@@ -125,7 +135,6 @@ export type EditSchoolSeason = PartialExceptId<SchoolSeason>;
 export type BatchEditStudent = BatchEdit<Student>;
 export type BatchEditAbsence = BatchEdit<Absence>;
 export type BatchEditLateness = BatchEdit<Lateness>;
-
 
 export type AbsenceInfo = Omit<Absence, "student_id" | "id">;
 export type LatenessInfo = Omit<Lateness, "student_id" | "id">;
@@ -144,15 +153,18 @@ export type LocalLateness = Lateness & {
 export type EventTypes = "lateness" | "absence";
 export type Gender = "M" | "F";
 export type SchoolLevel = "primary" | "middle" | "high";
-export type StudentStatus = 'active' | 'graduated' | 'dropped' | 'transferred'
+export type StudentStatus = "active" | "graduated" | "dropped" | "transferred";
+export type InActiveStudentStatus = InactiveStudent["status"];
 export type SeasonStatus = "past" | "current" | "future";
 export type SupportedDateRanges =
   | "today"
   | "yesterday"
   | "this week"
-  | "this month";
-
-
+  | "this month"
+  | "this season"
+  | "this term"
+  | "last term"
+  | "last season";
 
 export type PlaygroundSettings = {
   defaultStartTime: number;
@@ -169,43 +181,44 @@ export type ClassPromotionMap = Record<string, number>;
 export type NewSeasonPayload = {
   terminateCurrentSeason: boolean;
   newSeason: NewSchoolSeason;
-  classPromotionMap: ClassPromotionMap
+  classPromotionMap: ClassPromotionMap;
   repeaters: Student["id"][];
 };
 
 // ========== BACKEND ERROR TYPES ==========
 
 type BackendBaseError = {
-  statusCode: number,
-  message: string,
-}
+  statusCode: number;
+  message: string;
+};
 export type BackendValidationError = BackendBaseError & {
   data: {
-    issues: ZodError["issues"]
-  }
-}
+    issues: ZodError["issues"];
+  };
+};
 // ============== Ui types====================
-/** 
-*Used in class/gender options...
-**/
+/**
+ *Used in class/gender options...
+ **/
 export type Option<T = number> = {
   label: string;
   value: T;
 };
 
-
 // ============== Query types====================
 export type InactiveStudentQueryFilters = {
-  name?: string,
-  status: Exclude<StudentStatus, "active">
-  exited_at_Year?: number
-}
+  name?: string;
+  status: Exclude<StudentStatus, "active">;
+  exited_at_Year?: number;
+};
 export type ActiveStudentQueryFilters = {
-  name?: string,
-  class_id?: number,
-  status: Extract<StudentStatus, "active">,
-}
-export type StudentsQueryFilters = ActiveStudentQueryFilters | InactiveStudentQueryFilters
+  name?: string;
+  class_id?: number;
+  status: Extract<StudentStatus, "active">;
+};
+export type StudentsQueryFilters =
+  | ActiveStudentQueryFilters
+  | InactiveStudentQueryFilters;
 
 export type EventQueryFilters = Partial<{
   limit: number;
@@ -215,7 +228,6 @@ export type EventQueryFilters = Partial<{
   minDate: number;
   maxDate: number;
 }>;
-
 
 // ============== XLSX types ====================
 
@@ -256,23 +268,47 @@ export type InArabic<T, Dict extends PropDict<T>> = {
 };
 
 /* XLSX student and events' types */
-export type XLSXStudent = Omit<Student, "status" | "class_id" | "exited_at" | "birth_date"> & {
-  birth_date: Date
-}
-export type XLSXAbsnece = Omit<LocalAbsence, "id" | "student_id" | "date" | "start_time" | "reason_accepted" | "section" | "class_id" | "grade" | "school_level"> & {
-  class: string,
-  date: Date,
-  reason_accepted: boolean,
-}
-export type XLSXLateness = Omit<LocalLateness, "id" | "student_id" | "date" | "start_time" | "reason_accepted" | "section" | "class_id" | "grade" | "school_level"> & {
-  class: string,
-  date: Date,
-  reason_accepted: boolean,
-}
+export type XLSXStudent = Omit<
+  Student,
+  "status" | "class_id" | "exited_at" | "birth_date"
+> & {
+  birth_date: Date;
+};
+export type XLSXAbsnece = Omit<
+  LocalAbsence,
+  | "id"
+  | "student_id"
+  | "date"
+  | "start_time"
+  | "reason_accepted"
+  | "section"
+  | "class_id"
+  | "grade"
+  | "school_level"
+> & {
+  class: string;
+  date: Date;
+  reason_accepted: boolean;
+};
+export type XLSXLateness = Omit<
+  LocalLateness,
+  | "id"
+  | "student_id"
+  | "date"
+  | "start_time"
+  | "reason_accepted"
+  | "section"
+  | "class_id"
+  | "grade"
+  | "school_level"
+> & {
+  class: string;
+  date: Date;
+  reason_accepted: boolean;
+};
 
-export type XLSXType = XLSXAbsnece | XLSXLateness | XLSXStudent
-export type ArabicXLSXType = InArabic<XLSXAbsnece, typeof ArabicXLSXcAbsenceProperties> | InArabic<XLSXLateness, typeof ArabicXLSXLatenessProperties> | InArabic<XLSXStudent, typeof ArabicXLSXStudentProperties>
-
-
-
-
+export type XLSXType = XLSXAbsnece | XLSXLateness | XLSXStudent;
+export type ArabicXLSXType =
+  | InArabic<XLSXAbsnece, typeof ArabicXLSXcAbsenceProperties>
+  | InArabic<XLSXLateness, typeof ArabicXLSXLatenessProperties>
+  | InArabic<XLSXStudent, typeof ArabicXLSXStudentProperties>;

@@ -45,8 +45,15 @@ export default function () {
   };
 
   // ========== Student functions ==========
-  const getStudents = (query: StudentsQueryFilters) => {
+  const getStudents = (query: StudentsQueryFilters | { ids: number[] }) => {
     const params = new URLSearchParams();
+    
+    if ('ids' in query) {
+      query.ids.forEach(id => {
+        params.append("ids", `${id}`);
+      });
+      return $fetch<Student[]>(`/api/students/?${params.toString()}`)
+    }
 
     if (query.name && query.name.trim().length) params.append("name", query.name);
     if ("class_id" in query && query.class_id !== undefined)
@@ -64,7 +71,13 @@ export default function () {
       body,
     });
   };
-  const updateStudents = (body: EditStudent | BatchEditStudent) => {
+  const createStudents = (body: NewStudent[]) => {
+    return $fetch("/api/students", {
+      method: "POST",
+      body,
+    });
+  }
+  const updateStudents = (body: EditStudent | EditStudent[] | BatchEditStudent) => {
     return $fetch("/api/students", {
       method: "POST",
       body,
@@ -161,6 +174,7 @@ export default function () {
     deleteClass,
     getStudents,
     createStudent,
+    createStudents,
     deleteStudents,
     updateStudents,
     getAbsences,

@@ -75,7 +75,7 @@
                 </div>
             </template>
 
-            <template #actions="{ slotProps }">
+            <template #customColumn="{ slotProps }">
                 <div class="flex gap-2">
                     <Button @click="createEvent('lateness', [slotProps.data.id])" icon="pi pi-clock" severity="warn"
                         rounded outlined />
