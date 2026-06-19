@@ -473,6 +473,7 @@ const groupXlSXDataByExistence = (XLSXStudents: NewXLSXStudent[] | XLSXStudent[]
 
 let trueTransferCandidates: Student[] = []
 const trueTransferCandidatesChangesMap: Map<number, Partial<ActiveStudent>> = new Map()
+const NonexistentStudents: XLSXStudent[] = []
 let toRemoveCandidates: Student[] = []
 
 const handleExistingImportedStudents = async (existingStudents: XLSXStudent[]) => {
@@ -484,6 +485,7 @@ const handleExistingImportedStudents = async (existingStudents: XLSXStudent[]) =
     }
     toRemoveCandidates = foundRemoveCandidates
     trueTransferCandidates = await validateTransferCandidates(transferCandidates)
+    if (NonexistentStudents.length) alertAboutNonexistentStudent(NonexistentStudents)
     if (toRemoveCandidates.length || trueTransferCandidates.length) showXLSXReconcileDialog.value = true
 }
 
@@ -491,7 +493,6 @@ const handleExistingImportedStudents = async (existingStudents: XLSXStudent[]) =
 const validateTransferCandidates = async (XLSXStudents: XLSXStudent[]) => {
     const ids = XLSXStudents.map(({ id }) => id);
     const students = await backend.getStudents({ ids });
-    const unFoundStudents: XLSXStudent[] = []
     const trueTransferCandidates: Student[] = []
     // Create a Map of existing student IDs in the DB then filter
     const studentMap = new Map(students.map(st => [st.id, st]));
@@ -504,13 +505,12 @@ const validateTransferCandidates = async (XLSXStudents: XLSXStudent[]) => {
             trueTransferCandidates.push({ ...foundStudent, first_name: XLSXStudent.first_name, last_name: XLSXStudent.last_name })
         }
         else {
-            unFoundStudents.push(XLSXStudent)
+            NonexistentStudents.push(XLSXStudent)
         }
     });
-    if (unFoundStudents.length) alertAboutUnFoundStudent(unFoundStudents)
     return trueTransferCandidates;
 }
-const alertAboutUnFoundStudent = (XLSXStudents: XLSXStudent[]) => {
+const alertAboutNonexistentStudent = (XLSXStudents: XLSXStudent[]) => {
     const message = XLSXStudents.length
         ? XLSXStudents.map(s => `لم يتم إيجاد الطالب ${s.first_name + ' ' + s.last_name} المعرف: ${s.id}`).join('\n')
         : `لا يوجد طلبة نشطين بالمعرفات التالية : ${XLSXStudents.slice(0, 8).map(s => s.id).join(' ')}...`
@@ -523,14 +523,13 @@ const handleImportReconcile = async (reconcileObj: {
 }) => {
     const { toTransfer, toRemove, removeMethod } = reconcileObj
     if (toTransfer.length) {
-        console.log(trueTransferCandidatesChangesMap);
         const editStudentsArray: EditStudent[] = toTransfer.map((student) => ({ ...trueTransferCandidatesChangesMap.get(student.id), id: student.id, class_id: studentStore.selectedClassId }))
         editStudents(editStudentsArray)
     }
     if (toRemove.length && removeMethod) {
         removeMethod == 'delete' ? deleteStudents(toRemove) : handleStudentQuit({ status: removeMethod, exited_at: new Date().getTime() }, toRemove)
     }
-    //showXLSXReconcileDialog.value = false
+    showXLSXReconcileDialog.value = false
 }
 
 
