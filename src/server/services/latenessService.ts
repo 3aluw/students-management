@@ -24,16 +24,26 @@ export const latenessService = {
     },
 
     createLateness: (lateness: NewLateness[]) => {
-        const result = latenessRepo.createLateness(lateness);
-        if (result.changes === 0) {
+        const throwFailError = (error?: unknown) => {
             throw createError({
                 statusCode: 400,
                 message: "لم يتم إضافة التأخيرات الجديدة",
-            });
+                cause: error
+            })
         }
+        let result = {
+            changes: 0
+        };
+        try {
+            result = latenessRepo.createLateness(lateness);
+        }
+        catch (error) {
+            throwFailError(error)
+        }
+        if (result.changes === 0) throwFailError()
         if (result.changes < lateness.length) {
             throw createError({
-                statusCode: 207,
+                statusCode: 409,
                 message: "تم إضافة بعض التأخيرات الجديدة، لكن بعضها لم يتم إضافته (تم إضافة " + result.changes + " من " + lateness.length + ")",
             });
         }
