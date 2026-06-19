@@ -6,7 +6,7 @@ type TotalRow = { total: number };
 
 export const latenessRepo = {
     getLateness: (filters: EventQueryFilters) => {
-        const { limit , offset , ...otherFilters } = filters;
+        const { limit, offset, ...otherFilters } = filters;
         const { stmt: whereStmt, bindings: whereBindings } = buildSQLClause("lateness", otherFilters)
         const { stmt: paginationStmt, bindings: paginationBindings } = buildSQLClause("pagination", { limit, offset })
 
@@ -59,9 +59,9 @@ export const latenessRepo = {
     createLateness: (lateness: NewLateness[]) => {
 
         const stmt = db.prepare(`
-        INSERT INTO lateness (student_id, date, start_time, late_by, reason, reason_accepted) VALUES (?, ?, ?, ?, ?, ?)
-`);
-
+        INSERT OR IGNORE INTO lateness (student_id, date, start_time, late_by, reason, reason_accepted) 
+        VALUES (?, ?, ?, ?, ?, ?)`);
+        
         const insertMany = db.transaction((latenessArray: NewLateness[]) => {
             let total = 0;
 
