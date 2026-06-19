@@ -24,13 +24,23 @@ export const absenceService = {
     },
 
     createAbsences: (absences: NewAbsence[]) => {
-        const result = absenceRepo.createAbsences(absences);
-        if (result.changes === 0) {
+        const throwFailError = (error?: unknown) => {
             throw createError({
                 statusCode: 400,
                 message: "لم يتم إضافة الغيابات الجديدة",
-            });
+                cause: error
+            })
         }
+        let result = {
+            changes: 0
+        };
+        try {
+            result = absenceRepo.createAbsences(absences);
+        } catch (error) {
+            throwFailError(error)
+        }
+
+        if (result.changes === 0) throwFailError()
         if (result.changes < absences.length) {
             throw createError({
                 statusCode: 409,
