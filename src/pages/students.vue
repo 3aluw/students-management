@@ -39,7 +39,7 @@
 
                     <template #end>
                         <ExcelImportExport :allow-import="true" @handleExport="handleExportClick(tableRef)"
-                            @handle-import="onXlsxSelect" />
+                            @handle-import="handleExcelFile" />
 
                     </template>
 
@@ -93,6 +93,7 @@
 /*                                   Imports                                  */
 /* -------------------------------------------------------------------------- */
 import { useToast } from 'primevue/usetoast';
+import type { ToastMessageOptions } from 'primevue';
 import type {
     Student,
     NewStudent,
@@ -108,7 +109,6 @@ import type {
 import { userFeedbackMessages } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
 import { ArabicXLSXStudentProperties } from "~/data/static"
-import { exportXlsx, groupExistingImportedStudents, getChangesInStudent, getFormattedStudentJson } from "~/service/excel"
 
 /* -------------------------------------------------------------------------- */
 /*                                Composables                                 */
@@ -384,14 +384,23 @@ const handleStudentQuit = (newStatus: Pick<InactiveStudent, "status" | "exited_a
 
 const handleExportClick = (tableRefInstance: any) => {
     if (!tableRefInstance) return [];
-    console.log(1);
-    return;
+
     // 2. Grab the current visible/processed rows (respects active filters/sorting)
     const students: Student[] = tableRefInstance.processedData || tableRefInstance.value || [];
     const className = getClassName(studentStore.classOptions, studentStore.selectedClassId) ?? "قائمة الطلبة"
     const structuredData = getFormattedStudentJson(students, ArabicXLSXStudentProperties)
     exportXlsx(structuredData, className)
 }
+
+import {
+    exportXlsx,
+    groupExistingImportedStudents,
+    getChangesInStudent,
+    getFormattedStudentJson,
+    parseExcelFile,
+    groupByExistence,
+    formatPossibleNewStudents
+} from "~/service/excel"
 
 import * as XLSX from 'xlsx';
 type XLSXStudentArabicDict = typeof ArabicXLSXStudentProperties
@@ -402,65 +411,32 @@ type ImportedXLSXData = ImportedNewXLSXStudent[] | ImportedExistingXLSXStudent[]
 
 const showXLSXReconcileDialog = ref(false)
 
-function onXlsxSelect(file: any) {
 
-    const reader = new FileReader();
 
-    reader.onload = (e) => {
-        const fileData = e.target?.result;
+const handleExcelFile = async (file: File) => {
+    const toastMap: Record<string, ToastMessageOptions> = {
+        EMPTY_FILE: { severity: 'warn', summary: 'الملف الذي تم رفعه فارغ' },
+        NO_ROWS: { severity: 'warn', summary: 'لا توجد بيانات في الملف' },
+        UNSUPPORTED_FILE: { severity: 'warn', summary: 'ملف غير صالح' },
+    }
+    try {
+        const importedXLSXStudents = await parseExcelFile(file)
+        // format in english
+        const XLSXStudents = importedXLSXStudents.map(st => transformToEnglish(st, ArabicXLSXStudentProperties))
+        //get existing and new students in XLSX imported data
+        const { newStudents, existingStudents } = groupByExistence(XLSXStudents)
+        handleExistingImportedStudents(existingStudents)
+        //handleNewImportedStudents(newStudents)
 
-        // Ensure fileData exists and is an ArrayBuffer (matching type: "array")
-        if (!fileData || typeof fileData === 'string') {
-            toast.add({ severity: 'error', summary: 'الملف الذي تم رفعه غير صالح', life: 3000 })
-            return;
-        }
-
-        // Read the workbook
-        const workbook = XLSX.read(fileData, { type: "array", cellDates: true });
-
-        // Get the first sheet
-        const sheetName = workbook.SheetNames[0];
-        if (!sheetName) {
-            toast.add({ severity: 'warn', summary: 'الملف الذي تم رفعه فارغ ', life: 3000 })
-            return;
-        }
-
-        const worksheet = workbook.Sheets[sheetName];
-
-        // Parse rows to JSON
-        const rows = XLSX.utils.sheet_to_json(worksheet) as ImportedXLSXData
-
-        handleXlSXImportedData(rows)
-    };
-    // Crucial: explicitly tell the reader to read the file as an ArrayBuffer
-    reader.readAsArrayBuffer(file);
+    } catch (error: any) { // or cast inside
+        const messageKey = error?.message as keyof typeof toastMap;
+        // Fallback if the key doesn't match anything in the map
+        const toastObj = toastMap[messageKey] ?? { severity: 'error', summary: 'الملف الذي تم رفعه غير صالح' };
+        toast.add({ ...toastObj, life: 3000 });
+    }
 }
 
-const isExistingStudent = (
-    student: XLSXStudent | NewXLSXStudent
-): student is XLSXStudent =>
-    "id" in student && typeof student["id"] === "number";
 
-
-const handleXlSXImportedData = (importedXLSXStudents: ImportedXLSXData) => {
-    // format in english
-    const XLSXStudents = importedXLSXStudents.map(st => transformToEnglish(st, ArabicXLSXStudentProperties))
-    //get existing and new students in XLSX imported data
-    const { newStudents, existingStudents } = groupXlSXDataByExistence(XLSXStudents)
-    handleExistingImportedStudents(existingStudents)
-    //handleNewImportedStudents(newStudents)
-
-}
-
-const groupXlSXDataByExistence = (XLSXStudents: NewXLSXStudent[] | XLSXStudent[]) => {
-    const newStudents: NewXLSXStudent[] = []
-    const existingStudents: XLSXStudent[] = []
-    XLSXStudents.forEach((student) => {
-        if (isExistingStudent(student)) { existingStudents.push(student) }
-        else { newStudents.push(student) }
-    })
-    return { newStudents, existingStudents }
-}
 
 let trueTransferCandidates: Student[] = []
 const trueTransferCandidatesChangesMap: Map<number, Partial<ActiveStudent>> = new Map()
@@ -524,14 +500,10 @@ const handleImportReconcile = async (reconcileObj: {
 }
 
 
-
-
 const handleNewImportedStudents = async (newXLSXStudents: NewXLSXStudent[]) => {
-    const selectedClass = studentStore.selectedClassId
-    if (!selectedClass) return
-    const newStudents: NewStudent[] = newXLSXStudents.map((st) => {
-        return { ...st, birth_date: st.birth_date.getTime(), status: "active", exited_at: null, class_id: selectedClass }
-    })
+    const ClassId = studentStore.selectedClassId
+    if (!ClassId) return
+    const newStudents = formatPossibleNewStudents(newXLSXStudents, ClassId)
     if (newStudents.length) {
         await backend.createStudents(newStudents)
         studentStore.populateStudents()

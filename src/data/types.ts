@@ -155,6 +155,7 @@ export type Gender = "M" | "F";
 export type SchoolLevel = "primary" | "middle" | "high";
 export type StudentStatus = "active" | "graduated" | "dropped" | "transferred";
 export type InActiveStudentStatus = InactiveStudent["status"];
+
 export type SeasonStatus = "past" | "current" | "future";
 export type SupportedDateRanges =
   | "today"
@@ -174,6 +175,7 @@ export type PlaygroundSettings = {
   defaultReason: string;
   reasonAcceptedByDefault: 0 | 1;
 };
+
 
 // ========== SEASONS TYPES ==========
 export type ClassPromotionMap = Record<string, number>;
@@ -274,7 +276,7 @@ export type XLSXStudent = Omit<
 > & {
   birth_date: Date;
 };
-export type XLSXAbsnece = Omit<
+export type XLSXAbsence = Omit<
   LocalAbsence,
   | "id"
   | "student_id"
@@ -307,8 +309,8 @@ export type XLSXLateness = Omit<
   reason_accepted: boolean;
 };
 
-export type XLSXType = XLSXAbsnece | XLSXLateness | XLSXStudent;
+export type XLSXType = XLSXAbsence | XLSXLateness | XLSXStudent;
 export type ArabicXLSXType =
-  | InArabic<XLSXAbsnece, typeof ArabicXLSXcAbsenceProperties>
+  | InArabic<XLSXAbsence, typeof ArabicXLSXcAbsenceProperties>
   | InArabic<XLSXLateness, typeof ArabicXLSXLatenessProperties>
   | InArabic<XLSXStudent, typeof ArabicXLSXStudentProperties>;
