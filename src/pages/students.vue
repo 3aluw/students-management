@@ -79,8 +79,8 @@
             :danger="false" v-model="useTransferConfirm.showConfirm.value"
             @confirm="useTransferConfirm.confirmAction" />
         <Dialog header="حذف التلاميذ المحددين من القسم" v-model:visible="showXLSXReconcileDialog" :modal="true">
-            <ExcelImportReconciliationForm :transfer-candidates="trueTransferCandidates"
-                :remove-candidates="toRemoveCandidates"
+            <ExcelImportReconciliationForm :transfer-candidates="importReconcileInitialData.trueTransferCandidates"
+                :remove-candidates="importReconcileInitialData.toRemoveCandidates"
                 :toClassName="getClassName(studentStore.classOptions, studentStore.selectedClassId)"
                 @import-reconcile="handleImportReconcile" />
         </Dialog>
@@ -423,70 +423,17 @@ const handleExcelFile = async (file: File) => {
         const importedXLSXStudents = await parseExcelFile(file)
         // format in english
         const XLSXStudents = importedXLSXStudents.map(st => transformToEnglish(st, ArabicXLSXStudentProperties))
-        //get existing and new students in XLSX imported data
+        //get & handle existing and new students in XLSX imported data
         const { newStudents, existingStudents } = groupByExistence(XLSXStudents)
         handleExistingImportedStudents(existingStudents)
-        //handleNewImportedStudents(newStudents)
+        handleNewImportedStudents(newStudents)
 
-    } catch (error: any) { // or cast inside
+    } catch (error: any) {
         const messageKey = error?.message as keyof typeof toastMap;
-        // Fallback if the key doesn't match anything in the map
         const toastObj = toastMap[messageKey] ?? { severity: 'error', summary: 'الملف الذي تم رفعه غير صالح' };
         toast.add({ ...toastObj, life: 3000 });
     }
 }
-
-
-
-let trueTransferCandidates: Student[] = []
-const trueTransferCandidatesChangesMap: Map<number, Partial<ActiveStudent>> = new Map()
-const NonexistentStudents: XLSXStudent[] = []
-let toRemoveCandidates: Student[] = []
-
-const handleExistingImportedStudents = async (existingStudents: XLSXStudent[]) => {
-    const students = await backend.getStudents({ class_id: studentStore.selectedClassId, status: "active" })
-
-    const { editStudents: editStudentsArray, transferCandidates, toRemoveCandidates: foundRemoveCandidates } = groupPossibleExistingStudents(existingStudents, students)
-    if (editStudents.length) {
-        editStudents(editStudentsArray)
-    }
-    trueTransferCandidates = await groupTransferCandidates(transferCandidates)
-    toRemoveCandidates = foundRemoveCandidates
-    if (NonexistentStudents.length) alertAboutNonexistentStudent(NonexistentStudents)
-    if (toRemoveCandidates.length || trueTransferCandidates.length) showXLSXReconcileDialog.value = true
-}
-
-
-const groupTransferCandidates = async (XLSXStudents: XLSXStudent[]) => {
-    const ids = XLSXStudents.map(({ id }) => id);
-    const students = await backend.getStudents({ ids });
-    const trueTransferCandidates: Student[] = []
-    // Create a Map of existing student IDs in the DB then filter
-    const studentMap = new Map(students.map(st => [st.id, st]));
-    return groupPossibleTransferStudents(XLSXStudents, studentMap)
-}
-const alertAboutNonexistentStudent = (XLSXStudents: XLSXStudent[]) => {
-    const message = XLSXStudents.length
-        ? XLSXStudents.map(s => `لم يتم إيجاد الطالب ${s.first_name + ' ' + s.last_name} المعرف: ${s.id}`).join('\n')
-        : `لا يوجد طلبة نشطين بالمعرفات التالية : ${XLSXStudents.slice(0, 8).map(s => s.id).join(' ')}...`
-    toast.add({ severity: "warn", summary: "طلبة بمعرفات خاطئة", detail: message })
-}
-const handleImportReconcile = async (reconcileObj: {
-    toTransfer: Student[],
-    toRemove: Student[],
-    removeMethod: InActiveStudentStatus | "delete"
-}) => {
-    const { toTransfer, toRemove, removeMethod } = reconcileObj
-    if (toTransfer.length) {
-        const editStudentsArray: EditStudent[] = toTransfer.map((student) => ({ ...trueTransferCandidatesChangesMap.get(student.id), id: student.id, class_id: studentStore.selectedClassId }))
-        editStudents(editStudentsArray)
-    }
-    if (toRemove.length && removeMethod) {
-        removeMethod == 'delete' ? deleteStudents(toRemove) : handleStudentQuit({ status: removeMethod, exited_at: new Date().getTime() }, toRemove)
-    }
-    showXLSXReconcileDialog.value = false
-}
-
 
 const handleNewImportedStudents = async (newXLSXStudents: NewXLSXStudent[]) => {
     const ClassId = studentStore.selectedClassId
@@ -497,6 +444,74 @@ const handleNewImportedStudents = async (newXLSXStudents: NewXLSXStudent[]) => {
         studentStore.populateStudents()
     }
 }
+
+
+
+const importReconcileInitialData: {
+    trueTransferCandidates: Student[],
+    trueTransferCandidatesChangesMap: Map<number, Partial<ActiveStudent>>,
+    toRemoveCandidates: Student[]
+} = {
+    trueTransferCandidates: [],
+    trueTransferCandidatesChangesMap: new Map(),
+    toRemoveCandidates: []
+}
+
+const handleExistingImportedStudents = async (existingStudents: XLSXStudent[]) => {
+    const students = await backend.getStudents({ class_id: studentStore.selectedClassId, status: "active" })
+
+    const { editStudents: editStudentsArray, transferCandidates, toRemoveCandidates: foundRemoveCandidates } = groupPossibleExistingStudents(existingStudents, students)
+    /*handle same class students update */
+    if (editStudents.length) {
+        editStudents(editStudentsArray)
+    }
+    
+    /*handle students that are requiring a user reconciliation form */
+    const transferGroups = await groupTransferCandidates(transferCandidates)
+    importReconcileInitialData.toRemoveCandidates = foundRemoveCandidates
+    importReconcileInitialData.trueTransferCandidates = transferGroups.trueTransferCandidates
+    importReconcileInitialData.trueTransferCandidatesChangesMap = transferGroups.trueTransferCandidatesChangesMap
+    if (importReconcileInitialData.toRemoveCandidates.length || importReconcileInitialData.trueTransferCandidates.length) showXLSXReconcileDialog.value = true
+    
+    /*handle students that doesn't exist in DB */
+    const NonexistentStudents = transferGroups.NonexistentStudents
+    if (NonexistentStudents.length) alertAboutNonexistentStudent(NonexistentStudents)
+}
+
+
+const groupTransferCandidates = async (XLSXStudents: XLSXStudent[]) => {
+    const ids = XLSXStudents.map(({ id }) => id);
+    const students = await backend.getStudents({ ids });
+    // Create a Map of existing student IDs in the DB then filter
+    const studentMap = new Map(students.map(st => [st.id, st]));
+    return groupPossibleTransferStudents(XLSXStudents, studentMap)
+}
+
+const alertAboutNonexistentStudent = (XLSXStudents: XLSXStudent[]) => {
+    const message = XLSXStudents.length
+        ? XLSXStudents.map(s => `لم يتم إيجاد الطالب ${s.first_name + ' ' + s.last_name} المعرف: ${s.id}`).join('\n')
+        : `لا يوجد طلبة نشطين بالمعرفات التالية : ${XLSXStudents.slice(0, 8).map(s => s.id).join(' ')}...`
+    toast.add({ severity: "warn", summary: "طلبة بمعرفات خاطئة", detail: message })
+}
+
+
+const handleImportReconcile = async (reconcileObj: {
+    toTransfer: Student[],
+    toRemove: Student[],
+    removeMethod: InActiveStudentStatus | "delete"
+}) => {
+    const { toTransfer, toRemove, removeMethod } = reconcileObj
+    if (toTransfer.length) {
+        const { trueTransferCandidatesChangesMap } = importReconcileInitialData
+        const editStudentsArray: EditStudent[] = toTransfer.map((student) => ({ ...trueTransferCandidatesChangesMap.get(student.id), id: student.id, class_id: studentStore.selectedClassId }))
+        editStudents(editStudentsArray)
+    }
+    if (toRemove.length && removeMethod) {
+        removeMethod == 'delete' ? deleteStudents(toRemove) : handleStudentQuit({ status: removeMethod, exited_at: new Date().getTime() }, toRemove)
+    }
+    showXLSXReconcileDialog.value = false
+}
+
 
 
 </script>

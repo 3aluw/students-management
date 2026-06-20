@@ -251,7 +251,7 @@ export const groupPossibleExistingStudents = (
  *      If the students is found in the students Map : he exists So update it with its class_id
  *      if the students is not found in the students Map : the user doesn't exist in the DB 
  */
-export const groupPossibleTransferStudents = async (
+export const groupPossibleTransferStudents = (
   XLSXStudents: XLSXStudent[],
   studentMap: Map<number, Student>,
 ) => {
