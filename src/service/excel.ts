@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx';
 import type { ArabicXLSXStudentProperties } from '~/data/static';
-import type { ActiveStudent, ArabicXLSXType, EditStudent, InArabic, LocalAbsence, LocalLateness, Option, PropDict, Student, XLSXAbsnece, XLSXLateness, XLSXStudent, XLSXType } from "~/data/types";
+import type { ActiveStudent, ArabicXLSXType, EditStudent, InArabic, LocalAbsence, LocalLateness, Option, PropDict, Student, XLSXAbsence, XLSXLateness, XLSXStudent, XLSXType } from "~/data/types";
 
 
 /*=========== functions to transform a record to its excel version ==========*/
@@ -17,7 +17,7 @@ export const transformStudentToExcelVersion = (student: Student): XLSXStudent =>
 
 };
 
-type ExcelEventVersion<T extends LocalLateness | LocalAbsence> = T extends LocalLateness ? XLSXLateness : XLSXAbsnece;
+type ExcelEventVersion<T extends LocalLateness | LocalAbsence> = T extends LocalLateness ? XLSXLateness : XLSXAbsence;
 /**
  * Event ===> XLSX version of that Event
  *  @remarks This function takes classOptions as a parameter to prevent the inclusion of store here (Since utils runs out of Nuxt context)
@@ -26,7 +26,7 @@ export const transformEventToExcelVersion = <T extends LocalAbsence | LocalLaten
     (event: T, classOptions: Option[]): ExcelEventVersion<T> => {
     const { reason, first_name, last_name } = event
 
-    const base: XLSXAbsnece = {
+    const base: XLSXAbsence = {
         reason, first_name, last_name,
         reason_accepted: Boolean(event.reason_accepted),
         date: new Date(event.date),
