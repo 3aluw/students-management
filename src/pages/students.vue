@@ -394,12 +394,12 @@ const handleExportClick = (tableRefInstance: any) => {
 
 import {
     exportXlsx,
-    groupExistingImportedStudents,
-    getChangesInStudent,
+    groupPossibleExistingStudents,
     getFormattedStudentJson,
     parseExcelFile,
     groupByExistence,
-    formatPossibleNewStudents
+    formatPossibleNewStudents,
+    groupPossibleTransferStudents
 } from "~/service/excel"
 
 import * as XLSX from 'xlsx';
@@ -446,36 +446,24 @@ let toRemoveCandidates: Student[] = []
 const handleExistingImportedStudents = async (existingStudents: XLSXStudent[]) => {
     const students = await backend.getStudents({ class_id: studentStore.selectedClassId, status: "active" })
 
-    const { editStudents: editStudentsArray, transferCandidates, toRemoveCandidates: foundRemoveCandidates } = groupExistingImportedStudents(existingStudents, students)
+    const { editStudents: editStudentsArray, transferCandidates, toRemoveCandidates: foundRemoveCandidates } = groupPossibleExistingStudents(existingStudents, students)
     if (editStudents.length) {
         editStudents(editStudentsArray)
     }
+    trueTransferCandidates = await groupTransferCandidates(transferCandidates)
     toRemoveCandidates = foundRemoveCandidates
-    trueTransferCandidates = await validateTransferCandidates(transferCandidates)
     if (NonexistentStudents.length) alertAboutNonexistentStudent(NonexistentStudents)
     if (toRemoveCandidates.length || trueTransferCandidates.length) showXLSXReconcileDialog.value = true
 }
 
 
-const validateTransferCandidates = async (XLSXStudents: XLSXStudent[]) => {
+const groupTransferCandidates = async (XLSXStudents: XLSXStudent[]) => {
     const ids = XLSXStudents.map(({ id }) => id);
     const students = await backend.getStudents({ ids });
     const trueTransferCandidates: Student[] = []
     // Create a Map of existing student IDs in the DB then filter
     const studentMap = new Map(students.map(st => [st.id, st]));
-
-    XLSXStudents.forEach((XLSXStudent) => {
-        const foundStudent = studentMap.get(XLSXStudent.id);
-        if (foundStudent) {
-            const changesInStudent: Partial<ActiveStudent> = { ...getChangesInStudent(foundStudent, XLSXStudent) }
-            trueTransferCandidatesChangesMap.set(XLSXStudent.id, changesInStudent)
-            trueTransferCandidates.push({ ...foundStudent, first_name: XLSXStudent.first_name, last_name: XLSXStudent.last_name })
-        }
-        else {
-            NonexistentStudents.push(XLSXStudent)
-        }
-    });
-    return trueTransferCandidates;
+    return groupPossibleTransferStudents(XLSXStudents, studentMap)
 }
 const alertAboutNonexistentStudent = (XLSXStudents: XLSXStudent[]) => {
     const message = XLSXStudents.length

@@ -135,7 +135,7 @@ type ImportedXLSXData =
   | ImportedNewXLSXStudent[]
   | ImportedExistingXLSXStudent[];
 
-/*=========== function to export to XLSX ==========*/
+/*=========== Parsing / Grouping logic ==========*/
 /**
  *  parse excel file ===> InArabic student rows
  */
@@ -163,8 +163,8 @@ const isExistingStudent = (
 ): student is XLSXStudent =>
   "id" in student && typeof student["id"] === "number";
 /**
- *  Grouping according to id: 
- *   Id exists Possible existing student 
+ *  Grouping according to id:
+ *   Id exists Possible existing student
  *   else: Possible new student
  */
 export const groupByExistence = (
@@ -182,15 +182,36 @@ export const groupByExistence = (
   return { newStudents, existingStudents };
 };
 
-/*Possible new students logic */
+/*=========== Possible new students logic ==========*/
 
-export const formatPossibleNewStudents =  (newXLSXStudents: NewXLSXStudent[], classId: number) => {
-    const newStudents: NewStudent[] = newXLSXStudents.map((st) => {
-        return { ...st, birth_date: st.birth_date.getTime(), status: "active", exited_at: null, class_id: classId }
-    })
-   return newStudents
-}
-export const groupExistingImportedStudents = (
+/**
+ *  transforms excel students to new students object Array
+ * NewXLSXStudent[] ===> NewStudent[]
+ */
+export const formatPossibleNewStudents = (
+  newXLSXStudents: NewXLSXStudent[],
+  classId: number,
+) => {
+  const newStudents: NewStudent[] = newXLSXStudents.map((st) => {
+    return {
+      ...st,
+      birth_date: st.birth_date.getTime(),
+      status: "active",
+      exited_at: null,
+      class_id: classId,
+    };
+  });
+  return newStudents;
+};
+
+/*=========== Possible Existing students logic ==========*/
+/**
+ *  It groups XLSXStudents (with ids) into : update - remove candidates - transfer candidates  
+ *      if exists in the selected class : update  
+ *      if he is in the class but not in excel : the user may want to delete him  
+ *      if he is in the Excel but not in class : the user may want to transfer him from another class
+ */
+export const groupPossibleExistingStudents = (
   existingStudents: XLSXStudent[],
   students: Student[],
 ) => {
@@ -225,7 +246,49 @@ export const groupExistingImportedStudents = (
   };
 };
 
-export const getChangesInStudent = (
+/**
+ *  It groups Transfer XLSXStudents  into : validated transfer candidates - nonexistent
+ *      If the students is found in the students Map : he exists So update it with its class_id
+ *      if the students is not found in the students Map : the user doesn't exist in the DB 
+ */
+export const groupPossibleTransferStudents = async (
+  XLSXStudents: XLSXStudent[],
+  studentMap: Map<number, Student>,
+) => {
+  const NonexistentStudents: XLSXStudent[] = [];
+  const trueTransferCandidates: Student[] = [];
+  const trueTransferCandidatesChangesMap: Map<
+    number,
+    Partial<ActiveStudent>
+  > = new Map();
+
+  XLSXStudents.forEach((XLSXStudent) => {
+    const foundStudent = studentMap.get(XLSXStudent.id);
+    if (foundStudent) {
+      const changesInStudent: Partial<ActiveStudent> = {
+        ...getChangesInStudent(foundStudent, XLSXStudent),
+      };
+      trueTransferCandidatesChangesMap.set(XLSXStudent.id, changesInStudent);
+      trueTransferCandidates.push({
+        ...foundStudent,
+        first_name: XLSXStudent.first_name,
+        last_name: XLSXStudent.last_name,
+      });
+    } else {
+      NonexistentStudents.push(XLSXStudent);
+    }
+  });
+  return {
+    trueTransferCandidates,
+    trueTransferCandidatesChangesMap,
+    NonexistentStudents,
+  };
+};
+
+/**
+ *  Compares excel version of student with his original record returning only fields that changed 
+ */
+const getChangesInStudent = (
   existingStudent: Student,
   XLSXStudent: XLSXStudent,
 ) => {
