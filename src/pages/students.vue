@@ -38,11 +38,9 @@
                     </template>
 
                     <template #end>
-                        <FileUpload class="mx-2" mode="basic" @select="onXlsxSelect" chooseLabel="رفع" iconPos="right"
-                            auto chooseIcon="pi pi-upload" accept=".xlsx" severity="secondary"
-                            :chooseButtonProps="{ severity: 'secondary', iconPos: 'right' }" />
-                        <Button class="mx-2" label="تحميل" icon="pi pi-download" iconPos="right" severity="secondary"
-                            @click="handleExportClick(tableRef)" />
+                        <ExcelImportExport :allow-import="true" @handleExport="handleExportClick(tableRef)"
+                            @handle-import="onXlsxSelect" />
+
                     </template>
 
                 </Toolbar>
@@ -81,7 +79,7 @@
             :danger="false" v-model="useTransferConfirm.showConfirm.value"
             @confirm="useTransferConfirm.confirmAction" />
         <Dialog header="حذف التلاميذ المحددين من القسم" v-model:visible="showXLSXReconcileDialog" :modal="true">
-            <excelImportReconciliationForm :transfer-candidates="trueTransferCandidates"
+            <ExcelImportReconciliationForm :transfer-candidates="trueTransferCandidates"
                 :remove-candidates="toRemoveCandidates"
                 :toClassName="getClassName(studentStore.classOptions, studentStore.selectedClassId)"
                 @import-reconcile="handleImportReconcile" />
@@ -386,7 +384,8 @@ const handleStudentQuit = (newStatus: Pick<InactiveStudent, "status" | "exited_a
 
 const handleExportClick = (tableRefInstance: any) => {
     if (!tableRefInstance) return [];
-
+    console.log(1);
+    return;
     // 2. Grab the current visible/processed rows (respects active filters/sorting)
     const students: Student[] = tableRefInstance.processedData || tableRefInstance.value || [];
     const className = getClassName(studentStore.classOptions, studentStore.selectedClassId) ?? "قائمة الطلبة"
@@ -403,15 +402,7 @@ type ImportedXLSXData = ImportedNewXLSXStudent[] | ImportedExistingXLSXStudent[]
 
 const showXLSXReconcileDialog = ref(false)
 
-function onXlsxSelect(event: FileUploadSelectEvent) {
-    const file = event.files?.[0];
-
-    if (!file) return; // Guard clause in case no file was selected
-    //Guard clause in case selected file is not xlsx
-    if (!file.name.toLowerCase().endsWith('.xlsx')) {
-        toast.add({ severity: 'error', summary: 'يرجى رفع ملف اكسل (.xlsx)', life: 3000 })
-        return;
-    }
+function onXlsxSelect(file: any) {
 
     const reader = new FileReader();
 
