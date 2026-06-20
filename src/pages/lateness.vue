@@ -12,7 +12,7 @@
         </template>
 
         <template #end>
-          <Button label="تحميل" icon="pi pi-download" iconPos="right" severity="secondary" @click="handleExportClick" />
+        <ExcelImportExport @handleExport="handleExport"/>
         </template>
       </Toolbar>
       <DataTable ref="dt" v-model:selection="selectedLateness" :value="eventStore.lateness" dataKey="id"
@@ -255,7 +255,7 @@ const useDeleteConfirm = useConfirmHandler(
 /* -------------------------------------------------------------------------- */
 /*                               Excel Export Logic                           */
 /* -------------------------------------------------------------------------- */
-const handleExportClick = async () => {
+const handleExport = async () => {
   const {limit, offset, ...userFilters} =  dbFilters.value
   const lateness = (await backend.getLateness(userFilters)).lateness
   const selectedClassId = dbFilters.value?.classId

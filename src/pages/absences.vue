@@ -12,7 +12,8 @@
         </template>
 
         <template #end>
-          <Button label="تحميل" icon="pi pi-download" iconPos="right" severity="secondary" @click="handleExportClick" />
+          <ExcelImportExport @handleExport="handleExport" />
+
         </template>
       </Toolbar>
 
@@ -235,8 +236,8 @@ const useDeleteConfirm = useConfirmHandler(
 /*                               Excel Export Logic                           */
 /* -------------------------------------------------------------------------- */
 
-const handleExportClick = async () => {
-    const {limit, offset, ...userFilters} =  dbFilters.value
+const handleExport = async () => {
+  const { limit, offset, ...userFilters } = dbFilters.value
   const absences = (await backend.getAbsences(userFilters)).absences
   const selectedClassId = dbFilters.value?.classId
   const classOptions = studentStore.classOptions
