@@ -14,7 +14,7 @@ import type {
   StudentStatus,
   XLSXStudent,
   XLSXLateness,
-  XLSXAbsnece
+  XLSXAbsence
 } from "./types";
 
 export const genderOptions = [
@@ -247,4 +247,4 @@ export const ArabicXLSXcAbsenceProperties = {
   date: "التاريخ",
   reason: "السبب",
   reason_accepted: "قبول السبب",
-} as const satisfies Record<keyof XLSXAbsnece, string>;
+} as const satisfies Record<keyof XLSXAbsence, string>;
