@@ -77,6 +77,7 @@ import type {
 import { userFeedbackMessages, ArabicXLSXLatenessProperties } from '~/data/static';
 import { useStudentStore } from '~/store/studentStore';
 import { useEventStore } from '~/store/eventStore';
+import { getFormattedEventJson, exportXlsx } from "~/service/excel"
 
 import type { DataTablePageEvent } from 'primevue';
 

@@ -79,7 +79,7 @@ import { ArabicXLSXcAbsenceProperties, userFeedbackMessages } from '~/data/stati
 import { useStudentStore } from '~/store/studentStore';
 import { useEventStore } from '~/store/eventStore';
 import type { DataTablePageEvent } from 'primevue';
-
+import { getFormattedEventJson, exportXlsx } from "~/service/excel"
 /* -------------------------------------------------------------------------- */
 /*                                Stores                                      */
 /* -------------------------------------------------------------------------- */
