@@ -25,7 +25,7 @@ import type {
   XLSXStudent,
 } from "~/data/types";
 import { getRequiredFieldMessage } from "~/utils/arabic-properties";
-import { hasCollapsingTerms } from "~/utils/season";
+import { hasCollapsingTerms } from "~/service/season";
 import { toTimestamp } from "~/utils/date";
 
 // ========== Student schemas ==========

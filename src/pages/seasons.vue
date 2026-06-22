@@ -70,7 +70,7 @@ import type {
 } from '~/data/types';
 
 import type { TreeNode } from 'primevue/treenode';
-
+import { getCollapsingSeasonIds, mapSeasonsToTree } from "~/service/season"
 import { useClientStore } from '~/store/clientStore';
 
 import {

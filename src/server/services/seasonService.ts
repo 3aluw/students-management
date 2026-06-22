@@ -7,7 +7,7 @@ import {
   NewSeasonPayload,
   SchoolSeason,
 } from "~/data/types";
-import { getSeasonStatus, getSeasonStartAndEndDates } from "~/utils/season";
+import { getSeasonStatus, getSeasonStartAndEndDates } from "~/service/season";
 /* -------------------------------------------------------------------------- */
 /*                              Internal Functions                            */
 /* -------------------------------------------------------------------------- */
