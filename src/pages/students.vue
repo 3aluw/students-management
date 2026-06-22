@@ -104,6 +104,7 @@ import type {
     XLSXStudent,
     ActiveStudent,
     InActiveStudentStatus,
+    NewXLSXStudent,
 } from '~/data/types';
 
 import { userFeedbackMessages } from '~/data/static';
@@ -394,6 +395,7 @@ const handleExportClick = (tableRefInstance: any) => {
 
 import {
     exportXlsx,
+    ValidateXLSXStudents,
     groupPossibleExistingStudents,
     getFormattedStudentJson,
     parseExcelFile,
@@ -401,17 +403,8 @@ import {
     formatPossibleNewStudents,
     groupPossibleTransferStudents
 } from "~/service/excel"
-
-import * as XLSX from 'xlsx';
-type XLSXStudentArabicDict = typeof ArabicXLSXStudentProperties
-type NewXLSXStudent = Omit<XLSXStudent, "id">
-type ImportedNewXLSXStudent = InArabic<NewXLSXStudent, XLSXStudentArabicDict>
-type ImportedExistingXLSXStudent = InArabic<XLSXStudent, XLSXStudentArabicDict>
-type ImportedXLSXData = ImportedNewXLSXStudent[] | ImportedExistingXLSXStudent[]
-
+import { isZodValidationError, fromIssuesToToastObject } from "~/service/zod errors"
 const showXLSXReconcileDialog = ref(false)
-
-
 
 const handleExcelFile = async (file: File) => {
     const toastMap: Record<string, ToastMessageOptions> = {
@@ -423,15 +416,22 @@ const handleExcelFile = async (file: File) => {
         const importedXLSXStudents = await parseExcelFile(file)
         // format in english
         const XLSXStudents = importedXLSXStudents.map(st => transformToEnglish(st, ArabicXLSXStudentProperties))
+        ValidateXLSXStudents(XLSXStudents) //Validate
         //get & handle existing and new students in XLSX imported data
         const { newStudents, existingStudents } = groupByExistence(XLSXStudents)
         handleExistingImportedStudents(existingStudents)
         handleNewImportedStudents(newStudents)
-
     } catch (error: any) {
-        const messageKey = error?.message as keyof typeof toastMap;
-        const toastObj = toastMap[messageKey] ?? { severity: 'error', summary: 'الملف الذي تم رفعه غير صالح' };
-        toast.add({ ...toastObj, life: 3000 });
+        if (isZodValidationError(error)) {
+            const ToastObject = fromIssuesToToastObject(error.issues, 'أخطاء في البيانات التي رفعتها')
+            toast.add({ ...ToastObject })
+        }
+        else {
+            const messageKey = error?.message as keyof typeof toastMap;
+            const toastObj = toastMap[messageKey] ?? { severity: 'error', summary: 'الملف الذي تم رفعه غير صالح' };
+            toast.add({ ...toastObj, life: 3000 });
+        }
+
     }
 }
 
@@ -444,8 +444,6 @@ const handleNewImportedStudents = async (newXLSXStudents: NewXLSXStudent[]) => {
         studentStore.populateStudents()
     }
 }
-
-
 
 const importReconcileInitialData: {
     trueTransferCandidates: Student[],
@@ -465,14 +463,14 @@ const handleExistingImportedStudents = async (existingStudents: XLSXStudent[]) =
     if (editStudents.length) {
         editStudents(editStudentsArray)
     }
-    
+
     /*handle students that are requiring a user reconciliation form */
     const transferGroups = await groupTransferCandidates(transferCandidates)
     importReconcileInitialData.toRemoveCandidates = foundRemoveCandidates
     importReconcileInitialData.trueTransferCandidates = transferGroups.trueTransferCandidates
     importReconcileInitialData.trueTransferCandidatesChangesMap = transferGroups.trueTransferCandidatesChangesMap
     if (importReconcileInitialData.toRemoveCandidates.length || importReconcileInitialData.trueTransferCandidates.length) showXLSXReconcileDialog.value = true
-    
+
     /*handle students that doesn't exist in DB */
     const NonexistentStudents = transferGroups.NonexistentStudents
     if (NonexistentStudents.length) alertAboutNonexistentStudent(NonexistentStudents)
