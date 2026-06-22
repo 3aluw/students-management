@@ -14,9 +14,9 @@ import type {
   XLSXAbsence,
   XLSXLateness,
   XLSXStudent,
-  XLSXType,
 } from "~/data/types";
-
+import { z } from "zod";
+import { studentSchemas } from "~/utils/zod-schemas";
 /* -------------------------------------------------------------------------- */
 /*                                EXPORT LOGIC                                */
 /* -------------------------------------------------------------------------- */
@@ -135,7 +135,7 @@ type ImportedXLSXData =
   | ImportedNewXLSXStudent[]
   | ImportedExistingXLSXStudent[];
 
-/*=========== Parsing / Grouping logic ==========*/
+/*=========== Parsing / Validation / Grouping logic ==========*/
 /**
  *  parse excel file ===> InArabic student rows
  */
@@ -157,6 +157,17 @@ export async function parseExcelFile(file: File): Promise<ImportedXLSXData> {
     throw new Error("UNSUPPORTED_FILE");
   }
 }
+
+export const ValidateXLSXStudents = (
+  XLSXstudents: NewXLSXStudent[] | XLSXStudent[],
+) => {
+  const { newXLSXStudentSchema } = studentSchemas;
+
+  const XLSXStudentsSchema = z.array(
+    newXLSXStudentSchema.extend({ id: z.number().optional() }),
+  );
+  XLSXStudentsSchema.parse(XLSXstudents);
+};
 
 const isExistingStudent = (
   student: XLSXStudent | NewXLSXStudent,
@@ -206,9 +217,9 @@ export const formatPossibleNewStudents = (
 
 /*=========== Possible Existing students logic ==========*/
 /**
- *  It groups XLSXStudents (with ids) into : update - remove candidates - transfer candidates  
- *      if exists in the selected class : update  
- *      if he is in the class but not in excel : the user may want to delete him  
+ *  It groups XLSXStudents (with ids) into : update - remove candidates - transfer candidates
+ *      if exists in the selected class : update
+ *      if he is in the class but not in excel : the user may want to delete him
  *      if he is in the Excel but not in class : the user may want to transfer him from another class
  */
 export const groupPossibleExistingStudents = (
@@ -249,7 +260,7 @@ export const groupPossibleExistingStudents = (
 /**
  *  It groups Transfer XLSXStudents  into : validated transfer candidates - nonexistent
  *      If the students is found in the students Map : he exists So update it with its class_id
- *      if the students is not found in the students Map : the user doesn't exist in the DB 
+ *      if the students is not found in the students Map : the user doesn't exist in the DB
  */
 export const groupPossibleTransferStudents = (
   XLSXStudents: XLSXStudent[],
@@ -286,7 +297,7 @@ export const groupPossibleTransferStudents = (
 };
 
 /**
- *  Compares excel version of student with his original record returning only fields that changed 
+ *  Compares excel version of student with his original record returning only fields that changed
  */
 const getChangesInStudent = (
   existingStudent: Student,
