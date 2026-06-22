@@ -1,14 +1,21 @@
+import type { ToastMessageOptions } from "primevue";
 import { ZodError } from "zod";
 import type { $ZodIssue } from "zod/v4/core";
 import type { XLSXStudent } from "~/data/types";
-
+/**
+ *  @type type guard
+ * @summary If the argument has an array of issues -it is a zod error-
+ */
 export const isZodValidationError = (error: any): error is ZodError =>
   error && typeof error === "object" && Array.isArray(error.issues);
 
 type XLSXStudentIssuesByFieldName = {
   [key in keyof Partial<XLSXStudent>]: { rows: number[]; messages: string[] };
 };
-
+/**
+ *  @summary Takes an array of zod issues and returns an object
+ * @example  { "first_name": {rows : [2,4,5] : messages: ["يجب إدخال الاسم"]}, }
+ */
 function groupIssuesByField(issues: $ZodIssue[]) {
   const result: {
     [key in keyof Partial<XLSXStudent>]: {
@@ -27,11 +34,9 @@ function groupIssuesByField(issues: $ZodIssue[]) {
         messages: new Set(),
       };
     }
-
-    result[field].rows.add((row + 2));
+    result[field].rows.add(row + 2);
     result[field].messages.add(err.message);
   }
-
   // convert Sets → arrays for serialization
   const output: XLSXStudentIssuesByFieldName = {};
 
@@ -41,10 +46,11 @@ function groupIssuesByField(issues: $ZodIssue[]) {
       messages: [...data.messages],
     };
   }
-
   return output;
 }
-
+/**
+ *  @summary Takes an issues by field name object and returns an array of strings (ready to shown as details in Toast)
+ */
 const getValidationDetails = (
   IssuesByFieldName: XLSXStudentIssuesByFieldName,
 ) =>
@@ -56,14 +62,21 @@ const getValidationDetails = (
     `;
   });
 
+/**
+ *  @summary it takes details and title to shape a toast object
+ */
 const validationDetailsToToastObject = (
   detailsArrays: string[],
   summary: string,
-) => {
+): ToastMessageOptions => {
   const details = detailsArrays.join(" \n \n");
-  return { severity: "error", summary, detail: details };
+  return { severity: "warn", summary, detail: details };
 };
 
+/**
+ *  @type Coordination function
+ *  @summary It takes Zod issues and returns a ready to use Toast object
+ */
 export const fromIssuesToToastObject = (
   issues: $ZodIssue[],
   errorTitle: string,

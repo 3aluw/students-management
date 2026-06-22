@@ -428,7 +428,7 @@ const handleExcelFile = async (file: File) => {
         }
         else {
             const messageKey = error?.message as keyof typeof toastMap;
-            const toastObj = toastMap[messageKey] ?? { severity: 'error', summary: 'الملف الذي تم رفعه غير صالح' };
+            const toastObj = toastMap[messageKey] ?? { severity: 'error', summary: "توحج مشكلة في الملف الذي رفعته" };
             toast.add({ ...toastObj, life: 3000 });
         }
 

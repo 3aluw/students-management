@@ -47,7 +47,7 @@ const studentBaseSchema = z.object({
     .string({ error: getRequiredFieldMessage("grandfather_name") })
     .min(3, { message: "يجب استكمال اسم الجد " })
     .max(15),
-  sex: z.literal(["F", "M"], { error: getRequiredFieldMessage("sex") }),
+  sex: z.literal(["F", "M"]),
   phone_number: z
     .string({ error: getRequiredFieldMessage("phone_number") })
     .length(10, { message: "يجب إدخال رقم هاتف صحيح " }),
