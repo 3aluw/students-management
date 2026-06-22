@@ -176,7 +176,6 @@ export type PlaygroundSettings = {
   reasonAcceptedByDefault: 0 | 1;
 };
 
-
 // ========== SEASONS TYPES ==========
 export type ClassPromotionMap = Record<string, number>;
 
@@ -276,6 +275,7 @@ export type XLSXStudent = Omit<
 > & {
   birth_date: Date;
 };
+export type NewXLSXStudent = NewEntity<XLSXStudent>;
 export type XLSXAbsence = Omit<
   LocalAbsence,
   | "id"
