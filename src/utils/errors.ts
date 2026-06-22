@@ -53,7 +53,7 @@ const isZodApiError = (error: any): error is BackendValidationError =>
     Array.isArray(error.data?.issues)
 
 // ========== Other functions ==========
-// geenrates an object for useToast based on the error passed
+// generates an object for useToast based on the error passed
 export const getToastErrorObject = (error: unknown, summary: string): ToastMessageOptions => {
     let detail = '';
 
