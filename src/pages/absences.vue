@@ -80,6 +80,7 @@ import { useStudentStore } from '~/store/studentStore';
 import { useEventStore } from '~/store/eventStore';
 import type { DataTablePageEvent } from 'primevue';
 import { getFormattedEventJson, exportXlsx } from "~/service/excel"
+import { getClassName } from "~/service/entity"
 /* -------------------------------------------------------------------------- */
 /*                                Stores                                      */
 /* -------------------------------------------------------------------------- */

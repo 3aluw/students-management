@@ -110,6 +110,7 @@ import type {
 import { userFeedbackMessages } from '~/models/static';
 import { useStudentStore } from '~/store/studentStore';
 import { ArabicXLSXStudentProperties } from "~/models/static"
+import { getClassName } from "~/service/entity"
 
 /* -------------------------------------------------------------------------- */
 /*                                Composables                                 */

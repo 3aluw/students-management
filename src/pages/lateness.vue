@@ -78,6 +78,7 @@ import { userFeedbackMessages, ArabicXLSXLatenessProperties } from '~/models/sta
 import { useStudentStore } from '~/store/studentStore';
 import { useEventStore } from '~/store/eventStore';
 import { getFormattedEventJson, exportXlsx } from "~/service/excel"
+import { getClassName } from "~/service/entity"
 
 import type { DataTablePageEvent } from 'primevue';
 
