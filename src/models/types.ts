@@ -21,7 +21,10 @@ type BatchEdit<T extends AllEntitiesUnion> = T extends any
 
 export type DataTableSlot<T> = { data: T };
 
-//     Entities Types
+
+
+
+//  ======================   Entities Types  ====================== 
 /**
  * Represents a row in the `class` table.
  */
@@ -33,7 +36,7 @@ export interface Class {
 }
 
 /**
- * Represents a row in the `student` table.
+ * A row in the `student` table.
  */
 
 type InactiveStudentStatus = "graduated" | "dropped" | "transferred";
@@ -52,17 +55,13 @@ export interface BaseStudent {
 
 export interface ActiveStudent extends BaseStudent {
   status: "active";
-
   class_id: number;
-
   exited_at?: null;
 }
 
 export interface InactiveStudent extends BaseStudent {
   status: InactiveStudentStatus;
-
   class_id: null;
-
   exited_at: number;
 }
 /**
@@ -93,6 +92,18 @@ export interface Absence {
   start_time: number; // session start time (minutes since midnight)
   reason: string | null; // TEXT (nullable)
   reason_accepted: 1 | 0; // BOOLEAN DEFAULT FALSE
+}
+
+/**
+ * Represents a row in the `absence` table.
+ */
+export interface Infraction {
+  id: number; // PRIMARY KEY AUTOINCREMENT
+  student_id: number; // FOREIGN KEY -> student.id
+  time: number; // INT (timestamp)
+  start_time: number; // session start time (minutes since midnight)
+  reason: string | null; // TEXT (nullable)
+  subject : string | null
 }
 
 export interface SchoolSeason {
