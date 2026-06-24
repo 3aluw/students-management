@@ -75,7 +75,7 @@ import type {
   DataTableSlot
 } from '~/data/types';
 
-import { ArabicXLSXcAbsenceProperties, userFeedbackMessages } from '~/data/static';
+import { ArabicXLSXcAbsenceProperties, userFeedbackMessages } from '~/models/static';
 import { useStudentStore } from '~/store/studentStore';
 import { useEventStore } from '~/store/eventStore';
 import type { DataTablePageEvent } from 'primevue';

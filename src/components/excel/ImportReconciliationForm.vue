@@ -76,7 +76,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import { ArabicStudentStatus } from '~/data/static';
+import { ArabicStudentStatus } from '~/models/static';
 import type { Student, InActiveStudentStatus } from '~/data/types';
 
 

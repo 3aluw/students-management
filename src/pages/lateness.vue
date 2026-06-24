@@ -74,7 +74,7 @@ import type {
   DataTableSlot,
 } from '~/data/types';
 
-import { userFeedbackMessages, ArabicXLSXLatenessProperties } from '~/data/static';
+import { userFeedbackMessages, ArabicXLSXLatenessProperties } from '~/models/static';
 import { useStudentStore } from '~/store/studentStore';
 import { useEventStore } from '~/store/eventStore';
 import { getFormattedEventJson, exportXlsx } from "~/service/excel"

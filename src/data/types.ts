@@ -3,7 +3,7 @@ import {
   ArabicXLSXcAbsenceProperties,
   ArabicXLSXLatenessProperties,
   ArabicXLSXStudentProperties,
-} from "./static";
+} from "../models/static";
 /**
  * Utility types
  */

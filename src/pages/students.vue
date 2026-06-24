@@ -107,9 +107,9 @@ import type {
     NewXLSXStudent,
 } from '~/data/types';
 
-import { userFeedbackMessages } from '~/data/static';
+import { userFeedbackMessages } from '~/models/static';
 import { useStudentStore } from '~/store/studentStore';
-import { ArabicXLSXStudentProperties } from "~/data/static"
+import { ArabicXLSXStudentProperties } from "~/models/static"
 
 /* -------------------------------------------------------------------------- */
 /*                                Composables                                 */

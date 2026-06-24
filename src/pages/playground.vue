@@ -109,7 +109,7 @@ import type {
     NewAbsence,
 } from '~/data/types';
 
-import { userFeedbackMessages } from '~/data/static';
+import { userFeedbackMessages } from '~/models/static';
 import { useStudentStore } from '~/store/studentStore';
 
 /* -------------------------------------------------------------------------- */

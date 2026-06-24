@@ -15,7 +15,7 @@ import type {
   XLSXStudent,
   XLSXLateness,
   XLSXAbsence
-} from "./types";
+} from "../data/types";
 
 export const genderOptions = [
   { label: "ذكر", value: "M" },

@@ -1,5 +1,5 @@
 import * as XLSX from "xlsx";
-import type { ArabicXLSXStudentProperties } from "~/data/static";
+import type { ArabicXLSXStudentProperties } from "~/models/static";
 import type {
   ActiveStudent,
   ArabicXLSXType,

@@ -76,7 +76,7 @@ import { useClientStore } from '~/store/clientStore';
 import {
   ArabicSeasonStatus,
   userFeedbackMessages
-} from '~/data/static';
+} from '~/models/static';
 
 /* -------------------------------------------------------------------------- */
 /*                                  Types                                     */

@@ -29,7 +29,7 @@
 
 </template>
 <script setup lang="ts">
-import { ArabicStudentStatus } from "~/data/static"
+import { ArabicStudentStatus } from "~/models/static"
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import type { FormSubmitEvent } from "@primevue/forms"
 import { z } from 'zod';

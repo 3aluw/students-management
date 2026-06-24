@@ -54,7 +54,7 @@
     </Form>
 </template>
 <script setup lang="ts">
-import { ArabicBooleans, sqliteBoolean } from '~/data/static';
+import { ArabicBooleans, sqliteBoolean } from '~/models/static';
 import type { PlaygroundSettings } from '~/data/types'
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import type { FormSubmitEvent } from "@primevue/forms"

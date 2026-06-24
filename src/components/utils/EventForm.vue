@@ -111,12 +111,14 @@
 </template>
 
 <script setup lang="ts" generic="T extends EventTypes">
-import { sqliteBoolean, commonReasons } from '~/data/static';
+import { sqliteBoolean, commonReasons } from '~/models/static';
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from 'primevue/usetoast';
 import type {  AbsenceInfo, LatenessInfo, EventTypes } from '~/data/types';
 import type { FormSubmitEvent } from "@primevue/forms"
+import { absenceSchemas, latenessSchemas } from "~/models/zod schemas"
+
 const absenceSchema = absenceSchemas.absenceSchema
 const latenessSchema = latenessSchemas.latenessSchema
 const toast = useToast();

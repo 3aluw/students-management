@@ -37,9 +37,9 @@
 </template>
 <script setup lang="ts">
 import type { Class, NewClass, DataTableSlot } from '~/data/types';
-import { ArabicSchoolLevels } from '~/data/static';
+import { ArabicSchoolLevels } from '~/models/static';
 import { useStudentStore } from '~/store/studentStore';
-import { userFeedbackMessages } from '~/data/static';
+import { userFeedbackMessages } from '~/models/static';
 
 const { class: toastMessages } = userFeedbackMessages;
 

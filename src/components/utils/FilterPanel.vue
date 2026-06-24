@@ -29,7 +29,7 @@
 </template>
 <script setup lang="ts">
 import type { EventQueryFilters, SupportedDateRanges } from '~/data/types';
-import { dateFilterOptions, seasonDateFilterOptions } from '~/data/static';
+import { dateFilterOptions, seasonDateFilterOptions } from '~/models/static';
 import { useStudentStore } from '~/store/studentStore';
 import { useClientStore } from '~/store/clientStore';
 import { getAvailableSeasonFilterOptions } from "~/service/season"

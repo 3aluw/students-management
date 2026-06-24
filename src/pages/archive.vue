@@ -62,7 +62,7 @@ import { watchDebounced } from '@vueuse/core';
 import {
     statusFilterOptions,
     userFeedbackMessages
-} from '~/data/static';
+} from '~/models/static';
 
 import type {
     BatchEditStudent,

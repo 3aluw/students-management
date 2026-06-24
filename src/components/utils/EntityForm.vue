@@ -157,12 +157,12 @@
 <script setup lang="ts" generic="T extends 'student' | 'class'">
 
 import { useStudentStore } from '~/store/studentStore';
-import { genderOptions } from '~/data/static';
+import { genderOptions } from '~/models/static';
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from 'primevue/usetoast';
 import type { NewClass, NewStudent, Student, Class } from '~/data/types';
-import { schoolLevelOptions } from '~/data/static';
+import { schoolLevelOptions } from '~/models/static';
 import type { FormSubmitEvent } from "@primevue/forms"
 import { studentSchemas, classSchemas } from "~/models/zod schemas"
 const studentStore = useStudentStore();
