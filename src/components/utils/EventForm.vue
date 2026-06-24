@@ -117,7 +117,7 @@ import { useToast } from 'primevue/usetoast';
 import type { AbsenceInfo, LatenessInfo, EventTypes } from '~/models/types';
 import type { FormSubmitEvent } from "@primevue/forms"
 import { absenceSchemas, latenessSchemas } from "~/models/zod schemas"
-import { getDatesForEventInfo } from "~/service/event"
+import { parseEventTimeInfo } from "~/service/event"
 
 const absenceSchema = absenceSchemas.absenceSchema
 const latenessSchema = latenessSchemas.latenessSchema
@@ -131,14 +131,14 @@ const formatEventObject = () => {
         const entityObj = props.entityObject as AbsenceInfo
         return {
             ...entityObj,
-            ...getDatesForEventInfo({ date, start_time })
+            ...parseEventTimeInfo({ date, start_time })
         }
     }
     else {
         const entityObj = props.entityObject as LatenessInfo
         return {
             ...entityObj,
-            ...getDatesForEventInfo({ date, late_by: entityObj.late_by, start_time })
+            ...parseEventTimeInfo({ date, late_by: entityObj.late_by, start_time })
         }
     }
 }

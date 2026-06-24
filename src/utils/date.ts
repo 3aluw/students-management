@@ -1,6 +1,4 @@
 
-
-
 export const minutesAfterMidnight = (date: number | Date) => {
   date = new Date(date);
   return date.getHours() * 60 + date.getMinutes();
