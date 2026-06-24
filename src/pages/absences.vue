@@ -73,7 +73,7 @@ import type {
   EditAbsence,
   BatchEditAbsence,
   DataTableSlot
-} from '~/data/types';
+} from '~/models/types';
 
 import { ArabicXLSXcAbsenceProperties, userFeedbackMessages } from '~/models/static';
 import { useStudentStore } from '~/store/studentStore';

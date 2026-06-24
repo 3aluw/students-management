@@ -4,7 +4,7 @@ import type {
     SchoolTerm,
     SeasonStatus,
     SupportedDateRanges,
-} from "~/data/types";
+} from "~/models/types";
 
 // ========== Season functions ==========
 // ========== WARNING: Some functions (getSeasonStatus-getSeasonStartAndEndDates) are used by server; So this files has to be pure JS and free from browsser APIs / Vue reactive peorperties like refs... ==========

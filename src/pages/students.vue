@@ -105,7 +105,7 @@ import type {
     ActiveStudent,
     InActiveStudentStatus,
     NewXLSXStudent,
-} from '~/data/types';
+} from '~/models/types';
 
 import { userFeedbackMessages } from '~/models/static';
 import { useStudentStore } from '~/store/studentStore';

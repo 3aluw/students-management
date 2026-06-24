@@ -1,4 +1,4 @@
-import { BatchEditStudent, ClassPromotionMap, EditStudent, NewStudent, Student, StudentsQueryFilters } from "~/data/types";
+import { BatchEditStudent, ClassPromotionMap, EditStudent, NewStudent, Student, StudentsQueryFilters } from "~/models/types";
 import { studentRepo } from "../repositories/studentRepo";
 
 export const studentService = {

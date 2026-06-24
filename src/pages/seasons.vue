@@ -67,7 +67,7 @@ import type {
   NewSeasonPayload,
   SchoolSeason,
   SeasonStatus
-} from '~/data/types';
+} from '~/models/types';
 
 import type { TreeNode } from 'primevue/treenode';
 import { getCollapsingSeasonIds, mapSeasonsToTree } from "~/service/season"

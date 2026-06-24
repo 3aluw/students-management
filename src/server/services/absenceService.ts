@@ -1,5 +1,5 @@
 import { absenceRepo } from "../repositories/absenceRepo";
-import type { BatchEditAbsence, EditAbsence, EventQueryFilters, NewAbsence } from "~/data/types";
+import type { BatchEditAbsence, EditAbsence, EventQueryFilters, NewAbsence } from "~/models/types";
 
 export const absenceService = {
     getAbsences: (filters: EventQueryFilters) => {

@@ -75,7 +75,7 @@
 </template>
 
 <script setup lang="ts">
-import type { NewSchoolSeason, SchoolSeason, SeasonStatus, SchoolTerm } from '~/data/types';
+import type { NewSchoolSeason, SchoolSeason, SeasonStatus, SchoolTerm } from '~/models/types';
 import { yupResolver } from '@primevue/forms/resolvers/yup';
 import * as yup from 'yup';
 import type { FormInstance, FormSubmitEvent } from '@primevue/forms';

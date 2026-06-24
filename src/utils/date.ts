@@ -4,7 +4,7 @@ import type {
     AbsenceInfo,
     PlaygroundSettings,
     SchoolSeason
-} from "~/data/types"
+} from "~/models/types"
 
 // ========== Time functions ==========
 export const getTimeRange = (range: SupportedDateRanges, seasons: SchoolSeason[]) => {

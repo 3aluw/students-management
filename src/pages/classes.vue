@@ -36,7 +36,7 @@
 
 </template>
 <script setup lang="ts">
-import type { Class, NewClass, DataTableSlot } from '~/data/types';
+import type { Class, NewClass, DataTableSlot } from '~/models/types';
 import { ArabicSchoolLevels } from '~/models/static';
 import { useStudentStore } from '~/store/studentStore';
 import { userFeedbackMessages } from '~/models/static';

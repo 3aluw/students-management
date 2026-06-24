@@ -1,4 +1,4 @@
-import { EditSchoolSeason, NewSchoolSeason, SchoolSeason } from "~/data/types";
+import { EditSchoolSeason, NewSchoolSeason, SchoolSeason } from "~/models/types";
 import db from "~/db/db";
 
 type sqliteSchoolSeason = Omit<SchoolSeason, "terms"> & { terms: string };

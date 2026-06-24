@@ -1,5 +1,5 @@
 import { defineStore, acceptHMRUpdate } from "pinia";
-import type { Class, Student } from "~/data/types";
+import type { Class, Student } from "~/models/types";
 import { ArabicSchoolLevels } from "~/models/static";
 export const useStudentStore = defineStore("studentStore", () => {
   const backend = useBackend();

@@ -5,7 +5,7 @@ import type { H3Error } from "h3";
 import type { ToastMessageOptions } from "primevue/toast"
 import type {
     BackendValidationError,
-} from "~/data/types";
+} from "~/models/types";
 
 // ========== Zod Error formatting ==========
 // keep one error per path

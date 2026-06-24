@@ -1,4 +1,4 @@
-import { EditAbsence, BatchEditAbsence, NewAbsence, BackendValidationError } from "~/data/types";
+import { EditAbsence, BatchEditAbsence, NewAbsence, BackendValidationError } from "~/models/types";
 import { absenceService } from "~/server/services/absenceService";
 import type { H3Error } from "h3";
 import { absenceSchemas } from "~/models/zod schemas";

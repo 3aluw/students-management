@@ -1,5 +1,5 @@
 import { arabicProperties } from "~/models/static";
-import type { InArabic, PropDict, ArabicKeysOf, XLSXType, } from "~/data/types";
+import type { InArabic, PropDict, ArabicKeysOf, XLSXType, } from "~/models/types";
 
 // ========== Fields / its Arabic translations functions ==========
 /*Internal */

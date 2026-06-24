@@ -77,7 +77,7 @@
 </template>
 <script setup lang="ts">
 import { ArabicStudentStatus } from '~/models/static';
-import type { Student, InActiveStudentStatus } from '~/data/types';
+import type { Student, InActiveStudentStatus } from '~/models/types';
 
 
 const props = defineProps<{

@@ -1,5 +1,5 @@
 import { studentService } from "~/server/services/studentService";
-import type { StudentsQueryFilters } from "~/data/types";
+import type { StudentsQueryFilters } from "~/models/types";
 export default defineEventHandler((event) => {
   const query = getQuery<StudentsQueryFilters | { ids: number[] }>(event);
   try {

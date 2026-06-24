@@ -6,7 +6,7 @@ import {
   NewSchoolSeason,
   NewSeasonPayload,
   SchoolSeason,
-} from "~/data/types";
+} from "~/models/types";
 import { getSeasonStatus, getSeasonStartAndEndDates } from "~/service/season";
 /* -------------------------------------------------------------------------- */
 /*                              Internal Functions                            */

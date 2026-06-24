@@ -1,4 +1,4 @@
-import type { EventQueryFilters } from "~/data/types";
+import type { EventQueryFilters } from "~/models/types";
 import { absenceService } from "~/server/services/absenceService";
 
 

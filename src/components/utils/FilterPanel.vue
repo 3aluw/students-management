@@ -28,7 +28,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import type { EventQueryFilters, SupportedDateRanges } from '~/data/types';
+import type { EventQueryFilters, SupportedDateRanges } from '~/models/types';
 import { dateFilterOptions, seasonDateFilterOptions } from '~/models/static';
 import { useStudentStore } from '~/store/studentStore';
 import { useClientStore } from '~/store/clientStore';

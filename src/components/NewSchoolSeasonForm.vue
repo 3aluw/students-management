@@ -73,7 +73,7 @@
     </div>
 </template>
 <script setup lang="ts">
-import type { NewSchoolSeason, NewSeasonPayload, ClassPromotionMap, Student } from '~/data/types';
+import type { NewSchoolSeason, NewSeasonPayload, ClassPromotionMap, Student } from '~/models/types';
 /*A prop used to suggest current season termination to the user */
 const props = defineProps<{
     isLatestSeasonCurrent: boolean;

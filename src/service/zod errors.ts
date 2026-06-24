@@ -1,7 +1,7 @@
 import type { ToastMessageOptions } from "primevue";
 import { ZodError } from "zod";
 import type { $ZodIssue } from "zod/v4/core";
-import type { XLSXStudent } from "~/data/types";
+import type { XLSXStudent } from "~/models/types";
 /**
  *  @type type guard
  * @summary If the argument has an array of issues -it is a zod error-

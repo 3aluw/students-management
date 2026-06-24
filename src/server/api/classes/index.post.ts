@@ -1,4 +1,4 @@
-import type { BackendValidationError, EditClass, NewClass } from "~/data/types";
+import type { BackendValidationError, EditClass, NewClass } from "~/models/types";
 import { classService } from "~/server/services/classService";
 import type { H3Error } from "h3";
 import { classSchemas } from "~/models/zod schemas";

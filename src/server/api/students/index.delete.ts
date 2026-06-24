@@ -1,4 +1,4 @@
-import {  Student } from "~/data/types";
+import {  Student } from "~/models/types";
 import { studentService } from "~/server/services/studentService";
 import { z } from "zod";
 

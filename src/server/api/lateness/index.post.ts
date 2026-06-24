@@ -1,4 +1,4 @@
-import { BackendValidationError, BatchEditLateness, EditLateness, NewLateness } from "~/data/types";
+import { BackendValidationError, BatchEditLateness, EditLateness, NewLateness } from "~/models/types";
 
 import { latenessService } from "~/server/services/latenessService";
 import type { H3Error } from "h3";

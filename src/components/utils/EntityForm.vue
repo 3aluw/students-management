@@ -161,7 +161,7 @@ import { genderOptions } from '~/models/static';
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from 'primevue/usetoast';
-import type { NewClass, NewStudent, Student, Class } from '~/data/types';
+import type { NewClass, NewStudent, Student, Class } from '~/models/types';
 import { schoolLevelOptions } from '~/models/static';
 import type { FormSubmitEvent } from "@primevue/forms"
 import { studentSchemas, classSchemas } from "~/models/zod schemas"

@@ -55,7 +55,7 @@
 </template>
 <script setup lang="ts">
 import { FilterMatchMode } from '@primevue/core/api';
-import type { Student, DataTableSlot, XLSXStudent, } from '~/data/types'
+import type { Student, DataTableSlot, XLSXStudent, } from '~/models/types'
 import { useStudentStore } from '~/store/studentStore';
 const studentStore = useStudentStore();
 

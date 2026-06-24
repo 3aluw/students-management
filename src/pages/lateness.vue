@@ -72,7 +72,7 @@ import type {
   BatchEditLateness,
   LatenessInfo,
   DataTableSlot,
-} from '~/data/types';
+} from '~/models/types';
 
 import { userFeedbackMessages, ArabicXLSXLatenessProperties } from '~/models/static';
 import { useStudentStore } from '~/store/studentStore';

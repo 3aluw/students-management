@@ -68,7 +68,7 @@ import type {
     BatchEditStudent,
     InactiveStudentQueryFilters,
     Student
-} from '~/data/types';
+} from '~/models/types';
 
 import { useStudentStore } from '~/store/studentStore';
 

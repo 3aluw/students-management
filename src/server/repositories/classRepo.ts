@@ -1,5 +1,5 @@
 import db from '~/db/db';
-import type { EditClass, NewClass, Class } from "~/data/types";
+import type { EditClass, NewClass, Class } from "~/models/types";
 
 
 export const classRepo = {

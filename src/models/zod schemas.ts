@@ -23,7 +23,7 @@ import type {
   SchoolSeason,
   Student,
   XLSXStudent,
-} from "~/data/types";
+} from "~/models/types";
 import { getRequiredFieldMessage } from "~/utils/arabic-properties";
 import { hasCollapsingTerms } from "~/service/season";
 import { toTimestamp } from "~/utils/date";

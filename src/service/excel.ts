@@ -14,7 +14,7 @@ import type {
   XLSXAbsence,
   XLSXLateness,
   XLSXStudent,
-} from "~/data/types";
+} from "~/models/types";
 import { z } from "zod";
 import { studentSchemas } from "~/models/zod schemas";
 /* -------------------------------------------------------------------------- */

@@ -1,5 +1,5 @@
 
-import type { BackendValidationError, EditSchoolSeason, NewSeasonPayload } from "~/data/types";
+import type { BackendValidationError, EditSchoolSeason, NewSeasonPayload } from "~/models/types";
 import { seasonService } from "~/server/services/seasonService";
 import type { H3Error } from "h3";
 import { ZodError } from "zod";
