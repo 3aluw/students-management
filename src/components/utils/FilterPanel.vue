@@ -33,7 +33,7 @@ import { dateFilterOptions, seasonDateFilterOptions } from '~/models/static';
 import { useStudentStore } from '~/store/studentStore';
 import { useClientStore } from '~/store/clientStore';
 import { getAvailableSeasonFilterOptions } from "~/service/season"
-
+import { getTimeRange } from "~/service/settings"
 const studentStore = useStudentStore();
 const clientStore = useClientStore()
 type availableFilters = 'classId' | 'name' | 'dateRange'
