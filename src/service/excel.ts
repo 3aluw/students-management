@@ -25,11 +25,21 @@ import { getClassName } from "~/service/entity";
 /*=================== STUDENT =================*/
 
 /**
- * Student ===> XLSX version of Student
+ * Transforms a Student object into XLSX-compatible format for Excel export.
+ * @param student - The student object to transform.
+ * @returns An XLSXStudent object ready for Excel export.
+ * @remarks
+ * - Excludes `class_id`, `exited_at`, `status`, and `birth_date` from the source.
+ * - Converts `birth_date` from number to a Date object.
+ * - Other fields are passed through as-is.
+ * @example
+ * ```typescript
+ * const student = { id: 1, first_name: "Ahmed", birth_date: "2000-01-15", class_id: 5, exited_at: null, status: "active" };
+ * const xlsxStudent = studentToXLSXFormat(student);
+ * // Returns: { id: 1, first_name: "Ahmed", birth_date: Date(2000-01-15) }
+ * ```
  */
-export const transformStudentToExcelVersion = (
-  student: Student,
-): XLSXStudent => {
+const studentToXLSXFormat = (student: Student): XLSXStudent => {
   const { class_id, exited_at, status, birth_date, ...rest } = student;
 
   return {
@@ -39,15 +49,28 @@ export const transformStudentToExcelVersion = (
 };
 
 /**
- * Coordination function: Array of Student ====> XLSX version of Student in Arabic
+ * Coordination functions: Formats an array of students for Excel export with Arabic column headers.
+ * @param students - Array of Student objects to export.
+ * @param Dict - The Arabic property name dictionary for XLSXStudent fields.
+ * @returns An array of objects with Arabic property keys ready for Excel export.
+ * @remarks
+ * This function:
+ * 1. Transforms each student to XLSX format using `studentToXLSXFormat`
+ * 2. Translates property keys from English to Arabic using `transformToArabic`
+ * @example
+ * ```typescript
+ * const students = [student1, student2];
+ * const formatted = formatStudentsForExcelExport(students, ArabicXLSXStudentProperties);
+ * // Returns: [{ "الاسم الأول": "Ahmed", "تاريخ الميلاد": "2000-01-15" }, ...]
+ * ```
  */
-export const getFormattedStudentJson = (
+export const formatStudentsForExcelExport = (
   students: Student[],
   Dict: typeof ArabicXLSXStudentProperties,
 ) => {
   // Map the rows using the Header Display Names as JSON keys
   const structuredData = students.map((student) => {
-    const XLSXStudent = transformStudentToExcelVersion(student);
+    const XLSXStudent = studentToXLSXFormat(student);
     const formattedRow = transformToArabic(XLSXStudent, Dict);
     return formattedRow;
   });
@@ -58,13 +81,32 @@ export const getFormattedStudentJson = (
 
 type ExcelEventVersion<T extends LocalLateness | LocalAbsence> =
   T extends LocalLateness ? XLSXLateness : XLSXAbsence;
+
 /**
- * Event ===> XLSX version of that Event
- *  @remarks This function takes classOptions as a parameter to prevent the inclusion of store here (Since utils runs out of Nuxt context)
+ * Transforms an absence or lateness event into XLSX-compatible format for Excel export.
+ * @typeParam T - The event type (LocalAbsence or LocalLateness).
+ * @param event - The event object to transform.
+ * @param classOptions - Array of class options for looking up class names by ID.
+ * @returns An ExcelEventVersion object (XLSXAbsence or XLSXLateness) ready for Excel export.
+ * @remarks
+ * - Common fields: `reason`, `first_name`, `last_name`, `reason_accepted`, `date`, `class`.
+ * - For lateness events, includes `late_by` field.
+ * - Uses `getClassName` to resolve class ID to class name (falls back to empty string).
+ * - Type narrowing determines if the event is lateness or absence.
+ * @example
+ * ```typescript
+ * // For absence
+ * const absence = { reason: "Sick", first_name: "Ahmed", last_name: "Ali", reason_accepted: false, date: "2024-01-15", class_id: 3 };
+ * const xlsxAbsence = eventToXLSXFormat(absence, classOptions);
+ * // Returns: { reason: "Sick", first_name: "Ahmed", last_name: "Ali", reason_accepted: false, date: Date(2024-01-15), class: "3A" }
+ *
+ * // For lateness
+ * const lateness = { ...absence, late_by: 15 };
+ * const xlsxLateness = eventToXLSXFormat(lateness, classOptions);
+ * // Returns: { ...base, late_by: 15 }
+ * ```
  */
-export const transformEventToExcelVersion = <
-  T extends LocalAbsence | LocalLateness,
->(
+const eventToXLSXFormat = <T extends LocalAbsence | LocalLateness>(
   event: T,
   classOptions: Option[],
 ): ExcelEventVersion<T> => {
@@ -87,10 +129,30 @@ export const transformEventToExcelVersion = <
 };
 
 /**
- * Array of Event ====>  Array of Event ===> XLSX version of Event in Arabic
- *  @remarks This function takes classOptions as a parameter to prevent the inclusion of store here (Since utils runs out of Nuxt context)
+ * Formats an array of absence/lateness events for Excel export with Arabic column headers.
+ * @typeParam T - The event type (LocalAbsence or LocalLateness).
+ * @typeParam XLSXT - The Excel version type (XLSXAbsence or XLSXLateness).
+ * @typeParam Dict - The dictionary type mapping English keys to Arabic keys.
+ * @param records - Array of event objects to export.
+ * @param dict - The Arabic property name dictionary for XLSX event fields.
+ * @param classOptions - Array of class options for looking up class names by ID.
+ * @returns An array of objects with Arabic property keys ready for Excel export.
+ * @remarks
+ * This function:
+ * 1. Transforms each event to XLSX format using `eventToXLSXFormat`
+ * 2. Translates property keys from English to Arabic using `transformToArabic`
+ * @example
+ * ```typescript
+ * const events = [absence1, lateness1];
+ * const formatted = formatEventsForExcelExport(
+ *   events, 
+ *   ArabicXLSXEventProperties, 
+ *   classOptions
+ * );
+ * // Returns: [{ "السبب": "Sick", "الاسم الأول": "Ahmed", "التأخير": 15 }, ...]
+ * ```
  */
-export const getFormattedEventJson = <
+export const formatEventsForExcelExport = <
   T extends LocalAbsence | LocalLateness,
   XLSXT extends ExcelEventVersion<T>,
   Dict extends PropDict<XLSXT>,
@@ -100,14 +162,31 @@ export const getFormattedEventJson = <
   classOptions: Option[],
 ): InArabic<XLSXT, Dict>[] => {
   return records.map((record) => {
-    const xlsx = transformEventToExcelVersion(record, classOptions) as XLSXT;
+    const xlsx = eventToXLSXFormat(record, classOptions) as XLSXT;
     return transformToArabic(xlsx, dict);
   });
 };
 
 /*=========== function to export to XLSX ==========*/
 /**
- * function to export Student[] / Event[] to XLSX
+ * Exports JSON data to an Excel (.xlsx) file and triggers a download.
+ * @param data - Array of objects with Arabic property keys to export.
+ * @param fileName - The base name for the output file (without extension).
+ * @remarks
+ * This function:
+ * 1. Creates a new Excel workbook.
+ * 2. Converts the JSON data to a worksheet using `json_to_sheet`.
+ * 3. Appends the worksheet to the workbook with the file name as sheet name.
+ * 4. Writes the file to disk triggering a browser download.
+ * @example
+ * ```typescript
+ * const students = [
+ *   { "الاسم الأول": "أحمد", "الاسم الأخير": "علي", "تاريخ الميلاد": "2000-01-15" },
+ *   { "الاسم الأول": "سارة", "الاسم الأخير": "محمد", "تاريخ الميلاد": "2001-03-20" }
+ * ];
+ * exportToExcel(students, "طلاب_الفصل_الأول");
+ * // Downloads: طلاب_الفصل_الأول.xlsx
+ * ```
  */
 export const exportXlsx = (data: ArabicXLSXType[], fileName: string) => {
   // 1. Create a new, blank workbook
@@ -137,10 +216,29 @@ type ImportedXLSXData =
   | ImportedExistingXLSXStudent[];
 
 /*=========== Parsing / Validation / Grouping logic ==========*/
+
 /**
- *  parse excel file ===> InArabic student rows
+ * Parses an uploaded Excel file and extracts data from the first sheet.
+ * @param file - The Excel file to parse.
+ * @returns A promise resolving to the imported XLSX data as an array of objects.
+ * @throws {Error} With code "UNSUPPORTED_FILE" if the file cannot be read.
+ * @throws {Error} With code "EMPTY_FILE" if the workbook has no sheets.
+ * @throws {Error} With code "NO_ROWS" if the sheet has no data rows.
+ * @remarks
+ * - Reads the file as an ArrayBuffer.
+ * - Uses XLSX library with `cellDates: true` to preserve date formatting.
+ * - Only processes the first sheet in the workbook.
+ * @example
+ * ```typescript
+ * try {
+ *   const data = await parseExcelFileToJSON(file);
+ *   console.log(`Imported ${data.length} rows`);
+ * } catch (error) {
+ *   console.error('Failed to parse file:', error.message);
+ * }
+ * ```
  */
-export async function parseExcelFile(file: File): Promise<ImportedXLSXData> {
+export async function parseExcelFileToJSON(file: File): Promise<ImportedXLSXData> {
   try {
     const fileData = await file.arrayBuffer();
 
@@ -159,6 +257,28 @@ export async function parseExcelFile(file: File): Promise<ImportedXLSXData> {
   }
 }
 
+/**
+ * Validates an array of XLSX student data against the Zod schema.
+ * @param XLSXstudents - Array of student data from Excel import.
+ * @throws {ZodError} If validation fails, throws a Zod error with detailed issues.
+ * @remarks
+ * - Uses `newXLSXStudentSchema` as the base schema.
+ * - Extends the schema to optionally include an `id` field.
+ * - Validates the entire array using `z.array()`.
+ * - Throws synchronously if validation fails.
+ * @example
+ * ```typescript
+ * try {
+ *   validateXLSXStudentData(importedData);
+ *   // Proceed with processing validated data
+ * } catch (error) {
+ *   if (isZodValidationError(error)) {
+ *     const toast = zodIssuesToToastMessage(error.issues, "فشل التحقق من البيانات");
+ *     toastService.show(toast);
+ *   }
+ * }
+ * ```
+ */
 export const ValidateXLSXStudents = (
   XLSXstudents: NewXLSXStudent[] | XLSXStudent[],
 ) => {
@@ -174,12 +294,28 @@ const isExistingStudent = (
   student: XLSXStudent | NewXLSXStudent,
 ): student is XLSXStudent =>
   "id" in student && typeof student["id"] === "number";
+
+
 /**
- *  Grouping according to id:
- *   Id exists Possible existing student
- *   else: Possible new student
+ * Groups XLSX student data into existing and new students based on presence of an ID.
+ * @param XLSXStudents - Array of student data from Excel import.
+ * @returns An object containing:
+ * - `newStudents`: Students without an ID (new records).
+ * - `existingStudents`: Students with an ID (existing records).
+ * @remarks
+ * Uses `isExistingStudent` type guard which checks for a numeric `id` property.
+ * Students with `id` are considered possible existing (since the user may handwrite an IS); all others are treated as new.
+ * @example
+ * ```typescript
+ * const students = [
+ *   { first_name: "Ahmed", last_name: "Ali" }, // New student
+ *   { id: 123, first_name: "Sara", last_name: "Mohamed" } // Existing student
+ * ];
+ * const { newStudents, existingStudents } = groupStudentsByExistence(students);
+ * console.log(`New: ${newStudents.length}, Existing: ${existingStudents.length}`);
+ * ```
  */
-export const groupByExistence = (
+export const groupStudentsByExistence = (
   XLSXStudents: NewXLSXStudent[] | XLSXStudent[],
 ) => {
   const newStudents: NewXLSXStudent[] = [];
@@ -197,8 +333,23 @@ export const groupByExistence = (
 /*=========== Possible new students logic ==========*/
 
 /**
- *  transforms excel students to new students object Array
- * NewXLSXStudent[] ===> NewStudent[]
+ * Formats new XLSX student data into NewStudent objects ready for database creation.
+ * @param newXLSXStudents - Array of new students from Excel import (without IDs).
+ * @param classId - The class ID to assign to all new students.
+ * @returns An array of NewStudent objects ready for insertion.
+ * @remarks
+ * - Converts `birth_date` from Date to timestamp (getTime()).
+ * - Sets default status to "active".
+ * - Sets `exited_at` to null.
+ * - Assigns the provided class ID to all students.
+ * @example
+ * ```typescript
+ * const newStudents = [
+ *   { first_name: "Ahmed", last_name: "Ali", birth_date: new Date("2000-01-15") }
+ * ];
+ * const formatted = formatNewStudentsForCreation(newStudents, 5);
+ * // Returns: [{ first_name: "Ahmed", last_name: "Ali", birth_date: 946684800000, status: "active", exited_at: null, class_id: 5 }]
+ * ```
  */
 export const formatPossibleNewStudents = (
   newXLSXStudents: NewXLSXStudent[],
@@ -217,11 +368,29 @@ export const formatPossibleNewStudents = (
 };
 
 /*=========== Possible Existing students logic ==========*/
+
+ 
 /**
- *  It groups XLSXStudents (with ids) into : update - remove candidates - transfer candidates
+ * Categorizes existing XLSX students into update, removal, and transfer candidates.
+ * @param existingStudents - Array of XLSX students with IDs (from Excel).
+ * @param students - Array of current students in the selected class.
+ * @returns An object containing:
+ * - `editStudents`: Students with field changes that need updating.
+ * - `transferCandidates`: Students in Excel not found in the current class (may need transfer).
+ * - `toRemoveCandidates`: Students in the class not present in Excel (may need removal).
+ * @remarks
+ *  *  It groups XLSXStudents (with ids) into : update - remove candidates - transfer candidates
  *      if exists in the selected class : update
  *      if he is in the class but not in excel : the user may want to delete him
  *      if he is in the Excel but not in class : the user may want to transfer him from another class
+ * @example
+ * ```typescript
+ * const { editStudents, transferCandidates, toRemoveCandidates } = 
+ *   categorizeExistingStudentsByAction(excelStudents, classStudents);
+ * // editStudents: [{ id: 1, first_name: "Updated Name" }]
+ * // transferCandidates: [{ id: 2, first_name: "Ahmed" }] // Not in this class
+ * // toRemoveCandidates: [{ id: 3, first_name: "Sara" }] // In class but not Excel
+ * ```
  */
 export const groupPossibleExistingStudents = (
   existingStudents: XLSXStudent[],
@@ -258,10 +427,27 @@ export const groupPossibleExistingStudents = (
   };
 };
 
+
 /**
- *  It groups Transfer XLSXStudents  into : validated transfer candidates - nonexistent
+ * Categorizes transfer candidates into valid transfers and non-existent students.
+ * @param XLSXStudents - Array of XLSX students flagged for transfer.
+ * @param studentMap - Map of student IDs to Student objects (from all classes).
+ * @returns An object containing:
+ * - `trueTransferCandidates`: Students found in the map (valid for transfer).
+ * - `trueTransferCandidatesChangesMap`: Map of changes to apply during transfer.
+ * - `NonexistentStudents`: Students not found in the map (don't exist in DB).
+ * @remarks
+ * - It groups Transfer XLSXStudents  into : validated transfer candidates - nonexistent
  *      If the students is found in the students Map : he exists So update it with its class_id
  *      if the students is not found in the students Map : the user doesn't exist in the DB
+ * @example
+ * ```typescript
+ * const studentMap = new Map([[1, student1], [2, student2]]);
+ * const { trueTransferCandidates, NonexistentStudents } = 
+ *   categorizeTransferCandidates(transferStudents, studentMap);
+ * // trueTransferCandidates: [student1, student2]
+ * // NonexistentStudents: [{ id: 3, first_name: "Unknown" }]
+ * ```
  */
 export const groupPossibleTransferStudents = (
   XLSXStudents: XLSXStudent[],
@@ -297,8 +483,23 @@ export const groupPossibleTransferStudents = (
   };
 };
 
+
 /**
- *  Compares excel version of student with his original record returning only fields that changed
+ * Compares an Excel student with the database record and returns only changed fields.
+ * @param existingStudent - The student record from the database.
+ * @param XLSXStudent - The student data from Excel.
+ * @returns An object with changed fields, or `undefined` if no changes detected.
+ * @remarks
+ * - Converts XLSXStudent birth_date to timestamp for comparison.
+ * - Compares all fields in the student object.
+ * @internal
+ * @example
+ * ```typescript
+ * const dbStudent = { id: 1, first_name: "Ahmed", last_name: "Ali", birth_date: 946684800000 };
+ * const excelStudent = { id: 1, first_name: "Ahmed", last_name: "Mohamed", birth_date: new Date("2000-01-15") };
+ * const changes = getStudentFieldChanges(dbStudent, excelStudent);
+ * // Returns: { last_name: "Mohamed" }
+ * ```
  */
 const getChangesInStudent = (
   existingStudent: Student,

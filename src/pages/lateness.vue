@@ -77,7 +77,7 @@ import type {
 import { userFeedbackMessages, ArabicXLSXLatenessProperties } from '~/models/static';
 import { useStudentStore } from '~/store/studentStore';
 import { useEventStore } from '~/store/eventStore';
-import { getFormattedEventJson, exportXlsx } from "~/service/excel"
+import { formatEventsForExcelExport, exportXlsx } from "~/service/excel"
 import { getClassName } from "~/service/entity"
 
 import type { DataTablePageEvent } from 'primevue';
@@ -263,7 +263,7 @@ const handleExport = async () => {
   const selectedClassId = dbFilters.value?.classId
   const classOptions = studentStore.classOptions
   const className = selectedClassId ? getClassName(classOptions, selectedClassId) ?? "قائمة التأخرات" : "قائمة التأخرات"
-  const structuredData = getFormattedEventJson(lateness, ArabicXLSXLatenessProperties, classOptions)
+  const structuredData = formatEventsForExcelExport(lateness, ArabicXLSXLatenessProperties, classOptions)
   exportXlsx(structuredData, className)
 }
 </script>

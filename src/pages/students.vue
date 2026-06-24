@@ -390,7 +390,7 @@ const handleExportClick = (tableRefInstance: any) => {
     // 2. Grab the current visible/processed rows (respects active filters/sorting)
     const students: Student[] = tableRefInstance.processedData || tableRefInstance.value || [];
     const className = getClassName(studentStore.classOptions, studentStore.selectedClassId) ?? "قائمة الطلبة"
-    const structuredData = getFormattedStudentJson(students, ArabicXLSXStudentProperties)
+    const structuredData = formatStudentsForExcelExport(students, ArabicXLSXStudentProperties)
     exportXlsx(structuredData, className)
 }
 
@@ -398,9 +398,9 @@ import {
     exportXlsx,
     ValidateXLSXStudents,
     groupPossibleExistingStudents,
-    getFormattedStudentJson,
-    parseExcelFile,
-    groupByExistence,
+    formatStudentsForExcelExport,
+    parseExcelFileToJSON,
+    groupStudentsByExistence,
     formatPossibleNewStudents,
     groupPossibleTransferStudents
 } from "~/service/excel"
@@ -414,12 +414,12 @@ const handleExcelFile = async (file: File) => {
         UNSUPPORTED_FILE: { severity: 'warn', summary: 'ملف غير صالح' },
     }
     try {
-        const importedXLSXStudents = await parseExcelFile(file)
+        const importedXLSXStudents = await parseExcelFileToJSON(file)
         // format in english
         const XLSXStudents = importedXLSXStudents.map(st => transformToEnglish(st, ArabicXLSXStudentProperties))
         ValidateXLSXStudents(XLSXStudents) //Validate
         //get & handle existing and new students in XLSX imported data
-        const { newStudents, existingStudents } = groupByExistence(XLSXStudents)
+        const { newStudents, existingStudents } = groupStudentsByExistence(XLSXStudents)
         handleExistingImportedStudents(existingStudents)
         handleNewImportedStudents(newStudents)
     } catch (error: any) {
