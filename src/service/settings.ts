@@ -6,8 +6,18 @@ import type {
 
 import { calculateSeasonTermTimeRange } from "~/service/season";
 
-
- const calculateTypicalTimeRange = (range: SupportedDateRanges) => {
+/**
+ * Calculates the start and end timestamps for standard (non-season/term) date ranges.
+ * @param range - The date range type ("today", "yesterday", "this week", or "this month").
+ * @returns A tuple `[startTimestamp, endTimestamp]` in milliseconds since Unix epoch.
+ * @throws {Error} If the range is unknown.
+ * @example
+ * ```typescript
+ * const [start, end] = calculateStandardDateRange("today");
+ * console.log(new Date(start), new Date(end));
+ * ```
+ */
+ const calculateStandardTimeRange = (range: SupportedDateRanges) => {
   const now = new Date();
   let start, end;
   switch (range) {
@@ -51,8 +61,23 @@ import { calculateSeasonTermTimeRange } from "~/service/season";
 
   return [start.getTime(), end.getTime()];
 };
-
-export const getTimeRange = (
+/**
+ * Gets the date range (start/end timestamps) for a given filter option.
+ * @param range - The requested date range type (standard or season/term-based).
+ * @param seasons - Array of school seasons (required for season/term calculations).
+ * @returns A tuple `[startTimestamp, endTimestamp]` in milliseconds since Unix epoch.
+ * @throws {Error} If the range is a season/term type but the required season/term doesn't exist.
+ * @remarks
+ * Routes to either:
+ * - `calculateSeasonTermTimeRange` for season/term-based ranges
+ * - `calculateStandardDateRange` for standard calendar ranges
+ * @example
+ * ```typescript
+ * const [start, end] = getDateRangeForFilter("this week", seasons);
+ * const [seasonStart, seasonEnd] = getDateRangeForFilter("this season", seasons);
+ * ```
+ */
+export const getDateRangeForFilter = (
   range: SupportedDateRanges,
   seasons: SchoolSeason[],
 ) => {
@@ -66,10 +91,27 @@ export const getTimeRange = (
   if (seasonTimeRanges.includes(range as seasonTimeRange))
     return calculateSeasonTermTimeRange(range as seasonTimeRange, seasons);
   else {
-    return calculateTypicalTimeRange(range);
+    return calculateStandardTimeRange(range);
   }
 };
 
+/**
+ * Calculates the default start time and late-by threshold based on playground settings.
+ * @param settings - The playground configuration containing default start time and late tolerance.
+ * @returns An object with:
+ * - `defaultStartTime`: The calculated default start time for the day.
+ * - `defaultLateBy`: The calculated late threshold time.
+ * @remarks
+ * - `defaultStartTime` is set to the start of the current day (00:00:00.000) plus `settings.defaultStartTime` minutes.
+ * - `defaultLateBy` is `defaultStartTime` plus `settings.defaultLateBy` minutes.
+ * @example
+ * ```typescript
+ * const settings = { defaultStartTime: 480, defaultLateBy: 15 }; // 8:00 AM, 15 min grace
+ * const { defaultStartTime, defaultLateBy } = calculatePlaygroundTimeBoundaries(settings);
+ * console.log("Start:", defaultStartTime.toTimeString()); // "08:00:00"
+ * console.log("Late by:", defaultLateBy.toTimeString()); // "08:15:00"
+ * ```
+ */
 export const getDatesForPlaygroundSettings = (settings: PlaygroundSettings) => {
   const defaultStartTime = new Date();
   defaultStartTime.setHours(0, 0, 0, 0);

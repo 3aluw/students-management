@@ -33,7 +33,7 @@ import { dateFilterOptions, seasonDateFilterOptions } from '~/models/static';
 import { useStudentStore } from '~/store/studentStore';
 import { useClientStore } from '~/store/clientStore';
 import { getAvailableSeasonFilterOptions } from "~/service/season"
-import { getTimeRange } from "~/service/settings"
+import { getDateRangeForFilter } from "~/service/settings"
 const studentStore = useStudentStore();
 const clientStore = useClientStore()
 type availableFilters = 'classId' | 'name' | 'dateRange'
@@ -67,7 +67,7 @@ const updateDateRangeSelect = (value: SupportedDateRanges | null) => {
         updateDateRange([null, null])
         return
     }
-    const [min, max] = getTimeRange(value, clientStore.seasons)
+    const [min, max] = getDateRangeForFilter(value, clientStore.seasons)
     dateRange.value = [new Date(min), new Date(max)]
     updateDateRange(dateRange.value, "select buttons")
 
