@@ -35,9 +35,8 @@
 
             <!-- reason accepted -->
             <div class="flex flex-col gap-1">
-                 <span class="gray">قبول العذر: </span>
-                    <SelectButton name="reason_accepted" :options="sqliteBoolean" optionLabel="label"
-                        optionValue="value" />
+                <span class="gray">قبول العذر: </span>
+                <SelectButton name="reason_accepted" :options="sqliteBoolean" optionLabel="label" optionValue="value" />
                 <Message v-if="$form.reason_accepted?.invalid" severity="error" size="small" variant="simple">
                     {{ $form.reason_accepted.error?.message }}
                 </Message>
@@ -53,8 +52,8 @@
             <!-- lateness Date -->
             <div class="flex flex-col gap-1">
                 <FloatLabel variant="on">
-                <DatePicker name="date" fluid showIcon />
-                <label>تاريخ التأخر</label>
+                    <DatePicker name="date" fluid showIcon />
+                    <label>تاريخ التأخر</label>
                 </FloatLabel>
                 <Message v-if="$form.date?.invalid" severity="error" size="small" variant="simple">
                     {{ $form.date.error?.message }}
@@ -63,8 +62,8 @@
 
             <div class="flex flex-col gap-1">
                 <FloatLabel variant="on">
-                <DatePicker name="start_time" fluid timeOnly />
-                <label>بداية الحصة</label>
+                    <DatePicker name="start_time" fluid timeOnly />
+                    <label>بداية الحصة</label>
                 </FloatLabel>
                 <Message v-if="$form.start_time?.invalid" severity="error" size="small" variant="simple">
                     {{ $form.start_time.error?.message }}
@@ -73,8 +72,8 @@
 
             <div class="flex flex-col gap-1">
                 <FloatLabel variant="on">
-                <DatePicker name="late_by" fluid timeOnly />
-                <label>وقت الدخول</label>
+                    <DatePicker name="late_by" fluid timeOnly />
+                    <label>وقت الدخول</label>
                 </FloatLabel>
                 <Message v-if="$form.late_by?.invalid" severity="error" size="small" variant="simple">
                     {{ $form.late_by.error?.message }}
@@ -87,8 +86,8 @@
                   <AutoComplete :forceSelection="false" name="reason"  :suggestions="filteredReasons" @complete="searchReasons"
                     placeholder="سبب الغياب" :showEmptyMessage="false" fluid /> -->
                 <FloatLabel variant="on">
-                <InputText name="reason" type="text" fluid />
-                <label>سبب التأخر</label>
+                    <InputText name="reason" type="text" fluid />
+                    <label>سبب التأخر</label>
                 </FloatLabel>
                 <Message v-if="$form.reason?.invalid" severity="error" size="small" variant="simple">{{
                     $form.reason.error.message }}</Message>
@@ -115,9 +114,10 @@ import { sqliteBoolean, commonReasons } from '~/models/static';
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from 'primevue/usetoast';
-import type {  AbsenceInfo, LatenessInfo, EventTypes } from '~/models/types';
+import type { AbsenceInfo, LatenessInfo, EventTypes } from '~/models/types';
 import type { FormSubmitEvent } from "@primevue/forms"
 import { absenceSchemas, latenessSchemas } from "~/models/zod schemas"
+import { getDatesForEventInfo } from "~/service/event"
 
 const absenceSchema = absenceSchemas.absenceSchema
 const latenessSchema = latenessSchemas.latenessSchema
