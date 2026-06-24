@@ -168,7 +168,7 @@ export const getAvailableSeasonFilterOptions = (seasonFilterOptions: Option<Seas
  * console.log(`Term runs from ${start} to ${end}`);
  * ```
  */
-export const getSeasonTermTimeRange = (range: SeasonTermTimeRange, seasons: SchoolSeason[]) => {
+export const calculateSeasonTermTimeRange = (range: SeasonTermTimeRange, seasons: SchoolSeason[]) => {
 
     if (!seasonTimeRanges.includes(range)) throw new Error("This function accepts only season/term calculations ");
 
@@ -177,7 +177,7 @@ export const getSeasonTermTimeRange = (range: SeasonTermTimeRange, seasons: Scho
     let start, end;
     switch (range) {
         case "this season": {
-            if (!currentSeason) throw new Error("Thre is no current season")
+            if (!currentSeason) throw new Error("There is no current season")
             const formattedSeason = getSeasonStartAndEndDates(currentSeason)
             start = formattedSeason.startDate;
             end = formattedSeason.endDate;
@@ -185,19 +185,19 @@ export const getSeasonTermTimeRange = (range: SeasonTermTimeRange, seasons: Scho
         }
 
         case "this term": {
-            if (!currentTerm) throw new Error("Thre is no current term")
+            if (!currentTerm) throw new Error("There is no current term")
             start = currentTerm.startDate;
             end = currentTerm.endDate;
             break;
         }
         case "last term": {
-            if (!pastTerm) throw new Error("Thre is no current term")
+            if (!pastTerm) throw new Error("There is no current term")
             start = pastTerm.startDate;
             end = pastTerm.endDate;
             break;
         }
         case "last season": {
-            if (!lastSeason) throw new Error("Thre is no past season")
+            if (!lastSeason) throw new Error("There is no past season")
             const formattedSeason = getSeasonStartAndEndDates(lastSeason)
             start = formattedSeason.startDate;
             end = formattedSeason.endDate;

@@ -27,7 +27,7 @@ export const getPropertyArabicName = (fieldName: string) => fieldName in arabicP
 
 
 /* -------------------------------------------------------------------------- */
-/*                               Excel Logic                                  */
+/*                               record translate Logic                       */
 /* -------------------------------------------------------------------------- */
 
 
