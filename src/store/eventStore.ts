@@ -3,7 +3,7 @@ import type {
   LocalAbsence,
   EventQueryFilters,
   LocalLateness,
-} from "~/data/types";
+} from "~/models/types";
 export const useEventStore = defineStore("eventStore", () => {
   const backend = useBackend();
 

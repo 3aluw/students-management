@@ -59,7 +59,7 @@
     </template>
 <script setup lang="ts">
 import { useStudentStore } from '~/store/studentStore';
-import type { Student } from '~/data/types';
+import type { Student } from '~/models/types';
 const studentStore = useStudentStore();
 
 // ========== selectedStudents MODEL SHARED TO PARENT ==========

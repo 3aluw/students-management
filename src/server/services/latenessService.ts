@@ -1,4 +1,4 @@
-import type { BatchEditAbsence, BatchEditLateness, EditAbsence, EditLateness, EventQueryFilters, NewAbsence, NewLateness } from "~/data/types";
+import type { BatchEditAbsence, BatchEditLateness, EditAbsence, EditLateness, EventQueryFilters, NewAbsence, NewLateness } from "~/models/types";
 import { latenessRepo } from "../repositories/latenessRepo";
 
 export const latenessService = {

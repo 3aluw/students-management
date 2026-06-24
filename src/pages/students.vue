@@ -105,11 +105,12 @@ import type {
     ActiveStudent,
     InActiveStudentStatus,
     NewXLSXStudent,
-} from '~/data/types';
+} from '~/models/types';
 
-import { userFeedbackMessages } from '~/data/static';
+import { userFeedbackMessages } from '~/models/static';
 import { useStudentStore } from '~/store/studentStore';
-import { ArabicXLSXStudentProperties } from "~/data/static"
+import { ArabicXLSXStudentProperties } from "~/models/static"
+import { getClassName } from "~/service/entity"
 
 /* -------------------------------------------------------------------------- */
 /*                                Composables                                 */
@@ -389,7 +390,7 @@ const handleExportClick = (tableRefInstance: any) => {
     // 2. Grab the current visible/processed rows (respects active filters/sorting)
     const students: Student[] = tableRefInstance.processedData || tableRefInstance.value || [];
     const className = getClassName(studentStore.classOptions, studentStore.selectedClassId) ?? "قائمة الطلبة"
-    const structuredData = getFormattedStudentJson(students, ArabicXLSXStudentProperties)
+    const structuredData = formatStudentsForExcelExport(students, ArabicXLSXStudentProperties)
     exportXlsx(structuredData, className)
 }
 
@@ -397,13 +398,13 @@ import {
     exportXlsx,
     ValidateXLSXStudents,
     groupPossibleExistingStudents,
-    getFormattedStudentJson,
-    parseExcelFile,
-    groupByExistence,
+    formatStudentsForExcelExport,
+    parseExcelFileToJSON,
+    groupStudentsByExistence,
     formatPossibleNewStudents,
     groupPossibleTransferStudents
 } from "~/service/excel"
-import { isZodValidationError, fromIssuesToToastObject } from "~/service/zod errors"
+import { isZodValidationError, zodIssuesToToastMessage } from "~/service/excel errors"
 const showXLSXReconcileDialog = ref(false)
 
 const handleExcelFile = async (file: File) => {
@@ -413,17 +414,17 @@ const handleExcelFile = async (file: File) => {
         UNSUPPORTED_FILE: { severity: 'warn', summary: 'ملف غير صالح' },
     }
     try {
-        const importedXLSXStudents = await parseExcelFile(file)
+        const importedXLSXStudents = await parseExcelFileToJSON(file)
         // format in english
         const XLSXStudents = importedXLSXStudents.map(st => transformToEnglish(st, ArabicXLSXStudentProperties))
         ValidateXLSXStudents(XLSXStudents) //Validate
         //get & handle existing and new students in XLSX imported data
-        const { newStudents, existingStudents } = groupByExistence(XLSXStudents)
+        const { newStudents, existingStudents } = groupStudentsByExistence(XLSXStudents)
         handleExistingImportedStudents(existingStudents)
         handleNewImportedStudents(newStudents)
     } catch (error: any) {
         if (isZodValidationError(error)) {
-            const ToastObject = fromIssuesToToastObject(error.issues, 'أخطاء في البيانات التي رفعتها')
+            const ToastObject = zodIssuesToToastMessage(error.issues, 'أخطاء في البيانات التي رفعتها')
             toast.add({ ...ToastObject })
         }
         else {

@@ -1,8 +1,8 @@
-import { EditStudent, BatchEditStudent, NewStudent, BackendValidationError } from "~/data/types";
+import { EditStudent, BatchEditStudent, NewStudent, BackendValidationError } from "~/models/types";
 import { studentService } from "~/server/services/studentService";
 import type { H3Error } from "h3";
 import { ZodError } from "zod";
-import { studentSchemas } from "~/utils/zod-schemas";
+import { studentSchemas } from "~/models/zod schemas";
 
 import { z } from "zod";
 type Operation = "create" | "batch create" | "update" | "batch update by ids" | "batch update by payload";

@@ -1,4 +1,4 @@
-import type { EventQueryFilters, StudentsQueryFilters } from "~/data/types";
+import type { EventQueryFilters, StudentsQueryFilters } from "~/models/types";
 import { getYearBoundaries } from "./date";
 
 

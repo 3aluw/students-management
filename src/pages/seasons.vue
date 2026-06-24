@@ -67,16 +67,16 @@ import type {
   NewSeasonPayload,
   SchoolSeason,
   SeasonStatus
-} from '~/data/types';
+} from '~/models/types';
 
 import type { TreeNode } from 'primevue/treenode';
-
+import { findOverlappingSeasonIds, mapSeasonsToTree } from "~/service/season"
 import { useClientStore } from '~/store/clientStore';
 
 import {
   ArabicSeasonStatus,
   userFeedbackMessages
-} from '~/data/static';
+} from '~/models/static';
 
 /* -------------------------------------------------------------------------- */
 /*                                  Types                                     */
@@ -238,7 +238,7 @@ const hasSeasonCollision = (updatedSeason: SchoolSeason) => {
   ).filter(season => season !== undefined);
 
   const collapsingSeasonIds =
-    getCollapsingSeasonIds(seasonsToCheck);
+    findOverlappingSeasonIds(seasonsToCheck);
 
   if (collapsingSeasonIds) {
     const otherSeasonName = seasonsToCheck.find(

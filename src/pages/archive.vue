@@ -62,13 +62,13 @@ import { watchDebounced } from '@vueuse/core';
 import {
     statusFilterOptions,
     userFeedbackMessages
-} from '~/data/static';
+} from '~/models/static';
 
 import type {
     BatchEditStudent,
     InactiveStudentQueryFilters,
     Student
-} from '~/data/types';
+} from '~/models/types';
 
 import { useStudentStore } from '~/store/studentStore';
 

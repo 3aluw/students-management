@@ -73,13 +73,14 @@ import type {
   EditAbsence,
   BatchEditAbsence,
   DataTableSlot
-} from '~/data/types';
+} from '~/models/types';
 
-import { ArabicXLSXcAbsenceProperties, userFeedbackMessages } from '~/data/static';
+import { ArabicXLSXcAbsenceProperties, userFeedbackMessages } from '~/models/static';
 import { useStudentStore } from '~/store/studentStore';
 import { useEventStore } from '~/store/eventStore';
 import type { DataTablePageEvent } from 'primevue';
-import { getFormattedEventJson, exportXlsx } from "~/service/excel"
+import { formatEventsForExcelExport, exportXlsx } from "~/service/excel"
+import { getClassName } from "~/service/entity"
 /* -------------------------------------------------------------------------- */
 /*                                Stores                                      */
 /* -------------------------------------------------------------------------- */
@@ -242,7 +243,7 @@ const handleExport = async () => {
   const selectedClassId = dbFilters.value?.classId
   const classOptions = studentStore.classOptions
   const className = selectedClassId ? getClassName(classOptions, selectedClassId) ?? "قائمة الغيابات" : "قائمة الغيابات"
-  const structuredData = getFormattedEventJson(absences, ArabicXLSXcAbsenceProperties, classOptions)
+  const structuredData = formatEventsForExcelExport(absences, ArabicXLSXcAbsenceProperties, classOptions)
   exportXlsx(structuredData, className)
 }
 

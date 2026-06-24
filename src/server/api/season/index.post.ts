@@ -1,9 +1,9 @@
 
-import type { BackendValidationError, EditSchoolSeason, NewSeasonPayload } from "~/data/types";
+import type { BackendValidationError, EditSchoolSeason, NewSeasonPayload } from "~/models/types";
 import { seasonService } from "~/server/services/seasonService";
 import type { H3Error } from "h3";
 import { ZodError } from "zod";
-import { seasonSchemas } from "~/utils/zod-schemas";
+import { seasonSchemas } from "~/models/zod schemas";
 
 import { z } from "zod";
 type Operation = "create" | "update";

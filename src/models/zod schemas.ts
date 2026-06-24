@@ -23,9 +23,9 @@ import type {
   SchoolSeason,
   Student,
   XLSXStudent,
-} from "~/data/types";
+} from "~/models/types";
 import { getRequiredFieldMessage } from "~/utils/arabic-properties";
-import { hasCollapsingTerms } from "~/utils/season";
+import { hasOverlappingTerms } from "~/service/season";
 import { toTimestamp } from "~/utils/date";
 
 // ========== Student schemas ==========
@@ -220,7 +220,7 @@ const schoolSeasonSchema = z.object({
       }),
     )
     .min(1, "يجب أن تحتوي السنة الدراسية على فصل دراسي على الأقل")
-    .refine((terms) => !hasCollapsingTerms(terms), {
+    .refine((terms) => !hasOverlappingTerms(terms), {
       message: "يجب ألا تتداخل الفصول الدراسية مع بعضها",
     })
     .superRefine((terms, ctx) => {

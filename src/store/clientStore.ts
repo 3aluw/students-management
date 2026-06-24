@@ -1,6 +1,6 @@
 /* A store for user preferences and analytics */
 import { defineStore, acceptHMRUpdate } from "pinia";
-import type { SchoolSeason } from "~/data/types";
+import type { SchoolSeason } from "~/models/types";
 
 export const useClientStore = defineStore("clientStore", () => {
   const backend = useBackend();

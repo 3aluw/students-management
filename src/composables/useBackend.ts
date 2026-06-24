@@ -19,7 +19,7 @@ import type {
   SchoolSeason,
   EditSchoolSeason,
   NewSeasonPayload,
-} from "~/data/types";
+} from "~/models/types";
 
 export default function () {
   // ========== Class functions ==========

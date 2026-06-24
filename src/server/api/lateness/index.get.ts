@@ -1,5 +1,5 @@
 
-import type { EventQueryFilters } from "~/data/types";
+import type { EventQueryFilters } from "~/models/types";
 import { latenessService } from "~/server/services/latenessService";
 
 

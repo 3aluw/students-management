@@ -1,5 +1,5 @@
 import db from '~/db/db';
-import type { BatchEditAbsence, EditAbsence, EventQueryFilters, LocalAbsence, NewAbsence } from "~/data/types";
+import type { BatchEditAbsence, EditAbsence, EventQueryFilters, LocalAbsence, NewAbsence } from "~/models/types";
 type TotalRow = { total: number };
 
 

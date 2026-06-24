@@ -107,9 +107,9 @@ import type {
     LatenessInfo,
     NewLateness,
     NewAbsence,
-} from '~/data/types';
+} from '~/models/types';
 
-import { userFeedbackMessages } from '~/data/static';
+import { userFeedbackMessages } from '~/models/static';
 import { useStudentStore } from '~/store/studentStore';
 
 /* -------------------------------------------------------------------------- */

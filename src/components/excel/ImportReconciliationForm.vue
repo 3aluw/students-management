@@ -76,8 +76,8 @@
     </div>
 </template>
 <script setup lang="ts">
-import { ArabicStudentStatus } from '~/data/static';
-import type { Student, InActiveStudentStatus } from '~/data/types';
+import { ArabicStudentStatus } from '~/models/static';
+import type { Student, InActiveStudentStatus } from '~/models/types';
 
 
 const props = defineProps<{

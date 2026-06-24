@@ -1,5 +1,5 @@
 import { classRepo } from "../repositories/classRepo";
-import type { EditClass, NewClass } from "~/data/types";
+import type { EditClass, NewClass } from "~/models/types";
 
 export const classService = {
     getClasses() {

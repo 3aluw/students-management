@@ -1,5 +1,5 @@
 import db from '~/db/db';
-import type { BatchEditLateness, EditLateness, EventQueryFilters, LocalLateness, NewLateness } from "~/data/types";
+import type { BatchEditLateness, EditLateness, EventQueryFilters, LocalLateness, NewLateness } from "~/models/types";
 
 type TotalRow = { total: number };
 

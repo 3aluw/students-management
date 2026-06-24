@@ -11,9 +11,9 @@
 
 </template>
 <script setup lang="ts">
-import type { Class, ClassPromotionMap } from '~/data/types';
+import type { Class, ClassPromotionMap } from '~/models/types';
 import { useStudentStore } from '~/store/studentStore';
-import { toGraduateClass } from '~/data/static';
+import { toGraduateClass } from '~/models/static';
 const studentStore = useStudentStore()
 
 const classesWithGraduationClass = computed(() => {

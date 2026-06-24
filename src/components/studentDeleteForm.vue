@@ -29,11 +29,11 @@
 
 </template>
 <script setup lang="ts">
-import { ArabicStudentStatus } from "~/data/static"
+import { ArabicStudentStatus } from "~/models/static"
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import type { FormSubmitEvent } from "@primevue/forms"
 import { z } from 'zod';
-import type { InactiveStudent, StudentStatus } from "~/data/types";
+import type { InactiveStudent, StudentStatus } from "~/models/types";
 
 const emit = defineEmits<{
     (e: 'delete'): void;

@@ -1,5 +1,5 @@
-import { arabicProperties } from "~/data/static";
-import type { InArabic, PropDict, ArabicKeysOf, XLSXType, } from "~/data/types";
+import { arabicProperties } from "~/models/static";
+import type { InArabic, PropDict, ArabicKeysOf, XLSXType, } from "~/models/types";
 
 // ========== Fields / its Arabic translations functions ==========
 /*Internal */
@@ -27,7 +27,7 @@ export const getPropertyArabicName = (fieldName: string) => fieldName in arabicP
 
 
 /* -------------------------------------------------------------------------- */
-/*                               Excel Logic                                  */
+/*                               record translate Logic                       */
 /* -------------------------------------------------------------------------- */
 
 
