@@ -17,6 +17,7 @@ import type {
 } from "~/models/types";
 import { z } from "zod";
 import { studentSchemas } from "~/models/zod schemas";
+import { getClassName } from "~/service/entity";
 /* -------------------------------------------------------------------------- */
 /*                                EXPORT LOGIC                                */
 /* -------------------------------------------------------------------------- */

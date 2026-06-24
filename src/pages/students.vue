@@ -404,7 +404,7 @@ import {
     formatPossibleNewStudents,
     groupPossibleTransferStudents
 } from "~/service/excel"
-import { isZodValidationError, fromIssuesToToastObject } from "~/service/zod errors"
+import { isZodValidationError, fromIssuesToToastObject } from "~/service/excel errors"
 const showXLSXReconcileDialog = ref(false)
 
 const handleExcelFile = async (file: File) => {
