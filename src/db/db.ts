@@ -78,8 +78,21 @@ db.prepare(
     FOREIGN KEY (student_id) REFERENCES student(id),
     UNIQUE(student_id, date)
   )
-`
-).run();
+`).run();
+
+db.prepare(
+  `
+  CREATE TABLE IF NOT EXISTS infraction (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_id INTEGER NOT NULL,
+    time INTEGER NOT NULL,
+    start_time INTEGER NOT NULL,
+    reason TEXT,
+    subject TXT,
+    FOREIGN KEY (student_id) REFERENCES student(id),
+    UNIQUE(student_id, time, subject)
+  )
+`).run();
 
 db.prepare(
   `
