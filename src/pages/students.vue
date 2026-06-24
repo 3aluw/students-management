@@ -404,7 +404,7 @@ import {
     formatPossibleNewStudents,
     groupPossibleTransferStudents
 } from "~/service/excel"
-import { isZodValidationError, fromIssuesToToastObject } from "~/service/excel errors"
+import { isZodValidationError, zodIssuesToToastMessage } from "~/service/excel errors"
 const showXLSXReconcileDialog = ref(false)
 
 const handleExcelFile = async (file: File) => {
@@ -424,7 +424,7 @@ const handleExcelFile = async (file: File) => {
         handleNewImportedStudents(newStudents)
     } catch (error: any) {
         if (isZodValidationError(error)) {
-            const ToastObject = fromIssuesToToastObject(error.issues, 'أخطاء في البيانات التي رفعتها')
+            const ToastObject = zodIssuesToToastMessage(error.issues, 'أخطاء في البيانات التي رفعتها')
             toast.add({ ...ToastObject })
         }
         else {
