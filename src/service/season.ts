@@ -8,6 +8,13 @@ import type {
 
 // ========== Season functions ==========
 // ========== WARNING: Some functions (getSeasonStatus-getSeasonStartAndEndDates) are used by server; So this files has to be pure JS and free from browsser APIs / Vue reactive peorperties like refs... ==========
+/**
+ * Determines the current status of a school season relative to now.
+ * @param season - The school season to check.
+ * @returns The season status: "future", "current", or "past".
+ * @remarks
+ * Uses the season's start and end dates (derived from its first and last terms).
+ */
 export const getSeasonStatus = (season: SchoolSeason): SeasonStatus => {
     const seasonDates = getSeasonStartAndEndDates(season);
     const now = Date.now();
@@ -20,6 +27,12 @@ export const getSeasonStatus = (season: SchoolSeason): SeasonStatus => {
     return seasonStatus;
 };
 
+/**
+ * Determines the current status of a school term relative to now.
+ * @param term - The school term to check.
+ * @returns The term status: "future", "current", or "past".
+ * ```
+ */
 export const getTermStatus = (term: SchoolTerm): SeasonStatus => {
     const now = Date.now();
     const seasonStatus: SeasonStatus =
@@ -30,7 +43,17 @@ export const getTermStatus = (term: SchoolTerm): SeasonStatus => {
                 : "current";
     return seasonStatus;
 }
-
+/**
+ * Gets the date range (start/end) for a season based on its terms.
+ * @param season - The school season containing an array of terms.
+ * @returns An object with:
+ * - `id`: The season ID.
+ * - `name`: The season name.
+ * - `startDate`: The start date of the first term.
+ * - `endDate`: The end date of the last term.
+ * @remarks
+ * Assumes terms are ordered and the season spans from the first term's start to the last term's end.
+ */
 export const getSeasonStartAndEndDates = (season: SchoolSeason) => {
     return {
         id: season.id,
@@ -39,7 +62,17 @@ export const getSeasonStartAndEndDates = (season: SchoolSeason) => {
         endDate: season.terms[season.terms.length - 1].endDate,
     };
 };
-export const getCollapsingSeasonIds = (seasons: SchoolSeason[]) => {
+
+/**
+ * Finds the first pair of overlapping seasons in a list.
+ * @param seasons - Array of school seasons (expected to be ordered descending by date).
+ * @returns A tuple `[currentSeasonId, pastSeasonId]` of the first overlapping pair, or `undefined` if none overlap.
+ * @remarks
+ * Seasons are expected to be in descending order (newest first).
+ * Checks if each season's start date overlaps with the previous season's end date.
+ * ```
+ */
+export const findOverlappingSeasonIds = (seasons: SchoolSeason[]) => {
     const seasonDates = seasons.map(getSeasonStartAndEndDates);
     for (let i = 0; i < seasonDates.length - 1; i++) {
         const current = seasonDates[i];
@@ -51,9 +84,23 @@ export const getCollapsingSeasonIds = (seasons: SchoolSeason[]) => {
     }
     return undefined;
 };
-export const hasCollapsingTerms = (terms: SchoolTerm[]) =>
+/**
+ * Checks if any terms in a list overlap with the previous term.
+ * @param terms - Array of school terms (expected to be ordered by date).
+ * @returns `true` if any term starts before the previous term ends, `false` otherwise.
+ * @remarks
+ * A term overlaps if `term.startDate < previousTerm.endDate`.
+ * Terms are assumed to be ordered chronologically.
+ */
+export const hasOverlappingTerms = (terms: SchoolTerm[]) =>
     terms.some((term, i, arr) => i > 0 && term.startDate < arr[i - 1].endDate);
 
+/**
+ * Builds a tree structure for tree table UI components from seasons and their terms.
+ * @param seasons - Array of school seasons to map.
+ * @returns An array of tree nodes where each season is a parent node with term children.
+
+ */
 export const mapSeasonsToTree = (seasons: SchoolSeason[]) => {
     if (seasons.length === 0) return [];
     return seasons.map((season) => {
@@ -79,11 +126,18 @@ export const mapSeasonsToTree = (seasons: SchoolSeason[]) => {
     });
 };
 
+/**
+ * Sorts a list of terms by their end dates.
+ * @param terms - Array of school terms to sort.
+ * @param sortType - Sort order: "asc" for oldest first, "desc" for newest first. Defaults to "asc".
+ * @returns A new sorted array of terms (does not mutate the original).
+ */
 const sortTerms = (terms: SchoolTerm[], sortType: "asc" | "desc" = "asc") => {
     const sorted = [...terms].sort((a, b) => a.endDate - b.endDate)
     return sortType == "asc" ? sorted : sorted.reverse()
 }
 
+/*=========================  seasons Time ranges calculation  ======================== */
 const seasonTimeRanges = ["this season", "last term", "this term", "last season"] as const satisfies readonly SupportedDateRanges[]
 type SeasonTermTimeRange = typeof seasonTimeRanges[number];
 

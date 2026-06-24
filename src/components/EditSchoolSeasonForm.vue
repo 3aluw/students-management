@@ -79,7 +79,7 @@ import type { NewSchoolSeason, SchoolSeason, SeasonStatus, SchoolTerm } from '~/
 import { yupResolver } from '@primevue/forms/resolvers/yup';
 import * as yup from 'yup';
 import type { FormInstance, FormSubmitEvent } from '@primevue/forms';
-import { hasCollapsingTerms } from "~/service/season"
+import { hasOverlappingTerms } from "~/service/season"
 
 /* -------------------------------------------------------------------------- */
 /*                              Types / Props / Emits                         */
@@ -186,7 +186,7 @@ const yupSchema: yup.ObjectSchema<Omit<SchoolSeason, 'id'>> =
                 ),
             })
         ).test('terms-not-collapsing', 'يجب ألا تتداخل الفصول الدراسية مع بعضها', (value) => {
-            return !value ? true : !hasCollapsingTerms(value)
+            return !value ? true : !hasOverlappingTerms(value)
         }).required().min(1, 'يجب أن تحتوي السنة الدراسية على فصل دراسي على الأقل'),
     })
 
