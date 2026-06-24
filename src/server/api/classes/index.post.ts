@@ -1,7 +1,7 @@
 import type { BackendValidationError, EditClass, NewClass } from "~/data/types";
 import { classService } from "~/server/services/classService";
 import type { H3Error } from "h3";
-import { classSchemas } from "~/utils/zod-schemas";
+import { classSchemas } from "~/models/zod schemas";
 
 import { z, ZodError } from "zod";
 type Operation = "create" | "update";

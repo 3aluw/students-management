@@ -16,7 +16,7 @@ import type {
   XLSXStudent,
 } from "~/data/types";
 import { z } from "zod";
-import { studentSchemas } from "~/utils/zod-schemas";
+import { studentSchemas } from "~/models/zod schemas";
 /* -------------------------------------------------------------------------- */
 /*                                EXPORT LOGIC                                */
 /* -------------------------------------------------------------------------- */

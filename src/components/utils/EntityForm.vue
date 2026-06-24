@@ -121,8 +121,8 @@
             <!-- Grade -->
             <div class="flex flex-col gap-1">
                 <FloatLabel variant="on">
-                <InputNumber name="grade" :min="0" :max="10" fluid />
-                <label>المستوى (بالأرقام)</label>
+                    <InputNumber name="grade" :min="0" :max="10" fluid />
+                    <label>المستوى (بالأرقام)</label>
                 </FloatLabel>
                 <Message v-if="$form.grade?.invalid" severity="error" size="small" variant="simple">{{
                     $form.grade.error.message }}</Message>
@@ -130,10 +130,10 @@
             <!-- school_level -->
             <div class="flex flex-col gap-1">
                 <FloatLabel variant="on">
-                <Select name="school_level" :options="schoolLevelOptions" optionLabel="label" optionValue="value"
-                     fluid />
-                <label>المرحلة</label>
-                    </FloatLabel>
+                    <Select name="school_level" :options="schoolLevelOptions" optionLabel="label" optionValue="value"
+                        fluid />
+                    <label>المرحلة</label>
+                </FloatLabel>
                 <Message v-if="$form.school_level?.invalid" severity="error" size="small" variant="simple">{{
                     $form.school_level.error.message }}</Message>
             </div>
@@ -141,8 +141,8 @@
             <!-- Section -->
             <div class="flex flex-col gap-1">
                 <FloatLabel variant="on">
-                <InputText name="section" type="text" fluid />
-                <label>الحرف</label>
+                    <InputText name="section" type="text" fluid />
+                    <label>الحرف</label>
                 </FloatLabel>
                 <Message v-if="$form.section?.invalid" severity="error" size="small" variant="simple">{{
                     $form.section.error.message }}</Message>
@@ -164,6 +164,7 @@ import { useToast } from 'primevue/usetoast';
 import type { NewClass, NewStudent, Student, Class } from '~/data/types';
 import { schoolLevelOptions } from '~/data/static';
 import type { FormSubmitEvent } from "@primevue/forms"
+import { studentSchemas, classSchemas } from "~/models/zod schemas"
 const studentStore = useStudentStore();
 
 
@@ -183,7 +184,7 @@ const formattedStudentObject = computed(() => {
     if (props.entityType === 'student') {
         const studentObj = props.entityObject as Student
         const defaultBrithDate = new Date().getTime() - 1000 * 60 * 60 * 24 * 365 * 10 // 10 years ago
-        return { ...studentObj, birth_date: new Date(studentObj?.birth_date || defaultBrithDate), status: studentObj?.status || "active", exited_at : studentObj?.exited_at || undefined }
+        return { ...studentObj, birth_date: new Date(studentObj?.birth_date || defaultBrithDate), status: studentObj?.status || "active", exited_at: studentObj?.exited_at || undefined }
     }
 })
 

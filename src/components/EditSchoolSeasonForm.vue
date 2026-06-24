@@ -79,6 +79,7 @@ import type { NewSchoolSeason, SchoolSeason, SeasonStatus, SchoolTerm } from '~/
 import { yupResolver } from '@primevue/forms/resolvers/yup';
 import * as yup from 'yup';
 import type { FormInstance, FormSubmitEvent } from '@primevue/forms';
+import { hasCollapsingTerms } from "~/service/season"
 
 /* -------------------------------------------------------------------------- */
 /*                              Types / Props / Emits                         */
