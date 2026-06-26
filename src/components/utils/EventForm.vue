@@ -2,64 +2,20 @@
     <div class="card flex flex-col items-center gap-5">
         <Toast />
 
-        <Form v-if="props.eventType == 'absence'" :initialValues="formatEventObject()" v-slot="$form"
-            :resolver="resolver" @submit="onFormSubmit" class="flex flex-col gap-4 w-full sm:w-80">
-            <!-- absence Date -->
+        <Form :initialValues="formatEventObject()" v-slot="$form" :resolver="resolver" @submit="onFormSubmit"
+            class="flex flex-col gap-4 w-full sm:w-80">
+            <!-- Event Date -->
             <div class="flex flex-col gap-1">
                 <FloatLabel variant="on">
                     <DatePicker name="date" fluid showIcon />
-                    <label>تاريخ الغياب</label>
-                </FloatLabel>
-                <Message v-if="$form.date?.invalid" severity="error" size="small" variant="simple">
-                    {{ $form.date.error?.message }}
-                </Message>
-            </div>
-            <div class="flex flex-col gap-1">
-                <FloatLabel variant="on">
-                    <DatePicker name="start_time" fluid timeOnly />
-                    <label> بداية الحصة</label>
-                </FloatLabel>
-                <Message v-if="$form.start_time?.invalid" severity="error" size="small" variant="simple">
-                    {{ $form.start_time.error?.message }}
-                </Message>
-            </div>
-            <!-- Reason -->
-            <div class="flex flex-col gap-1">
-                <FloatLabel variant="on">
-                    <InputText name="reason" type="text" fluid />
-                    <label>سبب الغياب</label>
-                </FloatLabel>
-                <Message v-if="$form.reason?.invalid" severity="error" size="small" variant="simple">{{
-                    $form.reason.error.message }}</Message>
-            </div>
-
-            <!-- reason accepted -->
-            <div class="flex flex-col gap-1">
-                <span class="gray">قبول العذر: </span>
-                <SelectButton name="reason_accepted" :options="sqliteBoolean" optionLabel="label" optionValue="value" />
-                <Message v-if="$form.reason_accepted?.invalid" severity="error" size="small" variant="simple">
-                    {{ $form.reason_accepted.error?.message }}
-                </Message>
-            </div>
-
-
-            <!-- Submit -->
-            <Button type="submit" label="إرسال" severity="secondary" />
-        </Form>
-
-        <Form v-else-if="props.eventType == 'lateness'" :initialValues="formatEventObject()" v-slot="$form"
-            :resolver="resolver" @submit="onFormSubmit" class="flex flex-col gap-4 w-full sm:w-80">
-            <!-- lateness Date -->
-            <div class="flex flex-col gap-1">
-                <FloatLabel variant="on">
-                    <DatePicker name="date" fluid showIcon />
-                    <label>تاريخ التأخر</label>
+                    <label>تاريخ ال{{ eventTypeInArabic }}</label>
                 </FloatLabel>
                 <Message v-if="$form.date?.invalid" severity="error" size="small" variant="simple">
                     {{ $form.date.error?.message }}
                 </Message>
             </div>
 
+            <!-- Start Time -->
             <div class="flex flex-col gap-1">
                 <FloatLabel variant="on">
                     <DatePicker name="start_time" fluid timeOnly />
@@ -70,7 +26,8 @@
                 </Message>
             </div>
 
-            <div class="flex flex-col gap-1">
+            <!-- For Lateness only : used to populate late_by-->
+            <div v-if="props.eventType == 'lateness'" class="flex flex-col gap-1">
                 <FloatLabel variant="on">
                     <DatePicker name="late_by" fluid timeOnly />
                     <label>وقت الدخول</label>
@@ -94,7 +51,7 @@
             </div>
 
             <!-- reason accepted -->
-            <div class="flex flex-col gap-1">
+            <div class="flex flex-col gap-1" v-if="props.eventType == 'lateness' || 'absence'">
                 <span>قبول العذر: </span>
                 <SelectButton name="reason_accepted" :options="sqliteBoolean" optionLabel="label" optionValue="value" />
                 <Message v-if="$form.reason_accepted?.invalid" severity="error" size="small" variant="simple">
@@ -110,7 +67,7 @@
 </template>
 
 <script setup lang="ts" generic="T extends EventTypes">
-import { sqliteBoolean, commonReasons } from '~/models/static';
+import { sqliteBoolean, commonReasons, eventTypesArabicDict } from '~/models/static';
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import { z } from 'zod';
 import { useToast } from 'primevue/usetoast';
@@ -153,6 +110,8 @@ const props = defineProps<{
 const emit = defineEmits<{
     (e: 'submit', obj: EventInfo<T>): void;
 }>()
+
+const eventTypeInArabic = computed(() => eventTypesArabicDict[props.eventType])
 
 const resolver = computed(() => props.eventType == 'absence' ? zodResolver(absenceInfoZodSchema) :
     zodResolver(latenessInfoZodSchema)
