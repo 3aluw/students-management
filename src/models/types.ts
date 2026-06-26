@@ -121,11 +121,13 @@ export type AllEntitiesUnion =
   | Class
   | Absence
   | Lateness
+  | Infraction
   | SchoolSeason;
 export type AllEntitiesKeys = keyof (Student &
   Class &
   Absence &
   Lateness &
+  Infraction &
   SchoolSeason &
   SchoolTerm);
 
@@ -133,20 +135,24 @@ export type NewStudent = NewEntity<ActiveStudent>;
 export type NewClass = NewEntity<Class>;
 export type NewLateness = NewEntity<Lateness>;
 export type NewAbsence = NewEntity<Absence>;
+export type NewInfraction = NewEntity<Infraction>;
 export type NewSchoolSeason = NewEntity<SchoolSeason>;
 
 export type EditStudent = PartialExceptId<Student>;
 export type EditClass = PartialExceptId<Class>;
 export type EditLateness = PartialExceptId<Lateness>;
 export type EditAbsence = PartialExceptId<Absence>;
+export type EditInfraction = PartialExceptId<Infraction>;
 export type EditSchoolSeason = PartialExceptId<SchoolSeason>;
 
 export type BatchEditStudent = BatchEdit<Student>;
 export type BatchEditAbsence = BatchEdit<Absence>;
 export type BatchEditLateness = BatchEdit<Lateness>;
+export type BatchEditInfraction = BatchEdit<Infraction>;
 
 export type AbsenceInfo = Omit<Absence, "student_id" | "id">;
 export type LatenessInfo = Omit<Lateness, "student_id" | "id">;
+export type InfractionInfo = Omit<Infraction, "student_id" | "id">;
 
 export type LocalAbsence = Absence & {
   first_name: string;
@@ -159,7 +165,13 @@ export type LocalLateness = Lateness & {
   class_id: number;
 } & Omit<Class, "id">;
 
-export type EventTypes = "lateness" | "absence";
+export type LocalInfraction = Infraction & {
+  first_name: string;
+  last_name: string;
+  class_id: number;
+} & Omit<Class, "id">;
+
+export type EventTypes = "lateness" | "absence" | "Infraction";
 export type Gender = "M" | "F";
 export type SchoolLevel = "primary" | "middle" | "high";
 export type StudentStatus = "active" | "graduated" | "dropped" | "transferred";
