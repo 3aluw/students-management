@@ -7,7 +7,7 @@ import type {
 import { infractionRepo } from "../repositories/infractionRepo";
 
 
-export const latenessService = {
+export const infractionService = {
   getInfraction: (filters: EventQueryFilters) => {
     return infractionRepo.getInfractions(filters);
   },
