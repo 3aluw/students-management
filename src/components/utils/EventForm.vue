@@ -69,15 +69,17 @@
 <script setup lang="ts" generic="T extends EventTypes">
 import { sqliteBoolean, commonReasons, eventTypesArabicDict } from '~/models/static';
 import { zodResolver } from '@primevue/forms/resolvers/zod';
-import { z } from 'zod';
+import { z, type ZodSchema } from 'zod';
 import { useToast } from 'primevue/usetoast';
-import type { AbsenceInfo, LatenessInfo, EventTypes } from '~/models/types';
+import type { AbsenceInfo, LatenessInfo, EventTypes, InfractionInfo } from '~/models/types';
 import type { FormSubmitEvent } from "@primevue/forms"
-import { absenceSchemas, latenessSchemas } from "~/models/zod schemas"
+import { absenceSchemas, latenessSchemas, infractionSchemas } from "~/models/zod schemas"
 import { parseEventTimeInfo } from "~/service/event"
 
 const absenceSchema = absenceSchemas.absenceSchema
 const latenessSchema = latenessSchemas.latenessSchema
+const infractionSchema = infractionSchemas.infractionSchema
+
 const toast = useToast();
 
 //Format the object received from parent component to match the form initial values structure (to coincide with zod schemas)
@@ -91,11 +93,18 @@ const formatEventObject = () => {
             ...parseEventTimeInfo({ date, start_time })
         }
     }
-    else {
+    else if (props.eventType == 'lateness') {
         const entityObj = props.entityObject as LatenessInfo
         return {
             ...entityObj,
             ...parseEventTimeInfo({ date, late_by: entityObj.late_by, start_time })
+        }
+    }
+    else {
+        const entityObj = props.entityObject as InfractionInfo
+        return {
+            ...entityObj,
+            ...parseEventTimeInfo({ date, minutes_after_start: entityObj.minutes_after_start, start_time })
         }
     }
 }
@@ -113,9 +122,7 @@ const emit = defineEmits<{
 
 const eventTypeInArabic = computed(() => eventTypesArabicDict[props.eventType])
 
-const resolver = computed(() => props.eventType == 'absence' ? zodResolver(absenceInfoZodSchema) :
-    zodResolver(latenessInfoZodSchema)
-);
+
 
 const absenceInfoZodSchema = absenceSchema
     .omit({ id: true, student_id: true })
