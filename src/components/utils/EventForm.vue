@@ -100,7 +100,7 @@ const formatEventObject = () => {
     }
 }
 
-type EventInfo<T extends EventTypes> = T extends 'absence' ? AbsenceInfo : LatenessInfo
+type EventInfo<T extends EventTypes> = T extends 'absence' ? AbsenceInfo : T extends 'lateness' ? LatenessInfo : InfractionInfo
 
 const props = defineProps<{
     eventType: T;
@@ -148,6 +148,34 @@ const latenessInfoZodSchema = latenessSchema
         }
     }) satisfies z.ZodType<LatenessInfo>
 
+const infractionInfoZodSchema = infractionSchema
+    .omit({ id: true, student_id: true })
+    .extend({
+        date: z.date().transform(d => d.getTime()),
+        start_time: z.date().transform(d => d.getTime()),
+        minutes_after_start: z.date().transform(d => d.getTime()),      // it will be used to insert the time of the infraction then transformed to minutes after shift start
+
+    }).refine(
+        (data) => data.minutes_after_start > data.start_time,
+        { message: "وقت تسجيل المخالفة يجب أن يكون بعد بداية الحصة", path: ["minutes_after_start"] }
+    )
+    .transform((data) => {
+        return {
+            ...data,
+            minutes_after_start: minutesAfterMidnight(data.minutes_after_start) - minutesAfterMidnight(data.start_time),
+            start_time: minutesAfterMidnight(data.start_time)
+        }
+    }) satisfies z.ZodType<InfractionInfo>
+
+
+const schemaMap = {
+    absence: absenceInfoZodSchema,
+    lateness: latenessInfoZodSchema,
+    Infraction: infractionInfoZodSchema
+} as const satisfies Record<EventTypes, ZodSchema>
+
+const schema = computed(() => schemaMap[props.eventType])
+const resolver = computed(() => zodResolver(schema.value))
 
 
 const onFormSubmit = (event: FormSubmitEvent) => {
