@@ -1,7 +1,4 @@
-import type {
-  LatenessInfo,
-  AbsenceInfo,
-} from "~/models/types";
+import type { LatenessInfo, AbsenceInfo, InfractionInfo } from "~/models/types";
 
 /**
  * Parses raw event data into Date objects for display and calculation.
@@ -19,6 +16,7 @@ import type {
 export const parseEventTimeInfo = <
   T extends
     | Pick<LatenessInfo, "late_by" | "start_time" | "date">
+    | Pick<InfractionInfo, "minutes_after_start" | "start_time" | "date">
     | Pick<AbsenceInfo, "date" | "start_time">,
 >(
   obj: T,
@@ -31,14 +29,15 @@ export const parseEventTimeInfo = <
     date: new Date(obj.date),
     start_time,
   };
-  if ("late_by" in obj) {
-    const late_by = new Date(start_time);
-    late_by.setMinutes(late_by.getMinutes() + obj.late_by);
+  if ("late_by" in obj || "minutes_after_start" in obj) {
+    const key = "late_by" in obj ? "late_by" : "minutes_after_start";
+    const time = new Date(start_time);
+    time.setMinutes(time.getMinutes() + (obj as any)[key]);
+
     return {
       ...base,
-      late_by,
+      [key]: time,
     };
   }
   return base;
 };
-
