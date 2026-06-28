@@ -175,7 +175,6 @@ const infractionSchema = z.object({
   reason: z
     .string()
     .min(5, { message: "نص قصير، يجب إدخال سبب المخالفة كاملا " }),
-  reason_accepted: z.literal([0, 1]),
   minutes_after_start: z.number({
     error: getRequiredFieldMessage("وقت المخالفة"),
   }), // it will be used to insert the time of enter then transformed to minutes after shift start
