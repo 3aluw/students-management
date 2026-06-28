@@ -27,6 +27,9 @@
                         <Button label="غياب" icon="pi pi-ban" iconPos="right" severity="secondary" class="mx-2"
                             @click="createEvent('absence', selectedStudents.map(student => student.id))"
                             :disabled="!selectedStudents || !selectedStudents.length" />
+                        <Button label="مخالفة" icon="pi pi-ban" iconPos="right" severity="secondary" class="mx-2"
+                            @click="createEvent('Infraction', selectedStudents.map(student => student.id))"
+                            :disabled="!selectedStudents || !selectedStudents.length" />
 
                     </template>
                     <template #end>
@@ -107,9 +110,11 @@ import type {
     LatenessInfo,
     NewLateness,
     NewAbsence,
+    NewInfraction,
+    InfractionInfo,
 } from '~/models/types';
 
-import { userFeedbackMessages } from '~/models/static';
+import { eventTypesArabicDict, userFeedbackMessages } from '~/models/static';
 import { useStudentStore } from '~/store/studentStore';
 
 /* -------------------------------------------------------------------------- */
@@ -126,18 +131,19 @@ const toast = useToast();
 
 const {
     absence: absenceToastMessages,
-    lateness: latenessToastMessages
+    lateness: latenessToastMessages,
+    infraction: infractionToastMessages
 } = userFeedbackMessages;
 
 /* -------------------------------------------------------------------------- */
 /*                              Types helpers                                 */
 /* -------------------------------------------------------------------------- */
 
-type EventInfo<T extends EventTypes> =
-    T extends 'absence' ? AbsenceInfo : LatenessInfo;
+type EventInfo<T extends EventTypes> = T extends 'absence' ? AbsenceInfo : T extends 'lateness' ? LatenessInfo : InfractionInfo
+
 
 type NewEvent<T extends EventTypes> =
-    T extends 'absence' ? NewAbsence : NewLateness;
+    T extends 'absence' ? NewAbsence : T extends 'lateness' ? NewLateness : NewInfraction;
 
 /* -------------------------------------------------------------------------- */
 /*                              Settings                                      */
@@ -183,8 +189,10 @@ const displaySelectedStudentsDialog = ref(false);
 const showEventDialog = ref(false);
 const selectedEventType = ref<EventTypes>('lateness');
 
+const eventTypeInArabic = computed(() => eventTypesArabicDict[selectedEventType.value])
+
 const eventDialogHeader = computed(() =>
-    `أدخل معلومات ${selectedEventType.value === 'lateness' ? 'التأخر' : 'الغياب'}`
+    `أدخل معلومات ${eventTypeInArabic.value}`
 );
 
 const lastEventValues = ref<Pick<
@@ -258,10 +266,10 @@ const handleEventSubmit = <T extends EventTypes>(
 
     postEvent(eventType, selectedStudentsIds.value, data);
 
-    lastEventValues.value = {
-        reason: data.reason,
-        reason_accepted: data.reason_accepted
-    };
+    lastEventValues.value.reason = data.reason
+    if ('reason_accepted' in data) {
+        lastEventValues.value.reason_accepted = data.reason_accepted
+    }
 
     showEventDialog.value = false;
 };
@@ -280,11 +288,15 @@ const postEvent = async <T extends EventTypes>(
     let message = '';
     try {
         if (eventType === 'absence') {
-            await backend.insertAbsences(rows);
+            await backend.insertAbsences(rows as NewAbsence[]);
             message = absenceToastMessages.addSuccess;
-        } else {
+        } else if (eventType == 'lateness') {
             await backend.insertLateness(rows as NewLateness[]);
             message = latenessToastMessages.addSuccess;
+        }
+        else {
+            await backend.insertInfractions(rows as NewInfraction[])
+            message = infractionToastMessages.addSuccess
         }
         resetSelectedStudents();
         toast.add({ severity: 'success', summary: message, life: 3000 });
@@ -294,7 +306,7 @@ const postEvent = async <T extends EventTypes>(
         const errMsg =
             eventType === 'absence'
                 ? absenceToastMessages.addFailed
-                : latenessToastMessages.addFailed;
+                : eventType === 'lateness' ? latenessToastMessages.addFailed : infractionToastMessages.addFailed;
 
         toast.add(getToastErrorObject(error, errMsg));
     }
@@ -315,19 +327,29 @@ const bindStudentIdToEventInfo = <T extends EventTypes>(
             date: data.date,
             start_time: data.start_time,
             reason: data.reason,
-            reason_accepted: data.reason_accepted
+            reason_accepted: (data as AbsenceInfo).reason_accepted
         })) as NewEvent<T>[];
     }
-
+    else if (eventType === 'lateness') {
+        return ids.map((student_id) => ({
+            student_id,
+            date: data.date,
+            reason: data.reason,
+            reason_accepted: (data as LatenessInfo).reason_accepted,
+            start_time: (data as LatenessInfo).start_time,
+            late_by: (data as LatenessInfo).late_by,
+        })) as NewEvent<T>[];
+    };
     return ids.map((student_id) => ({
         student_id,
         date: data.date,
         reason: data.reason,
-        reason_accepted: data.reason_accepted,
-        late_by: (data as LatenessInfo).late_by,
-        start_time: (data as LatenessInfo).start_time
+        subject: (data as InfractionInfo).subject,
+        start_time: (data as LatenessInfo).start_time,
+        minutes_after_start: (data as InfractionInfo).minutes_after_start,
+
     })) as NewEvent<T>[];
-};
+}
 
 const createDefaultEventData = <T extends EventTypes>(
     eventType: T
@@ -348,18 +370,33 @@ const createDefaultEventData = <T extends EventTypes>(
             !fastMode && lastEventValues.value.reason
                 ? lastEventValues.value.reason
                 : defaultReason,
-        reason_accepted:
-            !fastMode && lastEventValues.value.reason
-                ? lastEventValues.value.reason_accepted
-                : reasonAcceptedByDefault
     } as EventInfo<T>;
+
+    const reason_accepted = !fastMode && lastEventValues.value.reason
+        ? lastEventValues.value.reason_accepted
+        : reasonAcceptedByDefault
+
+    const afterStartMinutes = dynamicTime
+        ? minutesAfterMidnight(new Date()) - defaultStartTime
+        : defaultLateBy
 
     if (eventType === 'lateness') {
         return {
             ...base,
-            late_by: dynamicTime
-                ? minutesAfterMidnight(new Date()) - defaultStartTime
-                : defaultLateBy
+            reason_accepted,
+            late_by: afterStartMinutes
+        } as EventInfo<T>;
+    }
+    else if (eventType == "absence") {
+        return {
+            ...base,
+            reason_accepted,
+        } as EventInfo<T>;
+    }
+    else if (eventType === 'Infraction') {
+        return {
+            ...base,
+            minutes_after_start: afterStartMinutes
         } as EventInfo<T>;
     }
 
