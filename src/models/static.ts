@@ -219,6 +219,16 @@ export const userFeedbackMessages = {
     deleteSuccess: "تم حذف التأخر بنجاح",
     deleteFailed: "حدث خطأ أثناء حذف التأخر",
   },
+  infraction: {
+  addSuccess: "تم تسجيل المخالفة بنجاح",
+  addFailed: "حدث خطأ أثناء تسجيل المخالفة",
+  fetchSuccess: "تم تحميل بيانات المخالفات بنجاح",
+  fetchFailed: "حدث خطأ أثناء تحميل بيانات المخالفات",
+  updateSuccess: "تم تحديث المخالفة بنجاح",
+  updateFailed: "حدث خطأ أثناء تحديث المخالفة",
+  deleteSuccess: "تم حذف المخالفة بنجاح",
+  deleteFailed: "حدث خطأ أثناء حذف المخالفة",
+},
   season: {
     addSuccess: "تمت إضافة الموسم الدراسي بنجاح",
     addFailed: "حدث خطأ أثناء إضافة الموسم الدراسي",
