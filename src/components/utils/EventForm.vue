@@ -4,11 +4,12 @@
 
         <Form :initialValues="formatEventObject()" v-slot="$form" :resolver="resolver" @submit="onFormSubmit"
             class="flex flex-col gap-4 w-full sm:w-80">
+
             <!-- Event Date -->
             <div class="flex flex-col gap-1">
                 <FloatLabel variant="on">
                     <DatePicker name="date" fluid showIcon />
-                    <label>تاريخ ال{{ eventTypeInArabic }}</label>
+                    <label>تاريخ  {{ eventTypeInArabic }}</label>
                 </FloatLabel>
                 <Message v-if="$form.date?.invalid" severity="error" size="small" variant="simple">
                     {{ $form.date.error?.message }}
@@ -36,6 +37,16 @@
                     {{ $form.late_by.error?.message }}
                 </Message>
             </div>
+            <!-- For infraction only : used to populate minutes_after_start-->
+            <div v-if="props.eventType == 'Infraction'" class="flex flex-col gap-1">
+                <FloatLabel variant="on">
+                    <DatePicker name="minutes_after_start" fluid timeOnly />
+                    <label>وقت تجيل المخالفة</label>
+                </FloatLabel>
+                <Message v-if="$form.minutes_after_start?.invalid" severity="error" size="small" variant="simple">
+                    {{ $form.minutes_after_start.error?.message }}
+                </Message>
+            </div>
 
             <!-- Reason -->
             <div class="flex flex-col gap-1">
@@ -44,14 +55,23 @@
                     placeholder="سبب الغياب" :showEmptyMessage="false" fluid /> -->
                 <FloatLabel variant="on">
                     <InputText name="reason" type="text" fluid />
-                    <label>سبب التأخر</label>
+                    <label>سبب  {{ eventTypeInArabic }}</label>
                 </FloatLabel>
                 <Message v-if="$form.reason?.invalid" severity="error" size="small" variant="simple">{{
                     $form.reason.error.message }}</Message>
             </div>
 
-            <!-- reason accepted -->
-            <div class="flex flex-col gap-1" v-if="props.eventType == 'lateness' || 'absence'">
+            <!-- Subject for infractions only -->
+            <div v-if="props.eventType === 'Infraction'" class="flex flex-col gap-1">
+                <FloatLabel variant="on">
+                    <InputText name="subject" type="text" fluid />
+                    <label>المادة</label>
+                </FloatLabel>
+                <Message v-if="$form.subject?.invalid" severity="error" size="small" variant="simple">{{
+                    $form.subject.error.message }}</Message>
+            </div>
+            <!-- reason accepted for lateness/ absence-->
+            <div v-else class="flex flex-col gap-1" >
                 <span>قبول العذر: </span>
                 <SelectButton name="reason_accepted" :options="sqliteBoolean" optionLabel="label" optionValue="value" />
                 <Message v-if="$form.reason_accepted?.invalid" severity="error" size="small" variant="simple">
@@ -122,8 +142,6 @@ const emit = defineEmits<{
 
 const eventTypeInArabic = computed(() => eventTypesArabicDict[props.eventType])
 
-
-
 const absenceInfoZodSchema = absenceSchema
     .omit({ id: true, student_id: true })
     .extend({
@@ -183,7 +201,6 @@ const schemaMap = {
 
 const schema = computed(() => schemaMap[props.eventType])
 const resolver = computed(() => zodResolver(schema.value))
-
 
 const onFormSubmit = (event: FormSubmitEvent) => {
     if (!event.valid) return

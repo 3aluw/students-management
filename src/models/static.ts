@@ -20,9 +20,9 @@ import type {
 } from "./types";
 
 export const eventTypesArabicDict = {
-  lateness: "تأخر",
-  absence: "غياب",
-  Infraction: "مخالفة",
+  lateness: "التأخر",
+  absence: "الغياب",
+  Infraction: "المخالفة",
 } as const satisfies Record<EventTypes, string>;
 
 export const genderOptions = [
