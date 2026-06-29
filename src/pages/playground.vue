@@ -28,7 +28,7 @@
                             @click="createEvent('absence', selectedStudents.map(student => student.id))"
                             :disabled="!selectedStudents || !selectedStudents.length" />
                         <Button label="مخالفة" icon="pi pi-ban" iconPos="right" severity="secondary" class="mx-2"
-                            @click="createEvent('Infraction', selectedStudents.map(student => student.id))"
+                            @click="createEvent('infraction', selectedStudents.map(student => student.id))"
                             :disabled="!selectedStudents || !selectedStudents.length" />
 
                     </template>
@@ -393,7 +393,7 @@ const createDefaultEventData = <T extends EventTypes>(
             reason_accepted,
         } as EventInfo<T>;
     }
-    else if (eventType === 'Infraction') {
+    else if (eventType === 'infraction') {
         return {
             ...base,
             minutes_after_start: minutesOffset

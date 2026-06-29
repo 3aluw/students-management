@@ -52,7 +52,7 @@
     </div>
     <Dialog header="أدخل معلومات المخالفة" @hide="infractionToEdit = undefined" v-model:visible="showInfractionDialog"
       :style="{ width: '350px' }" :modal="true">
-      <UtilsEventForm eventType="Infraction" :entityObject="infractionToEdit!" @submit="handleInfractionSubmit" />
+      <UtilsEventForm eventType="infraction" :entityObject="infractionToEdit!" @submit="handleInfractionSubmit" />
     </Dialog>
     <UtilsConfirmDialog header="حذف الغياب" :danger="true" v-model="useDeleteConfirm.showConfirm.value"
       @confirm="useDeleteConfirm.confirmAction" />
