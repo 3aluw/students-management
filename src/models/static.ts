@@ -14,8 +14,17 @@ import type {
   StudentStatus,
   XLSXStudent,
   XLSXLateness,
-  XLSXAbsence
+  XLSXAbsence,
+  Infraction,
+  EventType,
+  XLSXInfraction,
 } from "./types";
+
+export const eventTypesArabicDict = {
+  lateness: "التأخر",
+  absence: "الغياب",
+  infraction: "المخالفة",
+} as const satisfies Record<EventType, string>;
 
 export const genderOptions = [
   { label: "ذكر", value: "M" },
@@ -40,7 +49,7 @@ export const seasonDateFilterOptions = [
   { label: "هذا الفصل", value: "this term" },
   { label: "الفصل السابق", value: "last term" },
   { label: "الموسم  السابق", value: "last season" },
-] as const satisfies Option<SupportedDateRanges>[]
+] as const satisfies Option<SupportedDateRanges>[];
 
 export const statusFilterOptions = [
   { label: "متخرج", value: "graduated" },
@@ -68,7 +77,7 @@ export const ArabicStudentProperties = {
   phone_number: "رقم الهاتف",
   birth_date: "تاريخ الميلاد",
   address: "العنوان",
-  exited_at: "تاريخ المغادرة"
+  exited_at: "تاريخ المغادرة",
 } as const satisfies Record<keyof Student, string>;
 
 export const ArabicClassProperties: Record<keyof Class, string> = {
@@ -96,11 +105,22 @@ export const ArabicAbsenceProperties = {
   reason_accepted: "قبول السبب",
 } as const satisfies Record<keyof Absence, string>;
 
-export const ArabicSchoolSeasonProperties: Record<keyof SchoolSeason, string> = {
+export const ArabicInfractionsProperties = {
   id: "المعرف",
-  name: "اسم الموسم الدراسي",
-  terms: "الفصول الدراسية",
-};
+  student_id: "معرف الطالب",
+  date: "التاريخ",
+  start_time: "وقت بداية الحصة",
+  minutes_after_start: "وقت تسجيل المخالفة",
+  reason: "السبب",
+  subject: "المادة",
+} as const satisfies Record<keyof Infraction, string>;
+
+export const ArabicSchoolSeasonProperties: Record<keyof SchoolSeason, string> =
+  {
+    id: "المعرف",
+    name: "اسم الموسم الدراسي",
+    terms: "الفصول الدراسية",
+  };
 
 export const ArabicSchoolTermProperties: Record<keyof SchoolTerm, string> = {
   name: "اسم الفصل",
@@ -113,15 +133,16 @@ export const arabicProperties: Record<AllEntitiesKeys, string> = {
   ...ArabicClassProperties,
   ...ArabicLatenessProperties,
   ...ArabicAbsenceProperties,
+  ...ArabicInfractionsProperties,
   ...ArabicSchoolSeasonProperties,
   ...ArabicSchoolTermProperties,
-}
+};
 export const ArabicStudentStatus: Record<StudentStatus, string> = {
   active: "نشط",
   graduated: "متخرج",
   transferred: "محوّل",
   dropped: "منسحب",
-}
+};
 export const ArabicSchoolLevels: Record<SchoolLevel, string> = {
   primary: "ابتدائي",
   middle: "متوسط",
@@ -177,9 +198,9 @@ export const userFeedbackMessages = {
   },
   absence: {
     addSuccess: "تم تسجيل الغياب بنجاح",
-    partialAddSuccess: 'عدد الغيابات التي تم تسجيلها : ',
+    partialAddSuccess: "عدد الغيابات التي تم تسجيلها : ",
     addFailed: "حدث خطأ أثناء تسجيل الغياب",
-    partialAddFailed: 'لم يتم تسجيل الغياب ل:  ',
+    partialAddFailed: "لم يتم تسجيل الغياب ل:  ",
     fetchSuccess: "تم تحميل بيانات الغيابات بنجاح",
     fetchFailed: "حدث خطأ أثناء تحميل بيانات الغيابات",
     updateSuccess: "تم تحديث الغياب بنجاح",
@@ -189,9 +210,9 @@ export const userFeedbackMessages = {
   },
   lateness: {
     addSuccess: "تم تسجيل التأخر بنجاح",
-    partialAddSuccess: 'عدد التأخرات التي تم تسجيلها : ',
+    partialAddSuccess: "عدد التأخرات التي تم تسجيلها : ",
     addFailed: "حدث خطأ أثناء تسجيل التأخر",
-    partialAddFailed: 'لم يتم تسجيل التأخر ل : ',
+    partialAddFailed: "لم يتم تسجيل التأخر ل : ",
     fetchSuccess: "تم تحميل بيانات التأخرات بنجاح",
     fetchFailed: "حدث خطأ أثناء تحميل بيانات التأخرات",
     updateSuccess: "تم تحديث التأخر بنجاح",
@@ -199,6 +220,16 @@ export const userFeedbackMessages = {
     deleteSuccess: "تم حذف التأخر بنجاح",
     deleteFailed: "حدث خطأ أثناء حذف التأخر",
   },
+  infraction: {
+  addSuccess: "تم تسجيل المخالفة بنجاح",
+  addFailed: "حدث خطأ أثناء تسجيل المخالفة",
+  fetchSuccess: "تم تحميل بيانات المخالفات بنجاح",
+  fetchFailed: "حدث خطأ أثناء تحميل بيانات المخالفات",
+  updateSuccess: "تم تحديث المخالفة بنجاح",
+  updateFailed: "حدث خطأ أثناء تحديث المخالفة",
+  deleteSuccess: "تم حذف المخالفة بنجاح",
+  deleteFailed: "حدث خطأ أثناء حذف المخالفة",
+},
   season: {
     addSuccess: "تمت إضافة الموسم الدراسي بنجاح",
     addFailed: "حدث خطأ أثناء إضافة الموسم الدراسي",
@@ -210,11 +241,10 @@ export const userFeedbackMessages = {
     deleteFailed: "حدث خطأ أثناء حذف الموسم الدراسي",
   },
 };
-export const toGraduateClass: Pick<Class, 'section' | 'id'> = {
+export const toGraduateClass: Pick<Class, "section" | "id"> = {
   id: -1,
-  section: 'المتخرجون'
-}
-
+  section: "المتخرجون",
+};
 
 // ============== XLSX files arabic properties ====================
 export const ArabicXLSXStudentProperties = {
@@ -237,7 +267,6 @@ export const ArabicXLSXLatenessProperties = {
   late_by: "مدة التأخر (بالدقائق)",
   reason: "السبب",
   reason_accepted: "قبول العذر",
-
 } as const satisfies Record<keyof XLSXLateness, string>;
 
 export const ArabicXLSXcAbsenceProperties = {
@@ -248,3 +277,12 @@ export const ArabicXLSXcAbsenceProperties = {
   reason: "السبب",
   reason_accepted: "قبول السبب",
 } as const satisfies Record<keyof XLSXAbsence, string>;
+
+export const ArabicXLSXInfractionProperties = {
+  first_name: "الاسم",
+  last_name: "اللقب",
+  class: "القسم",
+  date: "التاريخ",
+  reason: "السبب",
+  subject : "المادة"
+} as const satisfies Record<keyof XLSXInfraction, string>;

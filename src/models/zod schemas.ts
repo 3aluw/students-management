@@ -4,17 +4,21 @@ import type {
   ActiveStudent,
   BaseStudent,
   BatchEditAbsence,
+  BatchEditInfraction,
   BatchEditLateness,
   BatchEditStudent,
   Class,
   EditClass,
+  EditInfraction,
   EditLateness,
   EditSchoolSeason,
   EditStudent,
   InactiveStudent,
+  Infraction,
   Lateness,
   NewAbsence,
   NewClass,
+  NewInfraction,
   NewLateness,
   NewSchoolSeason,
   NewSeasonPayload,
@@ -110,7 +114,7 @@ export const studentSchemas = {
   newStudentSchema,
   editStudentSchema,
   batchEditStudentSchema,
-  newXLSXStudentSchema
+  newXLSXStudentSchema,
 };
 
 // ========== Class schemas ==========
@@ -140,7 +144,7 @@ const latenessSchema = z.object({
   id: z.number({ error: getRequiredFieldMessage("id") }),
   student_id: z.number({ error: getRequiredFieldMessage("student_id") }),
   date: z.number({ error: getRequiredFieldMessage(" التاريخ") }),
-  reason: z.string().min(5, { message: "يجب إدخال سبب الغياب" }),
+  reason: z.string().min(5, { message: "نص قصير، يجب إدخال سبب التأخر كاملا" }),
   reason_accepted: z.literal([0, 1]),
   late_by: z.number({ error: getRequiredFieldMessage("مدة التأخر") }), // it will be used to insert the time of enter then transformed to minutes after shift start
   start_time: z.number({ error: getRequiredFieldMessage("وقت البدء") }),
@@ -160,6 +164,42 @@ export const latenessSchemas = {
   newLatenessSchema,
   editLatenessSchema,
   batchEditLatenessSchema,
+};
+
+// ========== Infraction schemas ==========
+
+const infractionSchema = z.object({
+  id: z.number({ error: getRequiredFieldMessage("id") }),
+  student_id: z.number({ error: getRequiredFieldMessage("student_id") }),
+  date: z.number({ error: getRequiredFieldMessage(" date") }),
+  reason: z
+    .string()
+    .min(5, { message: "نص قصير، يجب إدخال سبب المخالفة كاملا " }),
+  minutes_after_start: z.number({
+    error: getRequiredFieldMessage("وقت المخالفة"),
+  }), // it will be used to insert the time of enter then transformed to minutes after shift start
+  start_time: z.number({ error: getRequiredFieldMessage("وقت البدء") }),
+  subject: z.string({ error: getRequiredFieldMessage("subject") }),
+}) satisfies z.ZodType<Infraction>;
+const newInfractionSchema = infractionSchema.omit({
+  id: true,
+}) satisfies z.ZodType<NewInfraction>;
+
+const editInfractionSchema = infractionSchema
+  .partial()
+  .required({ id: true }) satisfies z.ZodType<EditInfraction>;
+
+const batchEditInfractionSchema = editInfractionSchema
+  .omit({ id: true })
+  .extend({
+    ids: z.array(z.number()),
+  }) satisfies z.ZodType<BatchEditInfraction>;
+
+export const infractionSchemas = {
+  infractionSchema,
+  newInfractionSchema,
+  editInfractionSchema,
+  batchEditInfractionSchema,
 };
 
 // ========== absence schemas ==========

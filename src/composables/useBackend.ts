@@ -8,17 +8,21 @@ import type {
   NewStudent,
   EditStudent,
   BatchEditStudent,
-  LocalAbsence,
   Absence,
   BatchEditAbsence,
   EditAbsence,
-  LocalLateness,
   Lateness,
   NewAbsence,
   NewLateness,
   SchoolSeason,
   EditSchoolSeason,
   NewSeasonPayload,
+  Infraction,
+  EditLateness,
+  BatchEditLateness,
+  NewInfraction,
+  BatchEditInfraction,
+  EditInfraction,
 } from "~/models/types";
 
 export default function () {
@@ -133,7 +137,7 @@ export default function () {
       body,
     });
   };
-  const updateLateness = (body: BatchEditAbsence | EditAbsence) => {
+  const updateLateness = (body: BatchEditLateness | EditLateness) => {
     return $fetch("/api/lateness", {
       method: "POST",
       body,
@@ -141,6 +145,34 @@ export default function () {
   };
   const deleteLateness = (body: Lateness["id"][]) => {
     return $fetch(`/api/lateness/`, {
+      method: "DELETE",
+      body,
+    });
+  };
+
+  // ========== infraction functions ==========
+  const getInfractions = (params: EventQueryFilters) => {
+    return $fetch(
+      `/api/infraction`,
+      {
+        params,
+      },
+    );
+  };
+  const insertInfractions = (body: NewInfraction[]) => {
+    return $fetch("/api/infraction", {
+      method: "POST",
+      body,
+    });
+  };
+  const updateInfractions = (body: BatchEditInfraction | EditInfraction) => {
+    return $fetch("/api/infraction", {
+      method: "POST",
+      body,
+    });
+  };
+  const deleteInfractions = (body: Infraction["id"][]) => {
+    return $fetch(`/api/infraction/`, {
       method: "DELETE",
       body,
     });
@@ -185,6 +217,10 @@ export default function () {
     insertLateness,
     updateLateness,
     deleteLateness,
+    getInfractions,
+    updateInfractions,
+    insertInfractions,
+    deleteInfractions,
     getSeasons,
     createSeason,
     updateSeasons,

@@ -5,11 +5,12 @@ import AppMenuItem from './AppMenuItem.vue';
 
 const model = ref([
     {
-        label: 'الغياب والتأخر',
+        label: 'الأحداث',
         items: [
             { label: 'ساحة العمل', icon: 'pi pi-fw pi-briefcase', to: '/playground' },
-            { label: 'الإبطاءات', icon: 'pi pi-fw pi-clock', to: '/lateness' },
             { label: 'الغيابات', icon: 'pi pi-fw pi-ban', to: '/absences' },
+            { label: 'الإبطاءات', icon: 'pi pi-fw pi-clock', to: '/lateness' },
+            { label: 'المخالفات', icon: 'pi pi-fw pi-times', to: '/infractions' },
 
         ]
     },

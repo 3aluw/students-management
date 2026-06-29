@@ -1,6 +1,7 @@
 import type { ZodError } from "zod";
 import {
   ArabicXLSXcAbsenceProperties,
+  ArabicXLSXInfractionProperties,
   ArabicXLSXLatenessProperties,
   ArabicXLSXStudentProperties,
 } from "./static";
@@ -21,7 +22,7 @@ type BatchEdit<T extends AllEntitiesUnion> = T extends any
 
 export type DataTableSlot<T> = { data: T };
 
-//     Entities Types
+//  ======================   Entities Types  ======================
 /**
  * Represents a row in the `class` table.
  */
@@ -33,7 +34,7 @@ export interface Class {
 }
 
 /**
- * Represents a row in the `student` table.
+ * A row in the `student` table.
  */
 
 type InactiveStudentStatus = "graduated" | "dropped" | "transferred";
@@ -52,17 +53,13 @@ export interface BaseStudent {
 
 export interface ActiveStudent extends BaseStudent {
   status: "active";
-
   class_id: number;
-
   exited_at?: null;
 }
 
 export interface InactiveStudent extends BaseStudent {
   status: InactiveStudentStatus;
-
   class_id: null;
-
   exited_at: number;
 }
 /**
@@ -78,7 +75,7 @@ export interface Lateness {
   student_id: number; // FOREIGN KEY -> student.id
   date: number; // INT (timestamp)
   start_time: number; // session start time (minutes since midnight)
-  late_by: number; // INT NOT NULL (minutes, presumably)
+  late_by: number; // INT NOT NULL (minutes after start_time)
   reason: string | null; // TEXT (nullable)
   reason_accepted: 1 | 0; // BOOLEAN DEFAULT FALSE
 }
@@ -93,6 +90,19 @@ export interface Absence {
   start_time: number; // session start time (minutes since midnight)
   reason: string | null; // TEXT (nullable)
   reason_accepted: 1 | 0; // BOOLEAN DEFAULT FALSE
+}
+
+/**
+ * Represents a row in the `infraction` table.
+ */
+export interface Infraction {
+  id: number; // PRIMARY KEY AUTOINCREMENT
+  student_id: number; // FOREIGN KEY -> student.id
+  date: number; // INT (timestamp)
+  start_time: number; // session start time (minutes since midnight)
+  minutes_after_start: number; // INT NOT NULL (minutes after start_time)
+  reason: string | null; // TEXT (nullable)
+  subject: string | null; // TEXT (nullable)
 }
 
 export interface SchoolSeason {
@@ -112,11 +122,13 @@ export type AllEntitiesUnion =
   | Class
   | Absence
   | Lateness
+  | Infraction
   | SchoolSeason;
 export type AllEntitiesKeys = keyof (Student &
   Class &
   Absence &
   Lateness &
+  Infraction &
   SchoolSeason &
   SchoolTerm);
 
@@ -124,20 +136,24 @@ export type NewStudent = NewEntity<ActiveStudent>;
 export type NewClass = NewEntity<Class>;
 export type NewLateness = NewEntity<Lateness>;
 export type NewAbsence = NewEntity<Absence>;
+export type NewInfraction = NewEntity<Infraction>;
 export type NewSchoolSeason = NewEntity<SchoolSeason>;
 
 export type EditStudent = PartialExceptId<Student>;
 export type EditClass = PartialExceptId<Class>;
 export type EditLateness = PartialExceptId<Lateness>;
 export type EditAbsence = PartialExceptId<Absence>;
+export type EditInfraction = PartialExceptId<Infraction>;
 export type EditSchoolSeason = PartialExceptId<SchoolSeason>;
 
 export type BatchEditStudent = BatchEdit<Student>;
 export type BatchEditAbsence = BatchEdit<Absence>;
 export type BatchEditLateness = BatchEdit<Lateness>;
+export type BatchEditInfraction = BatchEdit<Infraction>;
 
 export type AbsenceInfo = Omit<Absence, "student_id" | "id">;
 export type LatenessInfo = Omit<Lateness, "student_id" | "id">;
+export type InfractionInfo = Omit<Infraction, "student_id" | "id">;
 
 export type LocalAbsence = Absence & {
   first_name: string;
@@ -150,7 +166,13 @@ export type LocalLateness = Lateness & {
   class_id: number;
 } & Omit<Class, "id">;
 
-export type EventTypes = "lateness" | "absence";
+export type LocalInfraction = Infraction & {
+  first_name: string;
+  last_name: string;
+  class_id: number;
+} & Omit<Class, "id">;
+
+export type EventType = "lateness" | "absence" | "infraction";
 export type Gender = "M" | "F";
 export type SchoolLevel = "primary" | "middle" | "high";
 export type StudentStatus = "active" | "graduated" | "dropped" | "transferred";
@@ -308,9 +330,26 @@ export type XLSXLateness = Omit<
   date: Date;
   reason_accepted: boolean;
 };
+export type XLSXInfraction = Omit<
+  LocalInfraction,
+  | "id"
+  | "student_id"
+  | "date"
+  | "start_time"
+  | "reason_accepted"
+  | "minutes_after_start"
+  | "section"
+  | "class_id"
+  | "grade"
+  | "school_level"
+> & {
+  class: string;
+  date: Date;
+};
 
-export type XLSXType = XLSXAbsence | XLSXLateness | XLSXStudent;
+export type XLSXType = XLSXAbsence | XLSXLateness | XLSXStudent | XLSXInfraction;
 export type ArabicXLSXType =
   | InArabic<XLSXAbsence, typeof ArabicXLSXcAbsenceProperties>
   | InArabic<XLSXLateness, typeof ArabicXLSXLatenessProperties>
+  | InArabic<XLSXInfraction, typeof ArabicXLSXInfractionProperties>
   | InArabic<XLSXStudent, typeof ArabicXLSXStudentProperties>;

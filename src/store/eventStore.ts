@@ -3,12 +3,14 @@ import type {
   LocalAbsence,
   EventQueryFilters,
   LocalLateness,
+  LocalInfraction,
 } from "~/models/types";
 export const useEventStore = defineStore("eventStore", () => {
   const backend = useBackend();
 
   const lateness = ref<LocalLateness[]>([]);
   const absences = ref<LocalAbsence[]>([]);
+  const infractions = ref<LocalInfraction[]>([]);
 
   const populateAbsences = async (query: EventQueryFilters) => {
     const { absences: dbAbsences, total } = await backend.getAbsences(query);
@@ -20,8 +22,21 @@ export const useEventStore = defineStore("eventStore", () => {
     lateness.value = dbLateness;
     return total;
   };
+  const populateInfractions = async (query: EventQueryFilters) => {
+    const { infractions: dbInfraction, total } =
+      await backend.getInfractions(query);
+    infractions.value = dbInfraction;
+    return total;
+  };
 
-  return { lateness, absences, populateAbsences, populateLateness };
+  return {
+    lateness,
+    absences,
+    infractions,
+    populateAbsences,
+    populateLateness,
+    populateInfractions,
+  };
 });
 
 if (import.meta.hot) {

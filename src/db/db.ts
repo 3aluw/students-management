@@ -8,8 +8,9 @@ const db = new Database(dbPath);
 
 // Example: create a table if it doesn't exist
 
-//Create class table if not existent 
-db.prepare(`
+//Create class table if not existent
+db.prepare(
+  `
   CREATE TABLE IF NOT EXISTS class (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     grade INT NOT NULL,
@@ -17,8 +18,8 @@ db.prepare(`
     section TEXT NOT NULL,
     UNIQUE (school_level, grade, section)
   )
-`).run();
-
+`,
+).run();
 
 //Create student table if not existent
 db.prepare(
@@ -45,9 +46,8 @@ db.prepare(
     ON DELETE CASCADE,
     UNIQUE (first_name, last_name, father_name, grandfather_name, birth_date)
   )
-`
+`,
 ).run();
-
 
 db.prepare(
   `
@@ -62,9 +62,8 @@ db.prepare(
     FOREIGN KEY (student_id) REFERENCES student(id),
     UNIQUE(student_id, date, late_by, start_time)
   )
-`
+`,
 ).run();
-
 
 db.prepare(
   `
@@ -78,7 +77,23 @@ db.prepare(
     FOREIGN KEY (student_id) REFERENCES student(id),
     UNIQUE(student_id, date)
   )
-`
+`,
+).run();
+
+db.prepare(
+  `
+  CREATE TABLE IF NOT EXISTS infraction (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_id INTEGER NOT NULL,
+    date INTEGER NOT NULL,
+    start_time INTEGER NOT NULL,
+    minutes_after_start INTEGER NOT NULL,
+    reason TEXT,
+    subject TXT,
+    FOREIGN KEY (student_id) REFERENCES student(id),
+    UNIQUE(student_id, date, start_time,minutes_after_start)
+  )
+`,
 ).run();
 
 db.prepare(
@@ -89,9 +104,8 @@ CREATE TABLE IF NOT EXISTS season (
   terms TEXT NOT NULL -- JSON array of SchoolTerm objects
    CHECK (json_valid(terms)) 
 );
-`
+`,
 ).run();
-
 
 /* db.prepare(`
 INSERT INTO student (
@@ -112,11 +126,10 @@ INSERT INTO student (
 `).run();
  */
 
- 
 // DROP TABLES
 //db.prepare('DROP TABLE class').run()
 //db.prepare('DROP TABLE student').run()
 //db.prepare('DROP TABLE Lateness').run()
-//db.prepare('DROP TABLE absence').run() 
+//db.prepare('DROP TABLE absence').run()
 
 export default db;
