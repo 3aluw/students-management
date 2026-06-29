@@ -89,7 +89,7 @@
 <script setup lang="ts" generic="T extends EventType">
 import { sqliteBoolean, commonReasons, eventTypesArabicDict } from '~/models/static';
 import { zodResolver } from '@primevue/forms/resolvers/zod';
-import { z, type ZodSchema } from 'zod';
+import { z} from 'zod';
 import { useToast } from 'primevue/usetoast';
 import type { AbsenceInfo, LatenessInfo, EventType, InfractionInfo } from '~/models/types';
 import type { FormSubmitEvent } from "@primevue/forms"
@@ -197,7 +197,7 @@ const schemaMap = {
     absence: absenceInfoZodSchema,
     lateness: latenessInfoZodSchema,
     infraction: infractionInfoZodSchema
-} as const satisfies Record<EventType, ZodSchema>
+} as const satisfies Record<EventType, z.ZodType>
 
 const schema = computed(() => schemaMap[props.eventType])
 const resolver = computed(() => zodResolver(schema.value))
