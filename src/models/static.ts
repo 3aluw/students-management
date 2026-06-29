@@ -17,6 +17,7 @@ import type {
   XLSXAbsence,
   Infraction,
   EventTypes,
+  XLSXInfraction,
 } from "./types";
 
 export const eventTypesArabicDict = {
@@ -276,3 +277,12 @@ export const ArabicXLSXcAbsenceProperties = {
   reason: "السبب",
   reason_accepted: "قبول السبب",
 } as const satisfies Record<keyof XLSXAbsence, string>;
+
+export const ArabicXLSXInfractionProperties = {
+  first_name: "الاسم",
+  last_name: "اللقب",
+  class: "القسم",
+  date: "التاريخ",
+  reason: "السبب",
+  subject : "المادة"
+} as const satisfies Record<keyof XLSXInfraction, string>;
