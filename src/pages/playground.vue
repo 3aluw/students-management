@@ -376,7 +376,7 @@ const createDefaultEventData = <T extends EventTypes>(
         ? lastEventValues.value.reason_accepted
         : reasonAcceptedByDefault
 
-    const afterStartMinutes = dynamicTime
+    const minutesOffset = dynamicTime
         ? minutesAfterMidnight(new Date()) - defaultStartTime
         : defaultLateBy
 
@@ -384,7 +384,7 @@ const createDefaultEventData = <T extends EventTypes>(
         return {
             ...base,
             reason_accepted,
-            late_by: afterStartMinutes
+            late_by: minutesOffset
         } as EventInfo<T>;
     }
     else if (eventType == "absence") {
@@ -396,7 +396,7 @@ const createDefaultEventData = <T extends EventTypes>(
     else if (eventType === 'Infraction') {
         return {
             ...base,
-            minutes_after_start: afterStartMinutes
+            minutes_after_start: minutesOffset
         } as EventInfo<T>;
     }
 
