@@ -1,6 +1,7 @@
 import type { ZodError } from "zod";
 import {
   ArabicXLSXcAbsenceProperties,
+  ArabicXLSXInfractionProperties,
   ArabicXLSXLatenessProperties,
   ArabicXLSXStudentProperties,
 } from "./static";
@@ -329,9 +330,26 @@ export type XLSXLateness = Omit<
   date: Date;
   reason_accepted: boolean;
 };
+export type XLSXInfraction = Omit<
+  LocalInfraction,
+  | "id"
+  | "student_id"
+  | "date"
+  | "start_time"
+  | "reason_accepted"
+  | "minutes_after_start"
+  | "section"
+  | "class_id"
+  | "grade"
+  | "school_level"
+> & {
+  class: string;
+  date: Date;
+};
 
-export type XLSXType = XLSXAbsence | XLSXLateness | XLSXStudent;
+export type XLSXType = XLSXAbsence | XLSXLateness | XLSXStudent | XLSXInfraction;
 export type ArabicXLSXType =
   | InArabic<XLSXAbsence, typeof ArabicXLSXcAbsenceProperties>
   | InArabic<XLSXLateness, typeof ArabicXLSXLatenessProperties>
+  | InArabic<XLSXInfraction, typeof ArabicXLSXInfractionProperties>
   | InArabic<XLSXStudent, typeof ArabicXLSXStudentProperties>;
