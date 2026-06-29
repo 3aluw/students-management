@@ -38,7 +38,7 @@
                 </Message>
             </div>
             <!-- For infraction only : used to populate minutes_after_start-->
-            <div v-if="props.eventType == 'Infraction'" class="flex flex-col gap-1">
+            <div v-if="props.eventType == 'infraction'" class="flex flex-col gap-1">
                 <FloatLabel variant="on">
                     <DatePicker name="minutes_after_start" fluid timeOnly />
                     <label>وقت تجيل المخالفة</label>
@@ -62,7 +62,7 @@
             </div>
 
             <!-- Subject for infractions only -->
-            <div v-if="props.eventType === 'Infraction'" class="flex flex-col gap-1">
+            <div v-if="props.eventType === 'infraction'" class="flex flex-col gap-1">
                 <FloatLabel variant="on">
                     <InputText name="subject" type="text" fluid />
                     <label>المادة</label>
@@ -86,12 +86,12 @@
 
 </template>
 
-<script setup lang="ts" generic="T extends EventTypes">
+<script setup lang="ts" generic="T extends EventType">
 import { sqliteBoolean, commonReasons, eventTypesArabicDict } from '~/models/static';
 import { zodResolver } from '@primevue/forms/resolvers/zod';
 import { z, type ZodSchema } from 'zod';
 import { useToast } from 'primevue/usetoast';
-import type { AbsenceInfo, LatenessInfo, EventTypes, InfractionInfo } from '~/models/types';
+import type { AbsenceInfo, LatenessInfo, EventType, InfractionInfo } from '~/models/types';
 import type { FormSubmitEvent } from "@primevue/forms"
 import { absenceSchemas, latenessSchemas, infractionSchemas } from "~/models/zod schemas"
 import { parseEventTimeInfo } from "~/service/event"
@@ -129,7 +129,7 @@ const formatEventObject = () => {
     }
 }
 
-type EventInfo<T extends EventTypes> = T extends 'absence' ? AbsenceInfo : T extends 'lateness' ? LatenessInfo : InfractionInfo
+type EventInfo<T extends EventType> = T extends 'absence' ? AbsenceInfo : T extends 'lateness' ? LatenessInfo : InfractionInfo
 
 const props = defineProps<{
     eventType: T;
@@ -196,8 +196,8 @@ const infractionInfoZodSchema = infractionSchema
 const schemaMap = {
     absence: absenceInfoZodSchema,
     lateness: latenessInfoZodSchema,
-    Infraction: infractionInfoZodSchema
-} as const satisfies Record<EventTypes, ZodSchema>
+    infraction: infractionInfoZodSchema
+} as const satisfies Record<EventType, ZodSchema>
 
 const schema = computed(() => schemaMap[props.eventType])
 const resolver = computed(() => zodResolver(schema.value))

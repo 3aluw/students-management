@@ -105,7 +105,7 @@ import { useToast } from 'primevue/usetoast';
 import type {
     Student,
     PlaygroundSettings,
-    EventTypes,
+    EventType,
     AbsenceInfo,
     LatenessInfo,
     NewLateness,
@@ -139,10 +139,10 @@ const {
 /*                              Types helpers                                 */
 /* -------------------------------------------------------------------------- */
 
-type EventInfo<T extends EventTypes> = T extends 'absence' ? AbsenceInfo : T extends 'lateness' ? LatenessInfo : InfractionInfo
+type EventInfo<T extends EventType> = T extends 'absence' ? AbsenceInfo : T extends 'lateness' ? LatenessInfo : InfractionInfo
 
 
-type NewEvent<T extends EventTypes> =
+type NewEvent<T extends EventType> =
     T extends 'absence' ? NewAbsence : T extends 'lateness' ? NewLateness : NewInfraction;
 
 /* -------------------------------------------------------------------------- */
@@ -187,7 +187,7 @@ const displaySelectedStudentsDialog = ref(false);
 /* -------------------------------------------------------------------------- */
 
 const showEventDialog = ref(false);
-const selectedEventType = ref<EventTypes>('lateness');
+const selectedEventType = ref<EventType>('lateness');
 
 const eventTypeInArabic = computed(() => eventTypesArabicDict[selectedEventType.value])
 
@@ -243,7 +243,7 @@ watchDebounced(
 /*                              Event Flow                                    */
 /* -------------------------------------------------------------------------- */
 
-const createEvent = <T extends EventTypes>(
+const createEvent = <T extends EventType>(
     eventType: T,
     ids: number[]
 ) => {
@@ -259,7 +259,7 @@ const createEvent = <T extends EventTypes>(
     showEventDialog.value = true;
 };
 
-const handleEventSubmit = <T extends EventTypes>(
+const handleEventSubmit = <T extends EventType>(
     data: EventInfo<T>
 ) => {
     const eventType = selectedEventType.value as T;
@@ -278,7 +278,7 @@ const handleEventSubmit = <T extends EventTypes>(
 /*                              Core API                                      */
 /* -------------------------------------------------------------------------- */
 
-const postEvent = async <T extends EventTypes>(
+const postEvent = async <T extends EventType>(
     eventType: T,
     ids: number[],
     data: EventInfo<T>
@@ -316,7 +316,7 @@ const postEvent = async <T extends EventTypes>(
 /*                              Helpers                                       */
 /* -------------------------------------------------------------------------- */
 
-const bindStudentIdToEventInfo = <T extends EventTypes>(
+const bindStudentIdToEventInfo = <T extends EventType>(
     eventType: T,
     ids: number[],
     data: EventInfo<T>
@@ -351,7 +351,7 @@ const bindStudentIdToEventInfo = <T extends EventTypes>(
     })) as NewEvent<T>[];
 }
 
-const createDefaultEventData = <T extends EventTypes>(
+const createDefaultEventData = <T extends EventType>(
     eventType: T
 ): EventInfo<T> => {
     const {
@@ -408,7 +408,7 @@ const createDefaultEventData = <T extends EventTypes>(
 /* -------------------------------------------------------------------------- */
 //dropped since the backend returns the message only
 const createPartialAddToastMessage = (
-    eventType: EventTypes,
+    eventType: EventType,
     insertedCount: number,
     skippedIds: number[]
 ) => {

@@ -172,7 +172,7 @@ export type LocalInfraction = Infraction & {
   class_id: number;
 } & Omit<Class, "id">;
 
-export type EventTypes = "lateness" | "absence" | "infraction";
+export type EventType = "lateness" | "absence" | "infraction";
 export type Gender = "M" | "F";
 export type SchoolLevel = "primary" | "middle" | "high";
 export type StudentStatus = "active" | "graduated" | "dropped" | "transferred";

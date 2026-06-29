@@ -16,15 +16,15 @@ import type {
   XLSXLateness,
   XLSXAbsence,
   Infraction,
-  EventTypes,
+  EventType,
   XLSXInfraction,
 } from "./types";
 
 export const eventTypesArabicDict = {
   lateness: "التأخر",
   absence: "الغياب",
-  Infraction: "المخالفة",
-} as const satisfies Record<EventTypes, string>;
+  infraction: "المخالفة",
+} as const satisfies Record<EventType, string>;
 
 export const genderOptions = [
   { label: "ذكر", value: "M" },
