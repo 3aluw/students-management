@@ -6,12 +6,14 @@ import type {
   EditStudent,
   InArabic,
   LocalAbsence,
+  LocalInfraction,
   LocalLateness,
   NewStudent,
   Option,
   PropDict,
   Student,
   XLSXAbsence,
+  XLSXInfraction,
   XLSXLateness,
   XLSXStudent,
 } from "~/models/types";
@@ -79,8 +81,13 @@ export const formatStudentsForExcelExport = (
 
 /*=================== EVENTS =================*/
 
-type ExcelEventVersion<T extends LocalLateness | LocalAbsence> =
-  T extends LocalLateness ? XLSXLateness : XLSXAbsence;
+type ExcelEventVersion<
+  T extends LocalLateness | LocalAbsence | LocalInfraction,
+> = T extends LocalLateness
+  ? XLSXLateness
+  : T extends LocalAbsence
+    ? XLSXAbsence
+    : XLSXInfraction;
 
 /**
  * Transforms an absence or lateness event into XLSX-compatible format for Excel export.
@@ -106,25 +113,41 @@ type ExcelEventVersion<T extends LocalLateness | LocalAbsence> =
  * // Returns: { ...base, late_by: 15 }
  * ```
  */
-const eventToXLSXFormat = <T extends LocalAbsence | LocalLateness>(
+const eventToXLSXFormat = <
+  T extends LocalAbsence | LocalLateness | LocalInfraction,
+>(
   event: T,
   classOptions: Option[],
 ): ExcelEventVersion<T> => {
   const { reason, first_name, last_name } = event;
 
-  const base: XLSXAbsence = {
+  const base = {
     reason,
     first_name,
     last_name,
-    reason_accepted: Boolean(event.reason_accepted),
     date: new Date(event.date),
     class: getClassName(classOptions, event.class_id) ?? "",
   };
 
   if ("late_by" in event) {
-    return { ...base, late_by: event.late_by } as ExcelEventVersion<T>;
+    return {
+      ...base,
+      late_by: event.late_by,
+      reason_accepted: Boolean(event.reason_accepted),
+    } as ExcelEventVersion<T>;
   }
-
+  if ("reason_accepted" in event) {
+    return {
+      ...base,
+      reason_accepted: Boolean(event.reason_accepted),
+    } as ExcelEventVersion<T>;
+  }
+  if ("minutes_after_start" in event) {
+    return {
+      ...base,
+      subject : event.subject
+    } as ExcelEventVersion<T>;
+  }
   return base as ExcelEventVersion<T>;
 };
 
@@ -145,15 +168,15 @@ const eventToXLSXFormat = <T extends LocalAbsence | LocalLateness>(
  * ```typescript
  * const events = [absence1, lateness1];
  * const formatted = formatEventsForExcelExport(
- *   events, 
- *   ArabicXLSXEventProperties, 
+ *   events,
+ *   ArabicXLSXEventProperties,
  *   classOptions
  * );
  * // Returns: [{ "السبب": "Sick", "الاسم الأول": "Ahmed", "التأخير": 15 }, ...]
  * ```
  */
 export const formatEventsForExcelExport = <
-  T extends LocalAbsence | LocalLateness,
+  T extends LocalAbsence | LocalLateness | LocalInfraction,
   XLSXT extends ExcelEventVersion<T>,
   Dict extends PropDict<XLSXT>,
 >(
@@ -238,7 +261,9 @@ type ImportedXLSXData =
  * }
  * ```
  */
-export async function parseExcelFileToJSON(file: File): Promise<ImportedXLSXData> {
+export async function parseExcelFileToJSON(
+  file: File,
+): Promise<ImportedXLSXData> {
   try {
     const fileData = await file.arrayBuffer();
 
@@ -294,7 +319,6 @@ const isExistingStudent = (
   student: XLSXStudent | NewXLSXStudent,
 ): student is XLSXStudent =>
   "id" in student && typeof student["id"] === "number";
-
 
 /**
  * Groups XLSX student data into existing and new students based on presence of an ID.
@@ -369,7 +393,6 @@ export const formatPossibleNewStudents = (
 
 /*=========== Possible Existing students logic ==========*/
 
- 
 /**
  * Categorizes existing XLSX students into update, removal, and transfer candidates.
  * @param existingStudents - Array of XLSX students with IDs (from Excel).
@@ -385,7 +408,7 @@ export const formatPossibleNewStudents = (
  *      if he is in the Excel but not in class : the user may want to transfer him from another class
  * @example
  * ```typescript
- * const { editStudents, transferCandidates, toRemoveCandidates } = 
+ * const { editStudents, transferCandidates, toRemoveCandidates } =
  *   categorizeExistingStudentsByAction(excelStudents, classStudents);
  * // editStudents: [{ id: 1, first_name: "Updated Name" }]
  * // transferCandidates: [{ id: 2, first_name: "Ahmed" }] // Not in this class
@@ -427,7 +450,6 @@ export const groupPossibleExistingStudents = (
   };
 };
 
-
 /**
  * Categorizes transfer candidates into valid transfers and non-existent students.
  * @param XLSXStudents - Array of XLSX students flagged for transfer.
@@ -443,7 +465,7 @@ export const groupPossibleExistingStudents = (
  * @example
  * ```typescript
  * const studentMap = new Map([[1, student1], [2, student2]]);
- * const { trueTransferCandidates, NonexistentStudents } = 
+ * const { trueTransferCandidates, NonexistentStudents } =
  *   categorizeTransferCandidates(transferStudents, studentMap);
  * // trueTransferCandidates: [student1, student2]
  * // NonexistentStudents: [{ id: 3, first_name: "Unknown" }]
@@ -482,7 +504,6 @@ export const groupPossibleTransferStudents = (
     NonexistentStudents,
   };
 };
-
 
 /**
  * Compares an Excel student with the database record and returns only changed fields.
